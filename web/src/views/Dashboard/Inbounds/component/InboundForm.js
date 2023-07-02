@@ -137,7 +137,7 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                                onBlur={formik.handleBlur}
                                value={formik.values.id}/>
 
-                        <Stack spacing={8} direction={['column', 'row']}>
+                        <Stack spacing={8} direction={['column', 'column']}>
 
                             <Box>
                                 <FormControl isInvalid={formik.touched.remark && formik.errors.remark}>

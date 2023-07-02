@@ -132,9 +132,9 @@ const HostModal = ({isOpen, onClose, btnRef, host}) => {
                                onBlur={formik.handleBlur}
                                value={formik.values.id}/>
 
-                        <Stack spacing={8} direction={['column', 'row']}>
+                        <Stack spacing={8} direction={['column', 'column']}>
 
-                            <Box>
+                            <Box width='full' >
                                 <FormControl isInvalid={formik.touched.name && formik.errors.name}>
                                     <FormLabel>Name</FormLabel>
                                     <Input
