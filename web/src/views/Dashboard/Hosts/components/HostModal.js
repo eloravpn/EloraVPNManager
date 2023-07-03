@@ -244,7 +244,7 @@ const HostModal = ({isOpen, onClose, btnRef, host}) => {
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                     value={formik.values.type}
-                                    placeholder='Select option'>
+                                    placeholder='Select Type'>
 
                                 <option value='X-UI-MHSANAEI'>X-UI SAnaei</option>
                             </Select>

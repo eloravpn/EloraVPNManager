@@ -22,6 +22,7 @@ import {useFormik} from 'formik';
 import {HostAPI} from "../../../../api/HostAPI";
 import {toast} from "../../../../index";
 import {useNavigate} from "react-router-dom";
+import {InboundAPI} from "../../../../api/InboundAPI";
 
 const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
 
@@ -34,7 +35,7 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
         const errors = {};
 
         if (!values.remark) {
-            errors.name = 'Required';
+            errors.remark = 'Required';
         } else if (!values.host_id) {
             errors.host_id = 'Required';
         }
@@ -56,8 +57,18 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
         enableReinitialize: true,
         initialValues: {
             id: inbound ? inbound.id : 0,
-            remark: inbound ? inbound.name : '',
+            remark: inbound ? inbound.remark : '',
             host_id: inbound ? inbound.host_id : '',
+            port: inbound ? inbound.port : '',
+            domain: inbound ? inbound.domain : '',
+            request_host: inbound ? inbound.request_host : '',
+            sni: inbound ? inbound.sni : '',
+            address: inbound ? inbound.address : '',
+            path: inbound ? inbound.path : '',
+            enable: inbound ? inbound.enable : true,
+            develop: inbound ? inbound.develop : '',
+            type: inbound ? inbound.type : 'vless',
+            security: inbound ? inbound.security : 'tls'
 
         }, validate, onSubmit: (values) => {
 
@@ -69,45 +80,43 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
             alert(JSON.stringify(values, null, 4));
 
 
-            // if (values.id == 0) {
-            //     HostAPI.createHost(values).then((res) => {
-            //         // const toast = useToast()
-            //         toast({
-            //             title: 'Host created.',
-            //             status: 'success',
-            //             duration: 9000,
-            //             isClosable: true,
-            //         });
-            //
-            //         navigate('/admin/hosts');
-            //
-            //         onClose();
-            //
-            //         resetForm({values: ''})
-            //
-            //     }).catch(() => {
-            //         setError(true);
-            //     });
-            // } else {
-            //     HostAPI.updateHost(values).then((res) => {
-            //         // const toast = useToast()
-            //
-            //         toast({
-            //             title: 'Host updated.',
-            //             status: 'success',
-            //             duration: 9000,
-            //             isClosable: true,
-            //         });
-            //
-            //         navigate('/admin/hosts');
-            //
-            //         onClose();
-            //
-            //         resetForm({values: ''})
-            //     }).catch(() => {
-            //         setError(true);
-            //     });
-            // }
+            if (values.id === 0) {
+                InboundAPI.create(values).then((res) => {
+                    // const toast = useToast()
+                    toast({
+                        title: 'Inbound created.',
+                        status: 'success',
+                        duration: 9000,
+                        isClosable: true,
+                    });
+
+                    navigate('/admin/inbounds');
+
+                    onClose();
+
+
+                }).catch(() => {
+                    setError(true);
+                });
+            } else {
+                InboundAPI.update(values).then((res) => {
+                    // const toast = useToast()
+
+                    toast({
+                        title: 'Inbound updated.',
+                        status: 'success',
+                        duration: 9000,
+                        isClosable: true,
+                    });
+
+                    navigate('/admin/inbounds');
+
+                    onClose();
+
+                }).catch(() => {
+                    setError(true);
+                });
+            }
         },
     });
 
@@ -154,20 +163,6 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                             </Box>
 
                             <Box>
-                                <FormControl isInvalid={formik.touched.remark && formik.errors.remark}>
-                                    <FormLabel>Port</FormLabel>
-                                    <Input
-                                        id={'port'} name={'port'}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.port}
-                                        type='text'/>
-                                    {formik.touched.port && formik.errors.port ? (
-                                        <FormErrorMessage>{formik.errors.port}</FormErrorMessage>) : null}
-                                </FormControl>
-                            </Box>
-
-                            <Box>
                                 <FormControl isInvalid={formik.touched.port && formik.errors.port}>
                                     <FormLabel>Port</FormLabel>
                                     <Input
@@ -180,6 +175,7 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                                         <FormErrorMessage>{formik.errors.port}</FormErrorMessage>) : null}
                                 </FormControl>
                             </Box>
+
 
                             <Box>
                                 <FormControl isInvalid={formik.touched.domain && formik.errors.domain}>
@@ -241,7 +237,7 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                                 <FormControl isInvalid={formik.touched.path && formik.errors.path}>
                                     <FormLabel>Path</FormLabel>
                                     <Input
-                                        id={'address'} name={'address'}
+                                        id={'path'} name={'path'}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         value={formik.values.path}
@@ -251,19 +247,51 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                                 </FormControl>
                             </Box>
 
-                            <Box>
-                                <FormControl isInvalid={formik.touched.path && formik.errors.path}>
-                                    <FormLabel>Path</FormLabel>
-                                    <Input
-                                        id={'address'} name={'address'}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.path}
-                                        type='text'/>
-                                    {formik.touched.path && formik.errors.path ? (
-                                        <FormErrorMessage>{formik.errors.path}</FormErrorMessage>) : null}
-                                </FormControl>
-                            </Box>
+
+                             <Select name={'security'}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    value={formik.values.security}
+                                    placeholder='Select Security'>
+
+                                 <option value='tls'>TLS</option>
+                                 <option value='none'>None</option>
+                            </Select>
+
+                              <Select name={'type'}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    value={formik.values.type}
+                                    placeholder='Select Type'>
+
+                                <option value='vless'>VLESS</option>
+                                <option value='vmess'>VMESS</option>
+                                <option value='trojan'>Trojan</option>
+                                <option value='shadowsocks'>Shadowsocks</option>
+                            </Select>
+
+                            <FormControl isInvalid={formik.touched.host_id && formik.errors.host_id}>
+                                  <Select name={'host_id'}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    value={formik.values.host_id}
+                                    placeholder='Select Host'>
+
+                                {
+                                    hosts ? hosts.map((host) => (
+                                            <option value={host.id}>
+                                                {host.name}
+                                            </option>
+                                        )
+                                    ) : ('')
+                                }
+
+                            </Select>
+
+                                {formik.touched.host_id && formik.errors.host_id ? (
+                                        <FormErrorMessage>{formik.errors.host_id}</FormErrorMessage>) : null}
+                            </FormControl>
+
 
 
                              <Stack spacing={5} direction='row'>
@@ -291,22 +319,7 @@ const InboundForm = ({isOpen, onClose, btnRef, inbound}) => {
                                 />
                             </Stack>
 
-                            <Select name={'host_id'}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    value={formik.values.host_id}
-                                    placeholder='Select Host'>
 
-                                {
-                                    hosts ? hosts.map((host) => (
-                                            <option value={host.id}>
-                                                {host.name}
-                                            </option>
-                                        )
-                                    ) : ('')
-                                }
-
-                            </Select>
 
                         </Stack>
 

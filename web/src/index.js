@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import {Alert, AlertIcon, ChakraProvider} from '@chakra-ui/react'
@@ -15,13 +14,13 @@ import {
     useRouteError
 } from "react-router-dom";
 import Admin from "./layouts/Admin";
-import ErrorPage from "./error-page";
 import Tables from "./views/Dashboard/Tables";
 import HostsRoot, {loader as hostsRootLoader} from "./routes/hosts/root";
 import InboundsRoot, {loader as inboundsRootLoader} from "./routes/inbounds/root"
 
 // import Host, {action as newHostAction, loader as hostLoader} from "./routes/hosts/host";
-import {action as destroyAction} from "./routes/hosts/destroy";
+import {action as destroyHostAction} from "./routes/hosts/destroy";
+import {action as destroyInboundAction} from "./routes/inbounds/destroy";
 import Dashboard from "./views/Dashboard/Dashboard";
 
 import {createStandaloneToast} from '@chakra-ui/react'
@@ -30,29 +29,6 @@ import Login from "./views/Dashboard/Login";
 export const {toast} = createStandaloneToast()
 // Enable RTl support
 // document.documentElement.dir = 'rtl';
-
-
-// const router = createBrowserRouter([
-//     {
-//         path: "/",
-//         element: <h2> Landing Page </h2>,
-//         errorElement: <ErrorPage/>,
-//     },
-//     {
-//         path: "/admin",
-//         element: <Admin/>,
-//         children: [
-//             {
-//                 path: "dashboard",
-//                 element: <Dashboard/>
-//             },
-//             {
-//                 path: "hosts",
-//                 element: <Tables/>
-//             }
-//         ]
-//     },
-// ]);
 
 
 let router = createBrowserRouter([
@@ -77,7 +53,7 @@ let router = createBrowserRouter([
                         path: "host/:hostId/destroy",
                         // element: <Host/>,
                         // loader: hostLoader,
-                        action: destroyAction,
+                        action: destroyHostAction,
                         // errorElement: <h2>Host not found</h2>,
                     },
                 ],
@@ -91,11 +67,8 @@ let router = createBrowserRouter([
 
 
                     {
-                        path: "host/:hostId/destroy",
-                        // element: <Host/>,
-                        // loader: hostLoader,
-                        action: destroyAction,
-                        // errorElement: <h2>Host not found</h2>,
+                        path: "inbound/:inboundId/destroy",
+                        action: destroyInboundAction,
                     },
                 ],
             }
@@ -118,36 +91,11 @@ function ErrorBoundary() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    // <React.StrictMode>
-    //   <App />
-    // </React.StrictM
-
     <React.StrictMode>
         <RouterProvider router={router}/>
-        {/* <HashRouter>*/}
-        {/*    <Routes>*/}
-        {/*        <Route path={`/admin`} element={Admin} />*/}
-        {/*        /!*<Navigate  from={`/`} to="/admin/dashboard" />*!/*/}
-        {/*    </Routes>*/}
-        {/*</HashRouter>*/}
     </React.StrictMode>
-
-
-
-
-    // <ChakraProvider>
-    //     <App />
-    // </ChakraProvider>
 );
 
-// root.render(
-//        <HashRouter>
-//         <Routes>
-//             <Route path={`/admin`} component={Admin} />
-//             {/*<Navigate  from={`/`} to="/admin/dashboard" />*/}
-//         </Routes>
-//     </HashRouter>
-// );
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

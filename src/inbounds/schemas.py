@@ -14,7 +14,7 @@ class InboundType(str, Enum):
 
 
 class InboundSecurity(str, Enum):
-    inbound_default = "inbound_default"
+    inbound_default = "tls"
     none = "none"
     tls = "tls"
 

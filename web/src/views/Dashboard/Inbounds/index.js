@@ -71,12 +71,49 @@ const Inbounds = ({data}) => {
     return (
         <VStack spacing={4} p={5} align='stretch'>
 
-             <InboundForm
+            <InboundForm
                 isOpen={isEditOpen}
                 onClose={onEditClose}
                 btnRef={btnRef}
-                // inbound={host}
+                inbound={inbound}
             />
+
+            <AlertDialog
+                isOpen={isOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={onClose}
+            >
+
+                <AlertDialogOverlay>
+                    <AlertDialogContent>
+                        <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                            Delete {inbound ? inbound.remark : ''}
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>
+                            Are you sure? You can't undo this action afterwards.
+                        </AlertDialogBody>
+
+                        <AlertDialogFooter>
+                            <Button ref={cancelRef} onClick={onClose}>
+                                Cancel
+                            </Button>
+
+                            <Form
+                                method="post"
+                                action={`inbound/${inbound ? inbound.id : 0}/destroy`}
+                                onSubmit={onClose}
+                            >
+                                <Button colorScheme='red' type={'submit'} ml={3}>
+                                    Delete
+                                </Button>
+                            </Form>
+
+
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
 
             <Box>
                 <Heading as='h3' size='lg'>
@@ -146,6 +183,26 @@ const Inbounds = ({data}) => {
                                                         <MenuButton as={Button} rightIcon={<ChevronDownIcon/>}>
                                                             Actions
                                                         </MenuButton>
+
+                                                        <MenuList>
+
+                                                            <MenuItem icon={<DeleteIcon/>} onClick={() => {
+                                                                setInbound(inbound);
+                                                                onOpen();
+                                                            }
+                                                            }>
+                                                                Delete
+                                                            </MenuItem>
+                                                            <MenuItem icon={<EditIcon/>} onClick={() => {
+                                                                setInbound(inbound);
+                                                                onEditOpen();
+                                                            }
+                                                            }>
+                                                                Edit
+                                                            </MenuItem>
+                                                        </MenuList>
+
+
                                                     </Menu>
                                                 </Td>
 

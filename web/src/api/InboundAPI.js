@@ -16,28 +16,26 @@ export const InboundAPI = {
     //     console.log(response);
     //     return response.data;
     // },
-    // createHost: async function (host) {
-    //     await api.request({
-    //         url: `/hosts/`,
-    //         method: "POST",
-    //         data: host
-    //     })
-    // },
-    // updateHost: async function (host) {
-    //     console.log('Host Update :', host);
-    //     await api.request({
-    //         url: `/hosts/${host.id}`,
-    //         method: "PUT",
-    //         data: host
-    //     })
-    // },
-    // deleteHost: async function (hostId) {
-    //     console.log('Host delete :', hostId);
-    //     await api.request({
-    //         url: `/hosts/${hostId}`,
-    //         method: "DELETE"
-    //     })
-    // },
+    create: async function (inbound) {
+        await api.request({
+            url: `/inbounds/`,
+            method: "POST",
+            data: inbound
+        })
+    },
+    update: async function (inbound) {
+        await api.request({
+            url: `/inbounds/${inbound.id}`,
+            method: "PUT",
+            data: inbound
+        })
+    },
+    delete: async function (inboundId) {
+        await api.request({
+            url: `/inbounds/${inboundId}`,
+            method: "DELETE"
+        })
+    },
     getAll: async function () {
 
 
