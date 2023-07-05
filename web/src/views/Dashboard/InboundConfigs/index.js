@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Form,
-  Link,
   useActionData,
   useLocation,
   useNavigate,
@@ -15,28 +14,12 @@ import {
   AlertDialogOverlay,
   Box,
   Button,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
   Heading,
-  Input,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Stack,
   Table,
-  TableCaption,
   TableContainer,
   Tbody,
   Td,
@@ -52,20 +35,18 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   EditIcon,
-  EmailIcon,
   NotAllowedIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
-import HostModal from "./components/HostModal";
+import InboundConfigForm from "./components/InboundConfigForm";
 
-const Hosts = ({ hosts }) => {
+export const InboundConfigs = ({ data }) => {
   const navigate = useNavigate();
 
   let location = useLocation();
   let actionData = useActionData();
-  const [hostId, setHostId] = useState();
 
-  const [host, setHost] = useState();
+  const [inboundConfig, setInboundConfig] = useState(null);
 
   const { isOpen, onOpen, onClose, getButtonProps } = useDisclosure();
 
@@ -83,11 +64,11 @@ const Hosts = ({ hosts }) => {
 
   return (
     <VStack spacing={4} p={5} align="stretch">
-      <HostModal
+      <InboundConfigForm
         isOpen={isEditOpen}
         onClose={onEditClose}
         btnRef={btnRef}
-        host={host}
+        inboundConfig={inboundConfig}
       />
 
       <AlertDialog
@@ -98,7 +79,7 @@ const Hosts = ({ hosts }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Customer
+              Delete {inboundConfig ? inboundConfig.remark : ""}
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -112,7 +93,9 @@ const Hosts = ({ hosts }) => {
 
               <Form
                 method="post"
-                action={`host/${hostId}/destroy`}
+                action={`inbound-config/${
+                  inboundConfig ? inboundConfig.id : 0
+                }/destroy`}
                 onSubmit={onClose}
               >
                 <Button colorScheme="red" type={"submit"} ml={3}>
@@ -123,67 +106,58 @@ const Hosts = ({ hosts }) => {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-
       <Box>
         <Heading as="h3" size="lg">
-          Hosts
+          Inbound configs
         </Heading>
       </Box>
-
       <Box>
-        {/*<Link to="new">*/}
-
-        {/*    <Button leftIcon={<EmailIcon/>} colorScheme='teal' variant='solid'>*/}
-        {/*        Create Host*/}
-        {/*    </Button>*/}
-        {/*</Link>*/}
-
         <Button
           leftIcon={<AddIcon />}
           ref={btnRef}
           colorScheme="teal"
           onClick={() => {
-            setHost(null);
+            setInboundConfig(null);
             onEditOpen();
           }}
         >
-          Create host
+          Create inbound config
         </Button>
+      </Box>
 
-        {/*<Outlet/>*/}
-
-        {hosts.length ? (
+      <Box>
+        {data.length ? (
           <TableContainer>
             <Table variant="striped" colorScheme="teal">
               <Thead>
                 <Tr>
-                  <Th>Name</Th>
-                  <Th>IP</Th>
+                  <Th>Remark</Th>
+                  <Th>Inbound</Th>
                   <Th>Domain</Th>
-                  <Th>Master</Th>
+                  <Th>SNI</Th>
+                  <Th>Type</Th>
                   <Th>Enable</Th>
+                  <Th>Develop</Th>
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {hosts.map((host) => (
-                  // <Link to={`hosts/${host.id}`}>
-
-                  <Tr key={host.id}>
+                {data.map((inboundConfig) => (
+                  <Tr key={inboundConfig.id}>
+                    <Td>{inboundConfig.remark}</Td>
+                    <Td>{inboundConfig.inbound.remark}</Td>
+                    <Td>{inboundConfig.domain}</Td>
+                    <Td>{inboundConfig.sni}</Td>
+                    <Td>{inboundConfig.type}</Td>
                     <Td>
-                      <Link to={`host/${host.id}`}>{host.name}</Link>
-                    </Td>
-                    <Td>{host.ip}</Td>
-                    <Td>{host.domain}</Td>
-                    <Td>
-                      {host.master ? (
+                      {inboundConfig.develop ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
                       )}
                     </Td>
                     <Td>
-                      {host.enable ? (
+                      {inboundConfig.enable ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
@@ -195,11 +169,12 @@ const Hosts = ({ hosts }) => {
                         <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                           <SettingsIcon />
                         </MenuButton>
+
                         <MenuList>
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => {
-                              setHostId(host.id);
+                              setInboundConfig(inboundConfig);
                               onOpen();
                             }}
                           >
@@ -208,34 +183,24 @@ const Hosts = ({ hosts }) => {
                           <MenuItem
                             icon={<EditIcon />}
                             onClick={() => {
-                              // navigate(`host/${host.id}`)
-                              setHost(host);
+                              setInboundConfig(inboundConfig);
                               onEditOpen();
                             }}
                           >
                             Edit
-                            {/*<Link to={}>Edit</Link>*/}
                           </MenuItem>
-                          {/*<MenuItem>Mark as Draft</MenuItem>*/}
-                          {/*<MenuItem>Delete</MenuItem>*/}
-                          {/*<MenuItem>Attend a Workshop</MenuItem>*/}
                         </MenuList>
                       </Menu>
                     </Td>
-                    {/*</Link>*/}
                   </Tr>
                 ))}
               </Tbody>
             </Table>
           </TableContainer>
         ) : (
-          <p>
-            <i>No hosts</i>
-          </p>
+          <div>No Inbound configs</div>
         )}
       </Box>
     </VStack>
   );
 };
-
-export default Hosts;

@@ -1,21 +1,16 @@
-import os
 from datetime import datetime
 
-from src.database import Base
 from sqlalchemy import (
-    JSON,
-    BigInteger,
     Column,
     DateTime,
     Enum,
-    ForeignKey,
     Integer,
     String,
-    Table,
-    UniqueConstraint, Boolean,
+    Boolean,
 )
-from sqlalchemy.orm import relationship, mapped_column
+from sqlalchemy.orm import relationship
 
+from src.database import Base
 from src.hosts.schemas import HostType
 
 
@@ -37,6 +32,5 @@ class Host(Base):
     type = Column(Enum(HostType), nullable=False,
                   default=HostType.x_ui_sanaei)
 
-    # users = relationship("User", back_populates="admin")
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

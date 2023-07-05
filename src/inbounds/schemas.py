@@ -3,9 +3,11 @@ from typing import List
 
 from pydantic import BaseModel, validator, root_validator
 
+from src.hosts.schemas import HostResponse
+
 
 class InboundType(str, Enum):
-    # inbound_type = protocol
+    default = "vless"
 
     VMess = "vmess"
     VLESS = "vless"
@@ -14,9 +16,18 @@ class InboundType(str, Enum):
 
 
 class InboundSecurity(str, Enum):
-    inbound_default = "tls"
+    default = "tls"
+
     none = "none"
     tls = "tls"
+
+
+class InboundFingerPrint(str, Enum):
+    default = "none"
+
+    none = "none"
+    chrome = "chrome"
+    firefox = "firefox"
 
 
 class InboundBase(BaseModel):
@@ -30,8 +41,8 @@ class InboundBase(BaseModel):
     path: str
     enable: bool
     develop: bool
-    security: InboundSecurity = InboundSecurity.tls
-    type: InboundType = InboundType.VLESS
+    security: InboundSecurity = InboundSecurity.default
+    type: InboundType = InboundType.default
 
 
 class InboundCreate(InboundBase):
@@ -49,6 +60,7 @@ class InboundModify(InboundBase):
 
 class InboundResponse(InboundBase):
     id: int
+    host: HostResponse
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

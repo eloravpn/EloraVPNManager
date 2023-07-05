@@ -10,6 +10,7 @@ from src.admins.router import router as admin_router
 from src.database import Base, engine
 from src.hosts.router import router as host_router
 from src.inbounds.router import router as inbound_router
+from src.inbound_configs.router import router as inbound_config_router
 
 app = FastAPI(
     docs_url='/docs' if DOCS else None,
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(host_router, prefix="/api", tags=["Host"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
+app.include_router(inbound_config_router, prefix="/api", tags=["InboundConfig"])
 
 
 # from src import dashboard, jobs, hosts, telegram  # noqa
@@ -39,10 +41,9 @@ app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
 @app.on_event("startup")
 def on_startup():
     scheduler.start()
-    print('OK')
-    Base.metadata.drop_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-
+    print('Application started successfully!')
 
 
 @app.on_event("shutdown")

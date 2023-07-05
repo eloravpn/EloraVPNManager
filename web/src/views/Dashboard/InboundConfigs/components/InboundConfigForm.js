@@ -24,20 +24,21 @@ import { HostAPI } from "../../../../api/HostAPI";
 import { toast } from "../../../../index";
 import { useNavigate } from "react-router-dom";
 import { InboundAPI } from "../../../../api/InboundAPI";
+import { InboundConfigAPI } from "api/InboundConfigAPI";
 
-const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
+const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
   const navigate = useNavigate();
 
   const [error, setError] = useState(false);
-  const [hosts, setHosts] = useState(null);
+  const [inbounds, setInbounds] = useState(null);
 
   const validate = (values) => {
     const errors = {};
 
     if (!values.remark) {
       errors.remark = "Required";
-    } else if (!values.host_id) {
-      errors.host_id = "Required";
+    } else if (!values.inbound_id) {
+      errors.inbound_id = "Required";
     }
 
     return errors;
@@ -45,8 +46,8 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
 
   useEffect(() => {
     return () => {
-      HostAPI.getAll().then((res) => {
-        setHosts(res);
+      InboundAPI.getAll().then((res) => {
+        setInbounds(res);
       });
     };
   }, []);
@@ -54,19 +55,20 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      id: inbound ? inbound.id : 0,
-      remark: inbound ? inbound.remark : "",
-      host_id: inbound ? inbound.host_id : "",
-      port: inbound ? inbound.port : "",
-      domain: inbound ? inbound.domain : "",
-      request_host: inbound ? inbound.request_host : "",
-      sni: inbound ? inbound.sni : "",
-      address: inbound ? inbound.address : "",
-      path: inbound ? inbound.path : "",
-      enable: inbound ? inbound.enable : true,
-      develop: inbound ? inbound.develop : "",
-      type: inbound ? inbound.type : "vless",
-      security: inbound ? inbound.security : "tls",
+      id: inboundConfig ? inboundConfig.id : 0,
+      remark: inboundConfig ? inboundConfig.remark : "",
+      inbound_id: inboundConfig ? inboundConfig.inbound_id : "",
+      port: inboundConfig ? inboundConfig.port : "",
+      domain: inboundConfig ? inboundConfig.domain : "",
+      host: inboundConfig ? inboundConfig.host : "",
+      sni: inboundConfig ? inboundConfig.sni : "",
+      address: inboundConfig ? inboundConfig.address : "",
+      path: inboundConfig ? inboundConfig.path : "",
+      enable: inboundConfig ? inboundConfig.enable : true,
+      develop: inboundConfig ? inboundConfig.develop : "",
+      type: inboundConfig ? inboundConfig.type : "vless",
+      finger_print: inboundConfig ? inboundConfig.finger_print : "none",
+      security: inboundConfig ? inboundConfig.security : "tls",
     },
     validate,
     onSubmit: (values) => {
@@ -75,20 +77,20 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
       values.develop ? (values.develop = true) : (values.develop = false);
       values.enable ? (values.enable = true) : (values.enable = false);
 
-      //   alert(JSON.stringify(values, null, 4));
+      // alert(JSON.stringify(values, null, 4));
 
       if (values.id === 0) {
-        InboundAPI.create(values)
+        InboundConfigAPI.create(values)
           .then((res) => {
             // const toast = useToast()
             toast({
-              title: "Inbound created.",
+              title: "Inbound config created.",
               status: "success",
               duration: 9000,
               isClosable: true,
             });
 
-            navigate("/admin/inbounds");
+            navigate("/admin/inbound-configs");
 
             onClose();
           })
@@ -96,18 +98,18 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
             setError(true);
           });
       } else {
-        InboundAPI.update(values)
+        InboundConfigAPI.update(values)
           .then((res) => {
             // const toast = useToast()
 
             toast({
-              title: "Inbound updated.",
+              title: "Inbound config updated.",
               status: "success",
               duration: 9000,
               isClosable: true,
             });
 
-            navigate("/admin/inbounds");
+            navigate("/admin/inbound-configs");
 
             onClose();
           })
@@ -130,7 +132,7 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
       <DrawerContent>
         <DrawerCloseButton />
         <DrawerHeader>
-          {!inbound ? "Create inbound" : "Edit inbound"}
+          {!inboundConfig ? "Create inbound config" : "Edit inbound config"}
         </DrawerHeader>
 
         <DrawerBody>
@@ -164,7 +166,7 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                     name={"remark"}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    value={formik.values.remark}
+                    defaultValue={formik.values.remark}
                     type="text"
                   />
                   {formik.touched.remark && formik.errors.remark ? (
@@ -213,23 +215,19 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
 
               <Box>
                 <FormControl
-                  isInvalid={
-                    formik.touched.request_host && formik.errors.request_host
-                  }
+                  isInvalid={formik.touched.host && formik.errors.host}
                 >
                   <FormLabel>Request Host</FormLabel>
                   <Input
-                    id={"request_host"}
-                    name={"request_host"}
+                    id={"host"}
+                    name={"host"}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    value={formik.values.request_host}
+                    value={formik.values.host}
                     type="text"
                   />
-                  {formik.touched.request_host && formik.errors.request_host ? (
-                    <FormErrorMessage>
-                      {formik.errors.request_host}
-                    </FormErrorMessage>
+                  {formik.touched.host && formik.errors.host ? (
+                    <FormErrorMessage>{formik.errors.host}</FormErrorMessage>
                   ) : null}
                 </FormControl>
               </Box>
@@ -291,51 +289,82 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                 </FormControl>
               </Box>
 
-              <Select
-                name={"security"}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.security}
-                placeholder="Select Security"
-              >
-                <option value="tls">TLS</option>
-                <option value="none">None</option>
-              </Select>
+              <Box>
+                <FormLabel>Security</FormLabel>
 
-              <Select
-                name={"type"}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.type}
-                placeholder="Select Type"
-              >
-                <option value="vless">VLESS</option>
-                <option value="vmess">VMESS</option>
-                <option value="trojan">Trojan</option>
-                <option value="shadowsocks">Shadowsocks</option>
-              </Select>
-
-              <FormControl
-                isInvalid={formik.touched.host_id && formik.errors.host_id}
-              >
                 <Select
-                  name={"host_id"}
+                  name={"security"}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  value={formik.values.host_id}
-                  placeholder="Select Host"
+                  value={formik.values.security}
+                  placeholder="Select Security"
                 >
-                  {hosts
-                    ? hosts.map((host) => (
-                        <option value={host.id}>{host.name}</option>
-                      ))
-                    : ""}
+                  <option value="tls">TLS</option>
+                  <option value="none">None</option>
                 </Select>
+              </Box>
 
-                {formik.touched.host_id && formik.errors.host_id ? (
-                  <FormErrorMessage>{formik.errors.host_id}</FormErrorMessage>
-                ) : null}
-              </FormControl>
+              <Box>
+                <FormLabel>Finger Print</FormLabel>
+                <Select
+                  name={"finger_print"}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.finger_print}
+                  placeholder="Select Finger Print"
+                >
+                  <option value="none">None</option>
+                  <option value="chrome">Chrome</option>
+                  <option value="firefox">Firefox</option>
+                </Select>
+              </Box>
+
+              <Box>
+                <FormLabel>Type</FormLabel>
+
+                <Select
+                  name={"type"}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.type}
+                  placeholder="Select Type"
+                >
+                  <option value="vless">VLESS</option>
+                  <option value="vmess">VMESS</option>
+                  <option value="trojan">Trojan</option>
+                  <option value="shadowsocks">Shadowsocks</option>
+                </Select>
+              </Box>
+
+              <Box>
+                <FormLabel>Type</FormLabel>
+
+                <FormControl
+                  isInvalid={
+                    formik.touched.inbound_id && formik.errors.inbound_id
+                  }
+                >
+                  <Select
+                    name={"inbound_id"}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.inbound_id}
+                    placeholder="Select Inbound"
+                  >
+                    {inbounds
+                      ? inbounds.map((inbound) => (
+                          <option value={inbound.id}>{inbound.remark}</option>
+                        ))
+                      : ""}
+                  </Select>
+
+                  {formik.touched.inbound_id && formik.errors.inbound_id ? (
+                    <FormErrorMessage>
+                      {formik.errors.inbound_id}
+                    </FormErrorMessage>
+                  ) : null}
+                </FormControl>
+              </Box>
 
               <Stack spacing={5} direction="row">
                 <FormLabel htmlFor="enable" mb="0">
@@ -343,7 +372,9 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                 </FormLabel>
                 <Switch
                   defaultChecked={
-                    (inbound && inbound.enable) || !inbound ? true : false
+                    (inboundConfig && inboundConfig.enable) || !inboundConfig
+                      ? true
+                      : false
                   }
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
@@ -356,7 +387,9 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                   Develop?
                 </FormLabel>
                 <Switch
-                  defaultChecked={inbound && inbound.develop ? true : false}
+                  defaultChecked={
+                    inboundConfig && inboundConfig.develop ? true : false
+                  }
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   name={"develop"}
@@ -381,4 +414,4 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
   );
 };
 
-export default InboundForm;
+export default InboundConfigForm;

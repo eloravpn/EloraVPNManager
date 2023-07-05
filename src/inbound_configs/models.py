@@ -1,23 +1,18 @@
-import os
 from datetime import datetime
 
-from src.database import Base
 from sqlalchemy import (
-    JSON,
-    BigInteger,
     Column,
     DateTime,
     Enum,
     ForeignKey,
     Integer,
     String,
-    Table,
-    UniqueConstraint, Boolean,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
-from src.hosts.schemas import HostType
-from src.inbounds.schemas import InboundSecurity, InboundType
+from src.database import Base
+from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint
 
 
 class InboundConfig(Base):
@@ -25,6 +20,7 @@ class InboundConfig(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     inbound_id = Column(Integer, ForeignKey("inbound.id"), nullable=True)
+    inbound = relationship("Inbound", back_populates="inbound_configs")
     remark = Column(String(128), index=True)
     port = Column(Integer, index=True)
     domain = Column(String(128), index=True)
@@ -33,17 +29,25 @@ class InboundConfig(Base):
     address = Column(String(128), index=True)
     path = Column(String(400))
     enable = Column(Boolean, default=True)
-    dev_mode = Column(Boolean,default=False)
+    develop = Column(Boolean, default=False)
 
+    finger_print = Column(
+        Enum(InboundFingerPrint),
+        unique=False,
+        nullable=False,
+        default=InboundFingerPrint.default.value
+    )
 
     security = Column(
         Enum(InboundSecurity),
         unique=False,
         nullable=False,
-        default=InboundSecurity.inbound_default.value,
+        default=InboundSecurity.default.value,
     )
 
-    inbound_type = Column(Enum(InboundType), nullable=False,
-                  default=InboundType.VLESS)
+    type = Column(Enum(InboundType),
+                  nullable=False,
+                  default=InboundType.default.value)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

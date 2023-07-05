@@ -2,3 +2,4 @@
 /.env
 /db.sqlite3
 /src/db.sqlite3
+**/__pycache__

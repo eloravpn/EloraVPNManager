@@ -50,7 +50,7 @@ def get_inbound(inbound_id: int, db: Session = Depends(get_db),
 
 
 @router.delete("/inbounds/{inbound_id}", tags=["Inbound"])
-def get_inbound(inbound_id: int, db: Session = Depends(get_db),
+def delete_inbound(inbound_id: int, db: Session = Depends(get_db),
                 admin: Admin = Depends(Admin.get_current)):
     db_inbound = service.get_inbound(db, inbound_id)
     if not db_inbound:

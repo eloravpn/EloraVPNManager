@@ -1,22 +1,17 @@
-import os
 from datetime import datetime
 
-from src.database import Base
 from sqlalchemy import (
-    JSON,
-    BigInteger,
     Column,
     DateTime,
     Enum,
     ForeignKey,
     Integer,
     String,
-    Table,
-    UniqueConstraint, Boolean,
+    Boolean,
 )
-from sqlalchemy.orm import relationship, mapped_column
+from sqlalchemy.orm import relationship
 
-from src.hosts.schemas import HostType
+from src.database import Base
 from src.inbounds.schemas import InboundSecurity, InboundType
 
 
@@ -25,6 +20,7 @@ class Inbound(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     host_id = Column(Integer, ForeignKey("host.id"))
+    inbound_configs = relationship("InboundConfig", back_populates="inbound", cascade="all, delete-orphan")
     host = relationship("Host", back_populates="inbounds")
     remark = Column(String(128), index=True)
     port = Column(Integer, index=True)
@@ -40,11 +36,11 @@ class Inbound(Base):
         Enum(InboundSecurity),
         unique=False,
         nullable=False,
-        default=InboundSecurity.inbound_default.value,
+        default=InboundSecurity.default.value,
     )
 
     type = Column(Enum(InboundType), nullable=False,
-                  default=InboundType.VLESS)
+                  default=InboundType.default.value)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
