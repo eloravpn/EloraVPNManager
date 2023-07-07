@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Form } from "react-router-dom";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -9,12 +15,28 @@ import {
   AlertDialogOverlay,
   Box,
   Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
   Heading,
+  Input,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Stack,
   Table,
+  TableCaption,
   TableContainer,
   Tbody,
   Td,
@@ -30,15 +52,22 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   EditIcon,
+  EmailIcon,
   NotAllowedIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
-import InboundForm from "./component/InboundForm";
+import UserModal from "./components/UserModal";
 
-const Inbounds = ({ data }) => {
-  const [inbound, setInbound] = useState(null);
+const Users = ({ data }) => {
+  const navigate = useNavigate();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  let location = useLocation();
+  let actionData = useActionData();
+  const [hostId, setHostId] = useState();
+
+  const [user, setUser] = useState();
+
+  const { isOpen, onOpen, onClose, getButtonProps } = useDisclosure();
 
   const {
     isOpen: isEditOpen,
@@ -46,17 +75,19 @@ const Inbounds = ({ data }) => {
     onClose: onEditClose,
   } = useDisclosure();
 
+  const buttonProps = getButtonProps();
+
   const cancelRef = React.useRef();
 
   const btnRef = React.useRef();
 
   return (
     <VStack spacing={4} p={5} align="stretch">
-      <InboundForm
+      <UserModal
         isOpen={isEditOpen}
         onClose={onEditClose}
         btnRef={btnRef}
-        inbound={inbound}
+        user={user}
       />
 
       <AlertDialog
@@ -67,7 +98,7 @@ const Inbounds = ({ data }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete {inbound ? inbound.remark : ""}
+              Delete {user ? user.first_name + " " + user.last_name : ""}
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -81,7 +112,7 @@ const Inbounds = ({ data }) => {
 
               <Form
                 method="post"
-                action={`inbound/${inbound ? inbound.id : 0}/destroy`}
+                action={`user/${user ? user.id : 0}/destroy`}
                 onSubmit={onClose}
               >
                 <Button colorScheme="red" type={"submit"} ml={3}>
@@ -95,7 +126,7 @@ const Inbounds = ({ data }) => {
 
       <Box>
         <Heading as="h3" size="lg">
-          Inbounds
+          Users
         </Heading>
       </Box>
 
@@ -105,48 +136,45 @@ const Inbounds = ({ data }) => {
           ref={btnRef}
           colorScheme="teal"
           onClick={() => {
-            setInbound(null);
+            setUser(null);
             onEditOpen();
           }}
         >
-          Create inbound
+          Create User
         </Button>
       </Box>
 
       <Box>
         {data.length ? (
-          
           <TableContainer>
             <Table variant="striped" colorScheme="teal">
               <Thead>
                 <Tr>
-                  <Th>Remark</Th>
-                  <Th>Host</Th>
-                  <Th>Domain</Th>
-                  <Th>SNI</Th>
-                  <Th>Type</Th>
+                  <Th>Name</Th>
+                  <Th>Username</Th>
+                  <Th>TG Username</Th>
+                  <Th>TG Chat Id</Th>
                   <Th>Enable</Th>
-                  <Th>Develop</Th>
+                  <Th>Banned</Th>
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {data.map((inbound) => (
-                  <Tr key={inbound.id}>
-                    <Td>{inbound.remark}</Td>
-                    <Td>{inbound.host.name}</Td>
-                    <Td>{inbound.domain}</Td>
-                    <Td>{inbound.sni}</Td>
-                    <Td>{inbound.type}</Td>
+                {data.map((user) => (
+                  <Tr key={user.id}>
+                    <Td>{user.first_name + " " + user.last_name}</Td>
+                    <Td>{user.username}</Td>
+                    <Td>{user.telegram_chat_id}</Td>
+                    <Td>{user.telegram_username}</Td>
                     <Td>
-                      {inbound.develop ? (
+                      {user.enable ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
                       )}
                     </Td>
                     <Td>
-                      {inbound.enable ? (
+                      {user.banned ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
@@ -163,7 +191,7 @@ const Inbounds = ({ data }) => {
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => {
-                              setInbound(inbound);
+                              setUser(user);
                               onOpen();
                             }}
                           >
@@ -172,7 +200,7 @@ const Inbounds = ({ data }) => {
                           <MenuItem
                             icon={<EditIcon />}
                             onClick={() => {
-                              setInbound(inbound);
+                              setUser(user);
                               onEditOpen();
                             }}
                           >
@@ -187,11 +215,11 @@ const Inbounds = ({ data }) => {
             </Table>
           </TableContainer>
         ) : (
-          <div>No Inbounds</div>
+          <div>No Users</div>
         )}
       </Box>
     </VStack>
   );
 };
 
-export default Inbounds;
+export default Users;

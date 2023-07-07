@@ -76,8 +76,6 @@ const HostModal = ({ isOpen, onClose, btnRef, host }) => {
             navigate("/admin/hosts");
 
             onClose();
-
-            resetForm({ values: "" });
           })
           .catch(() => {
             setError(true);
@@ -97,8 +95,6 @@ const HostModal = ({ isOpen, onClose, btnRef, host }) => {
             navigate("/admin/hosts");
 
             onClose();
-
-            resetForm({ values: "" });
           })
           .catch(() => {
             setError(true);
@@ -140,7 +136,7 @@ const HostModal = ({ isOpen, onClose, btnRef, host }) => {
               value={formik.values.id}
             />
 
-            <Stack spacing={8} direction={["column", "column"]}>
+            <Stack spacing={4} direction={["column", "column"]}>
               <Box width="full">
                 <FormControl
                   isInvalid={formik.touched.name && formik.errors.name}

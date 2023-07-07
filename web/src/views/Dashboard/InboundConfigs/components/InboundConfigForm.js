@@ -155,7 +155,7 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
               value={formik.values.id}
             />
 
-            <Stack spacing={8} direction={["column", "column"]}>
+            <Stack spacing={4} direction={["column", "column"]}>
               <Box>
                 <FormControl
                   isInvalid={formik.touched.remark && formik.errors.remark}

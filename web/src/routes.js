@@ -6,6 +6,8 @@ import Tables from "./views/Dashboard/Tables";
 import Login from "./views/Dashboard/Login";
 import Inbounds from "./views/Dashboard/Inbounds";
 import { InboundConfigs } from "views/Dashboard/InboundConfigs";
+import Users from "views/Dashboard/Users";
+import { PersonIcon } from "components/Icons/Icons";
 // import Admin from "./layouts/Admin";
 // import React from "react";
 
@@ -27,6 +29,14 @@ const dashRoutes = [
     rtlName: "لوحة القيادة",
     icon: <HomeIcon color="inherit" />,
     component: Dashboard,
+    layout: "/admin",
+  },
+  {
+    path: "/users",
+    name: "Users",
+    rtlName: "Users",
+    icon: <PersonIcon color="inherit" />,
+    component: Users,
     layout: "/admin",
   },
   {

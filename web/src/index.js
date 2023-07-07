@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import Admin from "./layouts/Admin";
 import HostsRoot, { loader as hostsRootLoader } from "./routes/hosts/root";
+import UsersRoot, { loader as usersRootLoader } from "./routes/users/root";
 import InboundsRoot, {
   loader as inboundsRootLoader,
 } from "./routes/inbounds/root";
@@ -21,6 +22,7 @@ import InboundConfigsRoot, {
 
 // import Host, {action as newHostAction, loader as hostLoader} from "./routes/hosts/host";
 import { action as destroyHostAction } from "./routes/hosts/destroy";
+import { action as destroyUserAction } from "./routes/users/destroy";
 import { action as destroyInboundAction } from "./routes/inbounds/destroy";
 import { action as destroyInboundConfigAction } from "./routes/inbound-configs/destroy";
 
@@ -41,6 +43,18 @@ let router = createBrowserRouter([
     element: <Admin />,
     // errorElement: <Login/>,
     children: [
+      {
+        path: "users",
+        element: <UsersRoot />,
+        loader: usersRootLoader,
+
+        children: [
+          {
+            path: "user/:userId/destroy",
+            action: destroyUserAction,
+          },
+        ],
+      },
       {
         path: "hosts",
         element: <HostsRoot />,
