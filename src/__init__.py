@@ -9,6 +9,8 @@ from config import DOCS
 from src.admins.router import router as admin_router
 from src.database import Base, engine
 from src.hosts.router import router as host_router
+from src.users.router import router as user_router
+from src.accounts.router import router as account_router
 from src.inbounds.router import router as inbound_router
 from src.inbound_configs.router import router as inbound_config_router
 
@@ -29,6 +31,8 @@ app.add_middleware(
 
 app.include_router(host_router, prefix="/api", tags=["Host"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
+app.include_router(user_router, prefix="/api", tags=["User"])
+app.include_router(account_router, prefix="/api", tags=["Account"])
 app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
 app.include_router(inbound_config_router, prefix="/api", tags=["InboundConfig"])
 
