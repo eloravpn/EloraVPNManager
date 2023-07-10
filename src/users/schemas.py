@@ -1,12 +1,12 @@
-import re
+
 from typing import List
 
 from passlib.context import CryptContext
 from pydantic import BaseModel, validator
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from src.accounts.schemas import AccountResponse
 
-USERNAME_REGEXP = re.compile(r'^(?=\w{3,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$')
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserBase(BaseModel):
@@ -20,24 +20,21 @@ class UserBase(BaseModel):
     enable: bool
     banned: bool
 
+    @validator("username")
+    def validate_username(cls, username: str):
+        if not username:
+            raise ValueError("Username can not be null")
+
+        return username
+
 
 class UserCreate(UserBase):
     password: str
-
 
     @property
     def hashed_password(self):
         return pwd_context.hash(self.password)
 
-    @validator("username")
-    def validate_username(cls, username: str):
-        if not username:
-            raise ValueError("Username can not be null")
-        elif not USERNAME_REGEXP.match(username):
-            raise ValueError(
-                'Username only can be 3 to 32 characters and contain a-z, 0-9, and underscores in between.')
-
-        return username
 
     @validator("password")
     def validate_password(cls, password: str):
@@ -53,6 +50,7 @@ class UserModify(UserBase):
 
 class UserResponse(UserBase):
     id: int
+    accounts: List[AccountResponse] = {}
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

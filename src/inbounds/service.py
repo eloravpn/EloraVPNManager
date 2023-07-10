@@ -10,8 +10,7 @@ from src.inbounds.schemas import InboundCreate, InboundModify
 def create_inbound(db: Session, db_host: Host, inbound: InboundCreate):
     db_inbound = Inbound(remark=inbound.remark, host_id=db_host.id, port=inbound.port,
                          domain=inbound.domain, request_host=inbound.request_host, sni=inbound.sni,
-                         address=inbound.address,
-                         path=inbound.path,
+                         address=inbound.address,path=inbound.path,key= inbound.key,
                          enable=inbound.enable, develop=inbound.develop, security=inbound.security,
                          type=inbound.type)
 
@@ -24,6 +23,7 @@ def create_inbound(db: Session, db_host: Host, inbound: InboundCreate):
 def update_inbound(db: Session, db_inbound: Inbound, modify: InboundModify):
     db_inbound.host_id = modify.host_id
     db_inbound.remark = modify.remark
+    db_inbound.key = modify.key
     db_inbound.port = modify.port
     db_inbound.request_host = modify.request_host
     db_inbound.sni = modify.sni

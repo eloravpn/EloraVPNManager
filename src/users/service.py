@@ -36,12 +36,15 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
     return db_user
 
 
-def get_users(db: Session) -> Tuple[List[User], int]:
+def get_users(db: Session,return_with_count: bool = True) -> Tuple[List[User], int]:
     query = db.query(User)
 
     count = query.count()
 
-    return query.all(), count
+    if return_with_count:
+        return query.all(), count
+    else:
+        return query.all()
 
 
 def remove_user(db: Session, db_user: User):

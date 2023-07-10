@@ -62,7 +62,7 @@ const UserModal = ({ isOpen, onClose, btnRef, user }) => {
       values.enable ? (values.enable = true) : (values.enable = false);
       values.banned ? (values.banned = true) : (values.banned = false);
 
-      // alert(JSON.stringify(values, null, 4));
+      alert(JSON.stringify(values, null, 4));
 
       if (values.id === 0) {
         UserAPI.createUser(values)
@@ -116,7 +116,7 @@ const UserModal = ({ isOpen, onClose, btnRef, user }) => {
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
-        <DrawerHeader>{!user ? "Create host" : "Edit host"}</DrawerHeader>
+        <DrawerHeader>{!user ? "Create user" : "Edit user"}</DrawerHeader>
 
         <DrawerBody>
           <form id={"fm1"} onSubmit={formik.handleSubmit}>

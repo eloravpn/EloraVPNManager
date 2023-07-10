@@ -15,7 +15,6 @@ def add_user(user: UserCreate,
              db: Session = Depends(get_db),
              admin: Admin = Depends(Admin.get_current)):
     try:
-
         db_user = service.create_user(db=db, user=user)
 
     except IntegrityError:

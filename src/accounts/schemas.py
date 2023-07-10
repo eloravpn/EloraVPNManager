@@ -1,35 +1,37 @@
-from typing import List
+from datetime import datetime
+from typing import List, Optional, Union
 from uuid import uuid4, UUID
 
 from pydantic import BaseModel, validator, Field
 
-from src.users.schemas import UserResponse
-
 
 class AccountBase(BaseModel):
     user_id: int
-    uuid: UUID = Field(default_factory=uuid4)
+    uuid: str = Field(default_factory=uuid4)
+    data_limit: int
     email: str
-
     enable: bool
-
-
-class AccountCreate(AccountBase):
-    password: str
+    expired_at:  Union[datetime, str] = None
 
     @validator("uuid")
     def validate_uuid(cls, uuid: str):
         if not uuid:
             raise ValueError("UUID can not be null")
+        # else:
+        #     UUID(uuid, version=4)
 
         return uuid
 
-    @validator("password")
+    @validator("email")
     def validate_email(cls, email: str):
         if not email:
             raise ValueError("Email can not be null")
 
         return email
+
+
+class AccountCreate(AccountBase):
+    user_id: int
 
 
 class AccountModify(AccountBase):
@@ -38,9 +40,9 @@ class AccountModify(AccountBase):
 
 class AccountResponse(AccountBase):
     id: int
-
-    user: UserResponse
-
+    used_traffic: int
+    created_at: datetime
+    modified_at: datetime
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
 

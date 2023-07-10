@@ -19,7 +19,8 @@ app = FastAPI(
     redoc_url='/redoc' if DOCS else None
 )
 app.openapi = custom_openapi(app)
-scheduler = BackgroundScheduler({'apscheduler.job_defaults.max_instances': 5}, timezone='UTC')
+scheduler = BackgroundScheduler(
+    {'apscheduler.job_defaults.max_instances': 5}, timezone='UTC')
 logger = logging.getLogger('uvicorn.error')
 app.add_middleware(
     CORSMiddleware,
@@ -34,12 +35,16 @@ app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(account_router, prefix="/api", tags=["Account"])
 app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
-app.include_router(inbound_config_router, prefix="/api", tags=["InboundConfig"])
+app.include_router(inbound_config_router, prefix="/api",
+                   tags=["InboundConfig"])
 
 
 # from src import dashboard, jobs, hosts, telegram  # noqa
 
 # from src import hosts, admins
+
+
+from src import jobs # noqa
 
 
 @app.on_event("startup")

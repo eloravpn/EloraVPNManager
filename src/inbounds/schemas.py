@@ -33,6 +33,7 @@ class InboundFingerPrint(str, Enum):
 class InboundBase(BaseModel):
     remark: str
     host_id: int
+    key: int
     port: int
     domain: str
     request_host: str

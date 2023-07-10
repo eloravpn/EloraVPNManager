@@ -56,6 +56,7 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
     initialValues: {
       id: inbound ? inbound.id : 0,
       remark: inbound ? inbound.remark : "",
+      key: inbound ? inbound.key : "",
       host_id: inbound ? inbound.host_id : "",
       port: inbound ? inbound.port : "",
       domain: inbound ? inbound.domain : "",
@@ -169,6 +170,24 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                   />
                   {formik.touched.remark && formik.errors.remark ? (
                     <FormErrorMessage>{formik.errors.remark}</FormErrorMessage>
+                  ) : null}
+                </FormControl>
+              </Box>
+              <Box>
+                <FormControl
+                  isInvalid={formik.touched.key && formik.errors.key}
+                >
+                  <FormLabel>Key</FormLabel>
+                  <Input
+                    id={"key"}
+                    name={"key"}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.key}
+                    type="text"
+                  />
+                  {formik.touched.key && formik.errors.key ? (
+                    <FormErrorMessage>{formik.errors.key}</FormErrorMessage>
                   ) : null}
                 </FormControl>
               </Box>

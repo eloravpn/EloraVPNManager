@@ -7,7 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    Boolean,
+    Boolean, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -17,11 +17,15 @@ from src.inbounds.schemas import InboundSecurity, InboundType
 
 class Inbound(Base):
     __tablename__ = "inbound"
+    __table_args__ = (
+        UniqueConstraint('host_id', 'key'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     host_id = Column(Integer, ForeignKey("host.id"))
     inbound_configs = relationship("InboundConfig", back_populates="inbound", cascade="all, delete-orphan")
     host = relationship("Host", back_populates="inbounds")
+    key = Column(Integer, index=True, nullable=False)
     remark = Column(String(128), index=True)
     port = Column(Integer, index=True)
     domain = Column(String(128), index=True)
