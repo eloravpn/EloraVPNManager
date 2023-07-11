@@ -2,10 +2,12 @@ import json
 from datetime import datetime
 
 import requests
+from requests.cookies import RequestsCookieJar
 
 from src import scheduler, logger
 from src.accounts.service import get_accounts
 from src.database import GetDB
+from src.hosts.service import get_host
 from src.inbounds.service import get_inbounds
 
 
@@ -26,6 +28,54 @@ def get_login_cookie(base_api_url: str, username: str, password: str):
     logger.info("Try login with url: " + login_url)
     req = requests.request("POST", login_url, data=payload, verify=False)
     return req.cookies
+
+
+def get_client_stat(base_api_url, login_cookies: RequestsCookieJar, email: str):
+    url = f'{base_api_url}/inbounds/getClientTraffics/{email}'
+    client_stat = requests.get(url,
+                               cookies=login_cookies, verify=False)
+    logger(f"Status code: {client_stat.status_code} for client {email}")
+
+
+def get_account_email_prefix(host_id: int, inbound_key: int):
+    return "%s_%s_" % (host_id, inbound_key)
+
+
+def sync_accounts():
+    with GetDB() as db:
+        # for account in get_accounts(db, return_with_count=False):
+        #     logger.info(account.uuid)
+        #     logger.info(account.email)
+
+        now = datetime.utcnow().timestamp()
+        print('Start syncing accounts in inbounds ' + str(datetime.now()))
+
+        inbounds, count = get_inbounds(db=db)
+        for inbound in inbounds:
+            logger.info(f"Inbound Remark: {inbound.remark}")
+            logger.info(f"Inbound host ID: {inbound.host_id}")
+
+            host = get_host(db, inbound.host_id)
+            logger.info("Host name: " + host.name)
+
+            host_ip = host.ip
+            host_port = host.port
+            user_name = host.username
+            password = host.password
+
+            base_login_api_url = generate_base_url(host_ip, host_port, "", False)
+
+            loging_cookies = get_login_cookie(base_login_api_url, user_name, password)
+
+            logger.info("Login Cookies is " + str(loging_cookies))
+
+            account_email_prefix = get_account_email_prefix(host.id, inbound.key)
+            logger.info("Account email prefix: " + account_email_prefix)
+
+            for account in get_accounts(db, return_with_count=False):
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(account.email)
 
 
 def review_accounts():
@@ -64,16 +114,9 @@ def review_accounts():
         logger.info(client_state.text)
 
     now = datetime.utcnow().timestamp()
-    with GetDB() as db:
-        for account in get_accounts(db, return_with_count=False):
-            logger.info(account.uuid)
-            logger.info(account.email)
-
-        inbounds, count = get_inbounds(db=db)
-        for inbound in inbounds:
-            logger.info(inbound.host_id)
 
     pass
 
 
-scheduler.add_job(review_accounts, 'interval', seconds=5)
+# scheduler.add_job(review_accounts, 'interval', seconds=5)
+scheduler.add_job(sync_accounts, 'interval', seconds=5)
