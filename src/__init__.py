@@ -5,23 +5,46 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_responses import custom_openapi
 
-from config import DOCS
+from src.accounts.router import router as account_router
+from src.accounts.schemas import AccountResponse
 from src.admins.router import router as admin_router
+from src.config import DOCS, DEBUG
 from src.database import Base, engine
 from src.hosts.router import router as host_router
-from src.users.router import router as user_router
-from src.accounts.router import router as account_router
-from src.inbounds.router import router as inbound_router
 from src.inbound_configs.router import router as inbound_config_router
+from src.inbounds.router import router as inbound_router
+from src.users.router import router as user_router
+from src.users.schemas import UserResponse
+
+# logging_config = dict(
+#     version=1,
+#     formatters={
+#         'f': {'format':
+#                   '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'}
+#     },
+#     handlers={
+#         'h': {'class': 'logging.StreamHandler',
+#               'formatter': 'f',
+#               'level': logging.DEBUG}
+#     },
+#     root={
+#         'handlers': ['h'],
+#         'level': logging.DEBUG,
+#     },
+# )
+#
+# dictConfig(logging_config)
+
 
 app = FastAPI(
     docs_url='/docs' if DOCS else None,
-    redoc_url='/redoc' if DOCS else None
+    redoc_url='/redoc' if DOCS else None,
+    debug= DEBUG
 )
 app.openapi = custom_openapi(app)
 scheduler = BackgroundScheduler(
-    {'apscheduler.job_defaults.max_instances': 5}, timezone='UTC')
-logger = logging.getLogger('uvicorn.error')
+    {'apscheduler.job_defaults.max_instances': 1}, timezone='UTC')
+logger = logging.getLogger('uvicorn.default')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -38,13 +61,12 @@ app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
 app.include_router(inbound_config_router, prefix="/api",
                    tags=["InboundConfig"])
 
-
 # from src import dashboard, jobs, hosts, telegram  # noqa
 
 # from src import hosts, admins
 
 
-from src import jobs # noqa
+from src import jobs  # noqa
 
 
 @app.on_event("startup")

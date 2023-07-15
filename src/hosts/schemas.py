@@ -5,6 +5,7 @@ from pydantic import BaseModel, root_validator, validator
 
 
 class HostType(str, Enum):
+    # default = "X-UI-MHSANAEI"
     x_ui_sanaei = "X-UI-MHSANAEI"
     x_ui_kafka = "X-UI-FRANZKAFKAYU"
 

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TYPE_CHECKING
 from uuid import uuid4, UUID
 
 from pydantic import BaseModel, validator, Field
@@ -7,11 +7,13 @@ from pydantic import BaseModel, validator, Field
 
 class AccountBase(BaseModel):
     user_id: int
+    # TODO: due to a circular import
+    # user: Optional["UserResponse"]
     uuid: str = Field(default_factory=uuid4)
     data_limit: int
     email: str
     enable: bool
-    expired_at:  Union[datetime, str] = None
+    expired_at: Union[datetime, str] = None
 
     @validator("uuid")
     def validate_uuid(cls, uuid: str):
@@ -38,11 +40,13 @@ class AccountModify(AccountBase):
     id: int
 
 
+# from src.users.schemas import UserResponse
 class AccountResponse(AccountBase):
     id: int
     used_traffic: int
     created_at: datetime
     modified_at: datetime
+
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
 
@@ -51,5 +55,5 @@ class AccountResponse(AccountBase):
 
 
 class AccountsResponse(BaseModel):
-    users: List[AccountResponse]
+    accounts: List[AccountResponse]
     total: int

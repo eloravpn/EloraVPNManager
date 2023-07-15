@@ -1,6 +1,5 @@
-from fastapi import FastAPI
 import uvicorn
-from src import app
+
 from config import (
     DEBUG,
     UVICORN_HOST,
@@ -10,10 +9,13 @@ from config import (
     UVICORN_SSL_KEYFILE
 )
 
-
 if __name__ == "__main__":
     # Do NOT change workers count for now
     # multi-workers support isn't implemented yet for APScheduler and XRay module
+
+    log_config = uvicorn.config.LOGGING_CONFIG
+    log_config["formatters"]["default"][
+        "fmt"] = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s"
     try:
         uvicorn.run(
             "main:app",
@@ -23,7 +25,9 @@ if __name__ == "__main__":
             ssl_certfile=UVICORN_SSL_CERTFILE,
             ssl_keyfile=UVICORN_SSL_KEYFILE,
             workers=1,
-            reload=DEBUG
+            reload=DEBUG,
+            use_colors=True,
+            log_config=log_config
         )
     except FileNotFoundError:  # to prevent error on removing unix sock
         pass
@@ -39,4 +43,3 @@ if __name__ == "__main__":
 # @src.get("/hello/{name}")
 # async def say_hello(name: str):
 #     return {"message": f"Hello {name}"}
-

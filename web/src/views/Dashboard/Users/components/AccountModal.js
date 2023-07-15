@@ -52,7 +52,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
   // const [value, setValue] = React.useState(0);
 
   const handleChange = (value) => {
-    formik.setFieldValue("data_limit", value);
+    formik.setFieldValue("data_limit", value * Math.pow(1024, 3));
   };
 
   const handleChangeDaysExpired = (value) => {
@@ -63,7 +63,6 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
     setexpiredAt(newDateObj.toString());
     formik.setFieldValue("expired_at", newDateObj.toISOString());
   };
-
 
   const validate = (values) => {
     const errors = {};
@@ -89,8 +88,6 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
   const emailGenerator = () => {
     return Math.random().toString(36).slice(2, 8);
   };
-
-
 
   useEffect(() => {
     if (!account) {
@@ -124,7 +121,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
       id: account ? account.id : 0,
       uuid: account ? account.uuid : "",
       email: account ? account.email : "",
-      data_limit: account ? account.data_limit : 20,
+      data_limit: account ? account.data_limit : 20 * Math.pow(1024, 3),
       expired_at: account ? account.expired_at : "",
       days_expired: 0,
       user_id: 0,
@@ -317,7 +314,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
                   <NumberInput
                     maxW="100px"
                     mr="2rem"
-                    value={formik.values.data_limit}
+                    value={formik.values.data_limit / Math.pow(1024, 3)}
                     onChange={handleChange}
                   >
                     <NumberInputField />
@@ -330,7 +327,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
                     max={500}
                     flex="1"
                     focusThumbOnChange={false}
-                    value={formik.values.data_limit}
+                    value={formik.values.data_limit / Math.pow(1024, 3)}
                     onChange={handleChange}
                   >
                     <SliderTrack>
@@ -339,14 +336,18 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
                     <SliderThumb
                       fontSize="sm"
                       boxSize="32px"
-                      children={formik.values.data_limit}
+                      children={formik.values.data_limit / Math.pow(1024, 3)}
                     />
                   </Slider>
                 </Flex>
               </Box>
 
               <Box>
-                <Badge variant="outline" colorScheme="green">
+                <Badge
+                  title={expiredAt ? expiredAt : ""}
+                  variant="outline"
+                  colorScheme="green"
+                >
                   {jalaliExpiredAt
                     ? "Expired At: " + jalaliExpiredAt
                     : "Unlimited"}

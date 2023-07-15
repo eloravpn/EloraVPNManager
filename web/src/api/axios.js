@@ -1,8 +1,11 @@
-import axios from "axios"
-import {getAuthToken} from "./AuthStorage";
+import axios from "axios";
+import { getAuthToken } from "./AuthStorage";
+
+const { REACT_APP_API_BASE_URL } = process.env;
+
+console.log(REACT_APP_API_BASE_URL);
 
 // axios.defaults.headers.common['Authorization'] = `bearer `+ getAuthToken()
-
 
 // export const api = () => {
 //     console.log('API Call ..');
@@ -28,21 +31,20 @@ import {getAuthToken} from "./AuthStorage";
 //     return instance;
 // };
 
-
-export const api =  axios.create({
+export const api = axios.create({
   // withCredentials: true,
-  baseURL: "http://localhost:8000/api",
+  baseURL: REACT_APP_API_BASE_URL,
   // headers:  {'Authorization': `bearer `+ getAuthToken()}
-})
+});
 
 export const api_base = axios.create({
-    baseURL: "http://localhost:8000/api"
-})
+  baseURL: REACT_APP_API_BASE_URL,
+});
 
 api.interceptors.request.use(function (config) {
-    const token = getAuthToken();
-    console.log('Token::::' + token);
-    config.headers.Authorization = `Bearer ` + token;
+  const token = getAuthToken();
+  console.log("Token::::" + token);
+  config.headers.Authorization = `Bearer ` + token;
 
-    return config;
-})
+  return config;
+});

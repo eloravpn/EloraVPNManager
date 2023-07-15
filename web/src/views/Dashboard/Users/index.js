@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Link,
   useActionData,
+  useFetcher,
   useLocation,
   useNavigate,
 } from "react-router-dom";
@@ -70,6 +71,8 @@ import { AccountAPI } from "../../../api/AccountAPI";
 const Users = ({ data }) => {
   const navigate = useNavigate();
 
+  const fetcher = useFetcher();
+
   let location = useLocation();
   let actionData = useActionData();
   const [hostId, setHostId] = useState();
@@ -82,6 +85,29 @@ const Users = ({ data }) => {
       });
     }
   };
+
+  const units = [
+    "bytes",
+    "KiB",
+    "MiB",
+    "GiB",
+    "TiB",
+    "PiB",
+    "EiB",
+    "ZiB",
+    "YiB",
+  ];
+
+  function niceBytes(x) {
+    let l = 0,
+      n = parseInt(x, 10) || 0;
+
+    while (n >= 1024 && ++l) {
+      n = n / 1024;
+    }
+
+    return n.toFixed(n < 10 && l > 0 ? 1 : 0) + " " + units[l];
+  }
 
   const [user, setUser] = useState();
 
@@ -104,6 +130,16 @@ const Users = ({ data }) => {
   const cancelRef = React.useRef();
 
   const btnRef = React.useRef();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // window.location.reload();
+      navigate();
+      // fetcher.load();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetcher]);
 
   return (
     <VStack spacing={4} p={5} align="stretch">
@@ -242,7 +278,10 @@ const Users = ({ data }) => {
                                           )}
                                         </Td>
 
-                                        <Td>{account.data_limit} </Td>
+                                        <Td>
+                                          {niceBytes(account.used_traffic)} /
+                                          {niceBytes(account.data_limit)}
+                                        </Td>
                                         <Td>
                                           {new Date(
                                             account.expired_at

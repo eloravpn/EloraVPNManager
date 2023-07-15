@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from sqlalchemy.orm import Session
 
-from src.accounts.models import Account
+from src.accounts.models import Account, AccountUsedTraffic
 from src.accounts.schemas import AccountCreate, AccountModify
 from src.users.models import User
 
@@ -19,6 +19,15 @@ def create_account(db: Session, db_user: User, account: AccountCreate):
     return db_account
 
 
+def create_account_used_traffic(db: Session, db_account: Account, download: int, upload: int):
+    db_account_used_traffic = AccountUsedTraffic(account_id=db_account.id, download=download, upload=upload)
+
+    db.add(db_account_used_traffic)
+    db.commit()
+    db.refresh(db_account_used_traffic)
+    return db_account_used_traffic
+
+
 def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.uuid = modify.uuid
     db_account.email = modify.email
@@ -27,6 +36,24 @@ def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.expired_at = modify.expired_at
 
     db_account.enable = modify.enable
+
+    db.commit()
+    db.refresh(db_account)
+
+    return db_account
+
+
+def update_account_used_traffic(db: Session, db_account: Account, used_traffic: int):
+    db_account.used_traffic = used_traffic
+
+    db.commit()
+    db.refresh(db_account)
+
+    return db_account
+
+
+def update_account_status(db: Session, db_account: Account, enable: bool = True):
+    db_account.enable = enable
 
     db.commit()
     db.refresh(db_account)

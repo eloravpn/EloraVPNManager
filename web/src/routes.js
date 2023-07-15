@@ -8,6 +8,7 @@ import Inbounds from "./views/Dashboard/Inbounds";
 import { InboundConfigs } from "views/Dashboard/InboundConfigs";
 import Users from "views/Dashboard/Users";
 import { PersonIcon } from "components/Icons/Icons";
+import Accounts from "./views/Dashboard/Accounts";
 // import Admin from "./layouts/Admin";
 // import React from "react";
 
@@ -37,6 +38,14 @@ const dashRoutes = [
     rtlName: "Users",
     icon: <PersonIcon color="inherit" />,
     component: Users,
+    layout: "/admin",
+  },
+  {
+    path: "/accounts",
+    name: "Accounts",
+    rtlName: "Accounts",
+    icon: <PersonIcon color="inherit" />,
+    component: Accounts,
     layout: "/admin",
   },
   {

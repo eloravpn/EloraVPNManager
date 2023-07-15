@@ -1,5 +1,4 @@
-
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from passlib.context import CryptContext
 from pydantic import BaseModel, validator
@@ -35,7 +34,6 @@ class UserCreate(UserBase):
     def hashed_password(self):
         return pwd_context.hash(self.password)
 
-
     @validator("password")
     def validate_password(cls, password: str):
         if not password:
@@ -50,7 +48,7 @@ class UserModify(UserBase):
 
 class UserResponse(UserBase):
     id: int
-    accounts: List[AccountResponse] = {}
+    accounts: List["AccountResponse"] = {}
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
