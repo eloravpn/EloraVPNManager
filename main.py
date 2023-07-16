@@ -1,6 +1,6 @@
 import uvicorn
-
-from config import (
+from src import app
+from src.config import (
     DEBUG,
     UVICORN_HOST,
     UVICORN_PORT,
