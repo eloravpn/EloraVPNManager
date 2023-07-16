@@ -19,7 +19,7 @@ def authenticate_sudo(username: str, password: str):
 
 
 def authenticate_admin(db: Session, username: str, password: str):
-    if password == 'admin':
+    if password == SUDOERS[username]:
         return True
     else:
         return False
