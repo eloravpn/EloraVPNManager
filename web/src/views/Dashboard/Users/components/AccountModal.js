@@ -36,10 +36,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { HostAPI } from "../../../../api/HostAPI";
 import { toast } from "../../../../index";
 
-import { useNavigate } from "react-router-dom";
+import { redirect, useNavigate } from "react-router-dom";
 import { UserAPI } from "../../../../api/UserAPI";
 import { AccountAPI } from "../../../../api/AccountAPI";
-const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
+const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
   const navigate = useNavigate();
 
   const [error, setError] = useState(false);
@@ -149,7 +149,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
               isClosable: true,
             });
 
-            navigate("/admin/users");
+            navigate(redirect);
 
             onClose();
           })
@@ -168,7 +168,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account }) => {
               isClosable: true,
             });
 
-            navigate("/admin/users");
+            navigate(redirect);
 
             onClose();
           })

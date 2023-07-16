@@ -49,9 +49,9 @@ function Sidebar(props) {
           borderRadius={sidebarRadius}
         >
           <SidebarContent routes={routes}
-        // logoText={"PURITY UI DASHBOARD"}
-        // sidebarVariant={sidebarVariant}
-        />
+            // logoText={"PURITY UI DASHBOARD"}
+            sidebarVariant={sidebarVariant}
+          />
         </Box>
       </Box>
     </Box>

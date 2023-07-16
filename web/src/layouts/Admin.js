@@ -1,26 +1,34 @@
-import React, {useState} from 'react';
-import {ChakraProvider, Portal} from "@chakra-ui/react";
+import React, { useState } from 'react';
+import { ChakraProvider, Portal } from "@chakra-ui/react";
 // Custom Chakra theme
 import theme from 'theme/theme.js';
 import Sidebar from "components/Sidebar";
-import {HomeIcon} from "../components/Icons/Icons";
+import { HomeIcon } from "../components/Icons/Icons";
 
 import routes from 'routes.js';
-import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import MainPanel from "../components/Layout/MainPanel";
 import PanelContent from "../components/Layout/PanelContent";
 import PanelContainer from "../components/Layout/PanelContainer";
+import SidebarResponsive from 'components/Sidebar/SidebarResponsive';
 
 
 
 const Admin = (props) => {
-    const { ...rest } = props;
+	const { ...rest } = props;
 
 
-    const [ sidebarVariant, setSidebarVariant ] = useState('transparent');
-    return (
-        <ChakraProvider theme={theme} resetCss={false}>
-            <Sidebar
+	const [sidebarVariant, setSidebarVariant] = useState('transparent');
+	return (
+		<ChakraProvider theme={theme} resetCss={false}>
+			<SidebarResponsive
+				logoText={props.logoText}
+				secondary={props.secondary}
+				routes={routes}
+				// logo={logo}
+				{...rest}
+			/>
+			<Sidebar
 				routes={routes}
 				logoText={'PURITY UI DASHBOARD'}
 				sidebarVariant={sidebarVariant}
@@ -35,17 +43,17 @@ const Admin = (props) => {
 				<Portal>
 				</Portal>
 				<PanelContent>
-						<PanelContainer>
-							 <Outlet />
-						</PanelContainer>
+					<PanelContainer>
+						<Outlet />
+					</PanelContainer>
 				</PanelContent>
 			</MainPanel>
 
 
 
 
-        </ChakraProvider>
-    );
+		</ChakraProvider>
+	);
 };
 
 export default Admin;

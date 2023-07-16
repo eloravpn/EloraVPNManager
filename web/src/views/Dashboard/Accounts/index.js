@@ -198,6 +198,7 @@ const Accounts = ({ data }) => {
         btnRef={btnRef}
         user={user}
         account={account}
+        redirect={"/admin/accounts"}
       />
       >
       <Box>

@@ -154,6 +154,7 @@ const Users = ({ data }) => {
         btnRef={btnRef}
         user={user}
         account={account}
+        redirect={"/admin/users"}
       />
 
       <AlertDialog
