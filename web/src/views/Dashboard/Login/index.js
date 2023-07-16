@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
-import {Box, Button, FormControl, FormLabel, HStack, Input, VStack, Text} from "@chakra-ui/react";
-import {removeAuthToken, setAuthToken} from "../../../api/AuthStorage";
-import {Form, useLocation, useNavigate} from "react-router-dom";
-import {api, api_base} from "../../../api/axios";
+import React, { useEffect } from 'react';
+import { Box, Button, FormControl, FormLabel, HStack, Input, VStack, Text } from "@chakra-ui/react";
+import { removeAuthToken, setAuthToken } from "../../../api/AuthStorage";
+import { Form, useLocation, useNavigate } from "react-router-dom";
+import { api, api_base } from "../../../api/axios";
 // import {api} from "./axios";
 
 const Login = () => {
@@ -12,10 +12,9 @@ const Login = () => {
     let location = useLocation();
 
     useEffect(() => {
-        console.log('Use Effect.')
         removeAuthToken();
         if (location.pathname !== "/login") {
-            navigate("/login", {replace: true});
+            navigate("/login", { replace: true });
         }
     }, []);
     const handleSubmit = (event) => {
@@ -24,7 +23,7 @@ const Login = () => {
         console.log(event.target.elements.username.value)
         const formData = new FormData();
         formData.append("username", event.target.elements.username.value);
-        formData.append("password",event.target.elements.password.value);
+        formData.append("password", event.target.elements.password.value);
         formData.append("grant_type", "password");
         // setLoading(true);
         api_base.post("/admin/token", formData)
@@ -53,7 +52,7 @@ const Login = () => {
                         <Text fontSize="2xl" fontWeight="semibold">
                             Login to your account
                         </Text>
-                        <Text color="gray.600" _dark={{color: "gray.400"}}>
+                        <Text color="gray.600" _dark={{ color: "gray.400" }}>
                             Welcome back, please enter your details
                         </Text>
                     </VStack>

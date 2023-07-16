@@ -45,11 +45,9 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
   };
 
   useEffect(() => {
-    return () => {
-      InboundAPI.getAll().then((res) => {
-        setInbounds(res);
-      });
-    };
+    InboundAPI.getAll().then((res) => {
+      setInbounds(res);
+    });
   }, []);
 
   const formik = useFormik({
@@ -353,8 +351,8 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
                   >
                     {inbounds
                       ? inbounds.map((inbound) => (
-                          <option value={inbound.id}>{inbound.remark}</option>
-                        ))
+                        <option value={inbound.id}>{inbound.remark}</option>
+                      ))
                       : ""}
                   </Select>
 

@@ -77,7 +77,7 @@ const Accounts = ({ data }) => {
   const navigate = useNavigate();
 
 
-  
+
 
   const fetcher = useFetcher();
 
@@ -171,9 +171,9 @@ const Accounts = ({ data }) => {
 
   useEffect(() => {
     fetchAccounts();
-    // const interval = setInterval(fetchAccounts, 5000);
+    const interval = setInterval(fetchAccounts, 5000);
 
-    // return () => clearInterval(interval);
+    return () => clearInterval(interval);
   }, [enable]);
 
   useEffect(() => {
@@ -232,7 +232,7 @@ const Accounts = ({ data }) => {
         <Switch
           isChecked={enable}
           onChange={handleEnableChange}
-          // onBlur={formik.handleBlur}
+        // onBlur={formik.handleBlur}
         />
       </Stack>
       <Box>

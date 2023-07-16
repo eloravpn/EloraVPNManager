@@ -44,11 +44,9 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
   };
 
   useEffect(() => {
-    return () => {
-      HostAPI.getAll().then((res) => {
-        setHosts(res);
-      });
-    };
+    HostAPI.getAll().then((res) => {
+      setHosts(res);
+    });
   }, []);
 
   const formik = useFormik({
@@ -346,8 +344,8 @@ const InboundForm = ({ isOpen, onClose, btnRef, inbound }) => {
                 >
                   {hosts
                     ? hosts.map((host) => (
-                        <option value={host.id}>{host.name}</option>
-                      ))
+                      <option value={host.id}>{host.name}</option>
+                    ))
                     : ""}
                 </Select>
 

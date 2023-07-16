@@ -133,9 +133,7 @@ const Users = ({ data }) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // window.location.reload();
       navigate();
-      // fetcher.load();
     }, 5000);
 
     return () => clearInterval(interval);
