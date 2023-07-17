@@ -41,10 +41,20 @@ def modify_inbound_config(inbound_config_id: int, inbound_config: InboundConfigM
     return service.update_inbound_config(db=db, db_inbound_config=db_inbound_config, modify=inbound_config)
 
 
+@router.post("/inbound-configs/{inbound_config_id}/copy", tags=["InboundConfig"], response_model=InboundConfigResponse)
+def copy_inbound_config(inbound_config_id: int, db: Session = Depends(get_db),
+                        admin: Admin = Depends(Admin.get_current)):
+    db_inbound_config = service.get_inbound_config(db, inbound_config_id)
+    if not db_inbound_config:
+        raise HTTPException(status_code=404, detail="Inbound Config not found")
+
+    return service.copy_inbound_config(db=db, db_inbound_config=db_inbound_config)
+
+
 @router.get("/inbound-configs/{inbound_confi_id}", tags=["InboundConfig"],
             response_model=InboundConfigResponse)
 def get_inbound_config(inbound_config_id: int, db: Session = Depends(get_db),
-                admin: Admin = Depends(Admin.get_current)):
+                       admin: Admin = Depends(Admin.get_current)):
     db_inbound_config = service.get_inbound_config(db, inbound_config_id)
     if not db_inbound_config:
         raise HTTPException(status_code=404, detail="Inbound Config not found")
@@ -54,7 +64,7 @@ def get_inbound_config(inbound_config_id: int, db: Session = Depends(get_db),
 
 @router.delete("/inbound-configs/{inbound_config_id}", tags=["InboundConfig"])
 def delete_inbound(inbound_config_id: int, db: Session = Depends(get_db),
-                admin: Admin = Depends(Admin.get_current)):
+                   admin: Admin = Depends(Admin.get_current)):
     db_inbound_config = service.get_inbound_config(db, inbound_config_id)
     if not db_inbound_config:
         raise HTTPException(status_code=404, detail="Inbound Config not found")

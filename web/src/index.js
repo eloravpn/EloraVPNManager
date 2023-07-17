@@ -29,12 +29,17 @@ import { action as destroyInboundConfigAction } from "./routes/inbound-configs/d
 import { createStandaloneToast } from "@chakra-ui/react";
 import Login from "./views/Dashboard/Login";
 import Accounts from "./views/Dashboard/Accounts";
+import Dashboard from "./views/Dashboard/Dashboard";
 
 export const { toast } = createStandaloneToast();
 // Enable RTl support
 // document.documentElement.dir = 'rtl';
 
 let router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Login />,
+  },
   {
     path: "/login",
     element: <Login />,
@@ -44,6 +49,18 @@ let router = createBrowserRouter([
     element: <Admin />,
     // errorElement: <Login/>,
     children: [
+      {
+        path: "dashboard",
+        element: <Dashboard />,
+        // loader: usersRootLoader,
+
+        // children: [
+        //   {
+        //     path: "user/:userId/destroy",
+        //     action: destroyUserAction,
+        //   },
+        // ],
+      },
       {
         path: "users",
         element: <UsersRoot />,

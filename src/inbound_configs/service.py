@@ -22,6 +22,21 @@ def create_inbound_config(db: Session, db_inbound: Inbound, inbound_config: Inbo
     return db_inbound_config
 
 
+def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
+    new_db_inbound_config = InboundConfig(remark=db_inbound_config.remark + " Clone", inbound_id=db_inbound_config.inbound_id,
+                                          port=db_inbound_config.port, domain=db_inbound_config.domain,
+                                          host=db_inbound_config.host, sni=db_inbound_config.sni,
+                                          finger_print=db_inbound_config.finger_print,
+                                          address=db_inbound_config.address, path=db_inbound_config.path,
+                                          enable=db_inbound_config.enable, develop=db_inbound_config.develop,
+                                          security=db_inbound_config.security,
+                                          type=db_inbound_config.type)
+    db.add(new_db_inbound_config)
+    db.commit()
+    db.refresh(new_db_inbound_config)
+    return new_db_inbound_config
+
+
 def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify: InboundConfigModify):
     db_inbound_config.inbound_id = modify.inbound_id
     db_inbound_config.remark = modify.remark

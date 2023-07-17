@@ -33,12 +33,14 @@ import {
   AddIcon,
   CheckCircleIcon,
   ChevronDownIcon,
+  CopyIcon,
   DeleteIcon,
   EditIcon,
   NotAllowedIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
 import InboundConfigForm from "./components/InboundConfigForm";
+import { InboundConfigAPI } from "../../../api/InboundConfigAPI";
 
 export const InboundConfigs = ({ data }) => {
   const navigate = useNavigate();
@@ -49,6 +51,14 @@ export const InboundConfigs = ({ data }) => {
   const [inboundConfig, setInboundConfig] = useState(null);
 
   const { isOpen, onOpen, onClose, getButtonProps } = useDisclosure();
+
+  const copyInboundConfig = (id) => {
+    if (window.confirm("Are you sure to copy this inbound config?")) {
+      InboundConfigAPI.copy(id).then(() => {
+        navigate();
+      });
+    }
+  };
 
   const {
     isOpen: isEditOpen,
@@ -150,14 +160,14 @@ export const InboundConfigs = ({ data }) => {
                     <Td>{inboundConfig.sni}</Td>
                     <Td>{inboundConfig.type}</Td>
                     <Td>
-                      {inboundConfig.develop ? (
+                      {inboundConfig.enable ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
                       )}
                     </Td>
                     <Td>
-                      {inboundConfig.enable ? (
+                      {inboundConfig.develop ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
@@ -171,6 +181,14 @@ export const InboundConfigs = ({ data }) => {
                         </MenuButton>
 
                         <MenuList>
+                          <MenuItem
+                            icon={<CopyIcon />}
+                            onClick={() => {
+                              copyInboundConfig(inboundConfig.id);
+                            }}
+                          >
+                            Copy
+                          </MenuItem>
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => {

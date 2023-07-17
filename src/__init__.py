@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_responses import custom_openapi
 
+from src.subscription.router import router as subscription_router
 from src.accounts.router import router as account_router
 from src.accounts.schemas import AccountResponse
 from src.admins.router import router as admin_router
@@ -53,6 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(subscription_router, prefix="/api", tags=["Subscription"])
 app.include_router(host_router, prefix="/api", tags=["Host"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(user_router, prefix="/api", tags=["User"])
