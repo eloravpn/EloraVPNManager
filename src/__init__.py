@@ -63,12 +63,10 @@ app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
 app.include_router(inbound_config_router, prefix="/api",
                    tags=["InboundConfig"])
 
-# from src import dashboard, jobs, hosts, telegram  # noqa
-
 # from src import hosts, admins
 
 
-from src import jobs  # noqa
+from src import jobs, telegram  # noqa
 
 
 @app.on_event("startup")
