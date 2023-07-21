@@ -14,6 +14,7 @@ from src.database import Base
 
 USERNAME_REGEXP = re.compile(r'^(?=\w{3,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$')
 
+
 class User(Base):
     __tablename__ = "user"
 
@@ -21,12 +22,13 @@ class User(Base):
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
     username = Column(String(128), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128))
-    first_name = Column(String(128), index=True)
-    last_name = Column(String(128), index=True)
-    description = Column(String(4000))
-    telegram_chat_id = Column(Integer, unique=True, )
-    telegram_username = Column(String(128), unique=True, index=True)
-    phone_number = Column(String(128), unique=True, index=True)
+    first_name = Column(String(128), index=True, nullable=True)
+    last_name = Column(String(128), index=True, nullable=True)
+    description = Column(String(4000), nullable=True)
+    telegram_chat_id = Column(Integer, unique=True, nullable=True)
+    telegram_username = Column(String(128), index=True, unique=True, nullable=True)
+    phone_number = Column(String(128), index=True, unique=True, nullable=True)
+    email_address = Column(String(128), index=True, unique=True, nullable=True)
 
     enable = Column(Boolean, default=True)
     banned = Column(Boolean, default=False)

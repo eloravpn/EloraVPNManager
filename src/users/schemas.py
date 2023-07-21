@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Optional
 
 from passlib.context import CryptContext
 from pydantic import BaseModel, validator
@@ -9,15 +9,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserBase(BaseModel):
-    username: str
-    first_name: str
-    last_name: str
-    description: str
-    telegram_chat_id: int
-    telegram_username: str
-    phone_number: str
-    enable: bool
-    banned: bool
+    username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    description: Optional[str] = None
+    telegram_chat_id: Optional[int] = None
+    telegram_username: Optional[str] = None
+    phone_number: Optional[str] = None
+    email_address: Optional[str] = None
+    enable: bool = True
+    banned: bool = False
 
     @validator("username")
     def validate_username(cls, username: str):

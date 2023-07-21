@@ -36,7 +36,7 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
     return db_user
 
 
-def get_users(db: Session,return_with_count: bool = True) -> Tuple[List[User], int]:
+def get_users(db: Session, return_with_count: bool = True) -> Tuple[List[User], int]:
     query = db.query(User)
 
     count = query.count()
@@ -55,3 +55,7 @@ def remove_user(db: Session, db_user: User):
 
 def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
+
+
+def get_user_by_telegram_chat_id(db: Session, telegram_chat_id: int):
+    return db.query(User).filter(User.telegram_chat_id == telegram_chat_id).first()

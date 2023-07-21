@@ -21,7 +21,7 @@ class Host(Base):
     inbounds = relationship("Inbound", back_populates="host", cascade="all, delete-orphan")
     name = Column(String(128), index=True)
     domain = Column(String(128), unique=True, index=True)
-    username = Column(String(34, collation='NOCASE'))
+    username = Column(String(34))
     password = Column(String(128))
     ip = Column(String(128), unique=True, index=True)
     port = Column(Integer, index=True)
