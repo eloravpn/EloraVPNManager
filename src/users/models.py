@@ -6,7 +6,7 @@ from sqlalchemy import (
     DateTime,
     Integer,
     String,
-    Boolean,
+    Boolean, BigInteger,
 )
 from sqlalchemy.orm import relationship, validates
 
@@ -25,7 +25,7 @@ class User(Base):
     first_name = Column(String(128), index=True, nullable=True)
     last_name = Column(String(128), index=True, nullable=True)
     description = Column(String(4000), nullable=True)
-    telegram_chat_id = Column(Integer, unique=True, nullable=True)
+    telegram_chat_id = Column(BigInteger, unique=True, nullable=True)
     telegram_username = Column(String(128), index=True, unique=True, nullable=True)
     phone_number = Column(String(128), index=True, unique=True, nullable=True)
     email_address = Column(String(128), index=True, unique=True, nullable=True)

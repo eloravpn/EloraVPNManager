@@ -45,7 +45,7 @@ class BotUserKeyboard:
         keyboard.add(
             types.InlineKeyboardButton(
                 text='آیفون',
-                url="https://t.me/EloraVPNChannel/72"
+                url="https://t.me/EloraVPNChannel/80"
             ),
             types.InlineKeyboardButton(
                 text="اندروید",
@@ -56,11 +56,11 @@ class BotUserKeyboard:
         keyboard.add(
             types.InlineKeyboardButton(
                 text='ویندوز',
-                url="https://t.me/EloraVPNChannel/72"
+                url="https://t.me/EloraVPNChannel/90"
             ),
             types.InlineKeyboardButton(
                 text="مک بوک",
-                url="https://t.me/EloraVPNChannel/72"
+                url="https://t.me/EloraVPNChannel/93"
             )
         )
         return keyboard
@@ -112,7 +112,7 @@ class BotUserKeyboard:
 
         keyboard.add(
             types.InlineKeyboardButton(
-                text="Qrcode 📷",
+                text="دریافت QR کد",
                 callback_data=f"qrcode:{account_id}"
             )
         )
@@ -157,7 +157,7 @@ class BotUserKeyboard:
 
             types.InlineKeyboardButton(
                 text="💳 پرداخت آنلاین",
-                url="https://google.com"
+                callback_data=f"online_payment:"
             )
 
         )

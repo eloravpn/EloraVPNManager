@@ -267,20 +267,23 @@ def sync_accounts_status():
 
     with GetDB() as db:
         for account in get_accounts(db, return_with_count=False):
-            account_expire_time = account.expired_at.timestamp()
-
-            logger.info(f"Account uuid: {account.uuid}")
-            logger.info(f"Account email: {account.email}")
-            logger.info(f"Account Expire time: {account.expired_at}")
-            logger.info(f"Account status: {account.enable}")
-
-            if account.enable:
-                update_client_in_all_inbounds(db=db, db_account=account, enable=True)
-                logger.info(f"Account with email {account.email} enable successfully")
-
+            if not account.expired_at:
+                logger.error("No expire time")
             else:
-                update_client_in_all_inbounds(db=db, db_account=account, enable=False)
-                logger.info(f"Account with email {account.email} disable successfully")
+                account_expire_time = account.expired_at.timestamp()
+
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(f"Account Expire time: {account.expired_at}")
+                logger.info(f"Account status: {account.enable}")
+
+                if account.enable:
+                    update_client_in_all_inbounds(db=db, db_account=account, enable=True)
+                    logger.info(f"Account with email {account.email} enable successfully")
+
+                else:
+                    update_client_in_all_inbounds(db=db, db_account=account, enable=False)
+                    logger.info(f"Account with email {account.email} disable successfully")
 
 
 # TODO: remove this func for prod

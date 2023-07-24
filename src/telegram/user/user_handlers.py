@@ -30,7 +30,29 @@ def send_welcome(message: types.Message):
 @bot.message_handler(regexp=captions.HELP)
 def help_command(message):
     bot.reply_to(message,
-                 "HOW CAN I HELP?!", reply_markup=BotUserKeyboard.help_links())
+                 messages.USAGE_HELP_MESSAGE, reply_markup=BotUserKeyboard.help_links(),
+                 parse_mode='html'
+                 )
+
+
+@bot.message_handler(regexp=captions.PRICE_LIST)
+def price_list(message):
+    bot.reply_to(message,
+                 messages.PRICE_LIST,
+                 parse_mode='html'
+                 )
+
+
+@bot.message_handler(regexp=captions.SUPPORT)
+def support(message):
+    telegram_user = message.from_user
+
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
+    bot.reply_to(message,
+                 text=messages.WELCOME_MESSAGE.format(telegram_user.full_name, config.TELEGRAM_ADMIN_USER_NAME),
+                 parse_mode='markdown'
+                 )
 
 
 @bot.message_handler(regexp=captions.MY_SERVICES)
@@ -47,7 +69,6 @@ def my_services(message):
                      reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),
                      parse_mode='markdown'
                      )
-
 
 
 @bot.message_handler(regexp=captions.BUY_NEW_SERVICE)
@@ -76,6 +97,15 @@ def main_menu(call: types.CallbackQuery):
     bot.send_message(chat_id=call.from_user.id,
                      text=messages.WELCOME_MESSAGE.format(telegram_user.full_name, config.TELEGRAM_ADMIN_USER_NAME),
                      disable_web_page_preview=True, reply_markup=BotUserKeyboard.main_menu(), parse_mode='markdown')
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('online_payment:'))
+def buy_service_step_1(call: types.CallbackQuery):
+    telegram_user = call.from_user
+
+    bot.answer_callback_query(
+        callback_query_id=call.id, show_alert=True, text=messages.ONLINE_PAYMENT_IS_DISABLED
+    )
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('buy_service_step_1:'))
@@ -130,11 +160,9 @@ def account_qrcode(call: types.CallbackQuery):
     account_id = call.data.split(':')[1]
     account = utils.get_account(account_id)
 
-    file_name = "pyqrcode/" + account_id + ".png"
+    file_name = "./pyqrcode/" + account_id + ".png"
 
-    # url = pyqrcode.QRCode("https://sub.rirashop.top/api/sub?uuid=0e05d65d-b742-435e-9b83-23f0fe6f1406")
-    # url.png('qrcode.png', scale=15)
-    img = qrcode.make("https://sub.rirashop.top/api/sub?uuid=0e05d65d-b742-435e-9b83-23f0fe6f1406")
+    img = qrcode.make("{}?uuid={}".format(config.SUBSCRIPTION_BASE_URL, account.uuid))
     type(img)  # qrcode.image.pil.PilImage
     img.save(file_name)
 

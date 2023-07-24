@@ -54,5 +54,6 @@ SUBSCRIPTION_BASE_URL = config('SUBSCRIPTION_BASE_URL')
 
 AVAILABLE_SERVICES = config("AVAILABLE_SERVICES", default='').split(",")
 
-for service in AVAILABLE_SERVICES:
-    print(service)
+XUI_DB_PATH = config('XUI_DB_URL', default='./x-ui.db')
+OLD_BOT_DB_PATH = config('OLD_BOT_DB_PATH', default='./v2raybot.sqlite3')
+
