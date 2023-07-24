@@ -50,6 +50,13 @@ def get_my_accounts(user_id: int):
         return accounts
 
 
+def get_account(account_id: int):
+    with GetDB() as db:
+        account = account_service.get_account(db=db, account_id=account_id)
+
+        return account
+
+
 def get_readable_size(size: int):
     return humanize.naturalsize(size, binary=True, format='%.2f')
 

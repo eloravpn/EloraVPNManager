@@ -47,3 +47,12 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES = config("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", cast
 SUDOERS = {
     config("SUDO_USERNAME", default="admin"): config("SUDO_PASSWORD", default="admin")
 }
+
+
+SUBSCRIPTION_BASE_URL = config('SUBSCRIPTION_BASE_URL')
+
+
+AVAILABLE_SERVICES = config("AVAILABLE_SERVICES", default='').split(",")
+
+for service in AVAILABLE_SERVICES:
+    print(service)

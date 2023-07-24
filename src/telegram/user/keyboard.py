@@ -31,7 +31,7 @@ class BotUserKeyboard:
 
     @staticmethod
     def channel_menu():
-        keyboard = types.InlineKeyboardMarkup(resize_keyboard=True)
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
 
         keyboard.add(
             types.InlineKeyboardButton(text=captions.CHANNEL, url="https://t.me/+8wKN9itc-QdkMDE0")
@@ -40,15 +40,27 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
-    def confirm_action(action: str, username: str = None):
+    def help_links():
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                text='Yes',
-                callback_data=f"confirm:{action}:{username}"
+                text='آیفون',
+                url="https://t.me/EloraVPNChannel/72"
             ),
             types.InlineKeyboardButton(
-                text="Hi", url="https://t.me/EloraVPNChannel/72"
+                text="اندروید",
+                url="https://t.me/EloraVPNChannel/72"
+            )
+        )
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text='ویندوز',
+                url="https://t.me/EloraVPNChannel/72"
+            ),
+            types.InlineKeyboardButton(
+                text="مک بوک",
+                url="https://t.me/EloraVPNChannel/72"
             )
         )
         return keyboard
@@ -61,11 +73,93 @@ class BotUserKeyboard:
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),
+                                                           account.id,
                                                            utils.get_jalali_date(account.expired_at.timestamp()),
                                                            captions.ENABLE if account.enable else captions.DISABLE),
-                    callback_data="{action:user}"
-
+                    callback_data=f'account_detail:{account.id}'
                 )
             )
+
+        return keyboard
+
+    @staticmethod
+    def available_services(available_services):
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+
+        name_icon_map = {"basic": "🥉", "standard": "🥈", "pro": "🥇"}
+        name_fa_map = {"basic": "پایه", "standard": "استاندارد", "pro": "پرو"}
+
+        for available_service in available_services:
+            available_service = available_service.replace("\n", "")
+            available_service = available_service.replace("\r", "")
+            month = available_service.split(':')[0]
+            name = available_service.split(':')[1]
+
+            traffic = available_service.split(':')[2]
+            price = available_service.split(':')[3]
+            keyboard.add(
+                types.InlineKeyboardButton(
+                    text=captions.SERVICE_LIST_ITEM.format(month, name_fa_map[name], traffic, name_icon_map[name]),
+                    callback_data=f'buy_service_step_1:{month}:{name}:{traffic}:{price}'
+                )
+            )
+
+        return keyboard
+
+    @staticmethod
+    def my_account(account_id):
+        keyboard = types.InlineKeyboardMarkup()
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text="Qrcode 📷",
+                callback_data=f"qrcode:{account_id}"
+            )
+        )
+
+        return keyboard
+
+    @staticmethod
+    def buy_service_step_1(data: str):
+        keyboard = types.InlineKeyboardMarkup()
+
+        month = data.split(':')[1]
+        name = data.split(':')[2]
+        traffic = data.split(':')[3]
+        price = data.split(':')[4]
+
+        keyboard.add(
+
+            types.InlineKeyboardButton(
+
+                text="❌ انصراف",
+                callback_data=f"main_menu:"
+            ),
+            types.InlineKeyboardButton(
+                text="✅ بله",
+                callback_data=f"buy_service_step_2:{month}:{name}:{traffic}:{price}"
+            )
+
+        )
+
+        return keyboard
+
+    @staticmethod
+    def buy_service_step_2(data: str):
+        keyboard = types.InlineKeyboardMarkup()
+
+        month = data.split(':')[1]
+        name = data.split(':')[2]
+        traffic = data.split(':')[3]
+        price = data.split(':')[4]
+
+        keyboard.add(
+
+            types.InlineKeyboardButton(
+                text="💳 پرداخت آنلاین",
+                url="https://google.com"
+            )
+
+        )
 
         return keyboard
