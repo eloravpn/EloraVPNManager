@@ -279,7 +279,7 @@ def sync_accounts_status():
             logger.info(f"Account expire time: {account.expired_at}")
             logger.info(f"Account status: {account.enable}")
             logger.info((f"Account modified at: {account.modified_at}"))
-            if second_ago_updated > config.REVIEW_ACCOUNTS_INTERVAL * 2:
+            if second_ago_updated < config.REVIEW_ACCOUNTS_INTERVAL * 2:
                 if account.enable:
                     update_client_in_all_inbounds(db=db, db_account=account, enable=True)
                     logger.info(f"Account with email {account.email} enable successfully")

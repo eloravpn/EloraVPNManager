@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Tuple
 
 from sqlalchemy.orm import Session
@@ -34,6 +35,7 @@ def update_account(db: Session, db_account: Account, modify: AccountModify):
     # db_account.used_traffic = modify.used_traffic
     db_account.data_limit = modify.data_limit
     db_account.expired_at = modify.expired_at
+    db_account.modified_at = datetime.datetime.utcnow()
 
     db_account.enable = modify.enable
 
@@ -55,6 +57,7 @@ def update_account_used_traffic(db: Session, db_account: Account, used_traffic: 
 def reset_traffic(db: Session, db_account: Account):
     db.query(AccountUsedTraffic).filter(AccountUsedTraffic.account_id == db_account.id).delete()
     db_account.used_traffic = 0
+    db_account.modified_at = datetime.datetime.utcnow()
 
     db.commit()
     db.refresh(db_account)

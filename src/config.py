@@ -57,6 +57,6 @@ AVAILABLE_SERVICES = config("AVAILABLE_SERVICES", default='').split(",")
 XUI_DB_PATH = config('XUI_DB_URL', default='./x-ui.db')
 OLD_BOT_DB_PATH = config('OLD_BOT_DB_PATH', default='./v2raybot.sqlite3')
 
-REVIEW_ACCOUNTS_INTERVAL = config("SYNC_ACCOUNTS_INTERVAL", cast=int, default=300)
+REVIEW_ACCOUNTS_INTERVAL = config("REVIEW_ACCOUNTS_INTERVAL", cast=int, default=300)
 SYNC_ACCOUNTS_INTERVAL = config("SYNC_ACCOUNTS_INTERVAL", cast=int, default=60)
 

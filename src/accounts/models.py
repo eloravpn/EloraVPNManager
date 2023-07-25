@@ -28,7 +28,7 @@ class Account(Base):
 
     expired_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow)
 
     @validates('uuid')
     def validate_uuid(self, key, uuid):
