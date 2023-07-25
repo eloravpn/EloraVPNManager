@@ -26,8 +26,6 @@ def create_host(db: Session, host: HostCreate):
 
 def update_host(db: Session, db_host: Host, modify: HostModify):
 
-    print('Here')
-    print(modify.name)
     db_host.name = modify.name
     db_host.domain = modify.domain
     db_host.username = modify.username

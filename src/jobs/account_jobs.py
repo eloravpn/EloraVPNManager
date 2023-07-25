@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src import scheduler, logger
+from src import scheduler, logger, config
 from src.accounts.models import Account
 from src.accounts.service import get_accounts, update_account_used_traffic, update_account_status, \
     create_account_used_traffic
@@ -208,6 +208,7 @@ def sync_accounts():
 
                 if not account.enable:
                     logger.info("Account is disable, skipped to add!")
+                    continue
 
                 account_unique_email = get_account_email_prefix(host.id, inbound.key, account.email)
 
@@ -267,16 +268,16 @@ def sync_accounts_status():
 
     with GetDB() as db:
         for account in get_accounts(db, return_with_count=False):
-            if not account.expired_at:
-                logger.error("No expire time")
-            else:
-                account_expire_time = account.expired_at.timestamp()
 
-                logger.info(f"Account uuid: {account.uuid}")
-                logger.info(f"Account email: {account.email}")
-                logger.info(f"Account Expire time: {account.expired_at}")
-                logger.info(f"Account status: {account.enable}")
-
+            second_ago_updated = 0
+            if account.modified_at:
+                second_ago_updated = now - account.modified_at.timestamp()
+            logger.info(f"Account uuid: {account.uuid}")
+            logger.info(f"Account email: {account.email}")
+            logger.info(f"Account expire time: {account.expired_at}")
+            logger.info(f"Account status: {account.enable}")
+            logger.info((f"Account modified at: {account.modified_at}"))
+            if second_ago_updated > config.REVIEW_ACCOUNTS_INTERVAL * 2:
                 if account.enable:
                     update_client_in_all_inbounds(db=db, db_account=account, enable=True)
                     logger.info(f"Account with email {account.email} enable successfully")
@@ -284,6 +285,8 @@ def sync_accounts_status():
                 else:
                     update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                     logger.info(f"Account with email {account.email} disable successfully")
+            else:
+                logger.info(f"Skip Account with email {account.email}")
 
 
 # TODO: remove this func for prod
@@ -328,12 +331,13 @@ def sync_accounts_status():
 #     pass
 
 
-def run_account_jobs():
-    sync_accounts()
+def run_review_account_jobs():
     sync_accounts_status()
     review_accounts()
 
 
-scheduler.add_job(run_account_jobs)
+# scheduler.add_job(run_account_jobs)
 
-scheduler.add_job(run_account_jobs, trigger='interval', seconds=3600)
+scheduler.add_job(run_review_account_jobs, trigger='interval', seconds=config.REVIEW_ACCOUNTS_INTERVAL)
+
+scheduler.add_job(sync_accounts, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)

@@ -15,6 +15,19 @@ router = APIRouter()
 logger = logging.getLogger('uvicorn.error')
 
 
+@router.post("/accounts/{account_id}/reset_traffic", tags=["Account"], response_model=AccountResponse)
+def add_account(account_id: int,
+                db: Session = Depends(get_db),
+                admin: Admin = Depends(Admin.get_current)):
+    db_account = service.get_account(db, account_id)
+    if not db_account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    return service.reset_traffic(db=db, db_account=db_account)
+
+
+
+
 @router.post("/accounts/", tags=["Account"], response_model=AccountResponse)
 def add_account(account: AccountCreate,
                 db: Session = Depends(get_db),

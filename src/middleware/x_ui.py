@@ -10,9 +10,9 @@ class XUI:
     def __init__(self, host: HostResponse):
 
         if host.type is HostType.x_ui_sanaei:
-            self.api = MHSANAEI(host = host)
+            self.api = MHSANAEI(host=host)
         elif host.type is HostType.x_ui_kafka:
-            self.api = FRANZKAFKAYU(host = host)
+            self.api = FRANZKAFKAYU(host=host)
 
 
 class MHSANAEI:
@@ -63,7 +63,7 @@ class MHSANAEI:
 
         url = f'{self._base_api_url}/inbounds/{inbound_id}/resetClientTraffic/{email}'
 
-        logger.info(f"Final url fro reset client traffic is: {url}")
+        logger.info(f"Final url for reset client traffic is: {url}")
 
         response = requests.post(
             url,
@@ -131,7 +131,7 @@ class MHSANAEI:
 
     @staticmethod
     def get_client_payload(data_limit: int, email: str, enable: bool,
-                            expire_time: int, inbound_id: int, uuid: str) -> object:
+                           expire_time: int, inbound_id: int, uuid: str) -> object:
         """
         :param data_limit Data Limit
         :rtype: object

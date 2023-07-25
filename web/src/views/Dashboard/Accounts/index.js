@@ -66,6 +66,7 @@ import {
   EditIcon,
   EmailIcon,
   NotAllowedIcon,
+  RepeatIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
 import UserModal from "../Users/components/UserModal";
@@ -75,9 +76,6 @@ import User from "./components/User";
 
 const Accounts = ({ data }) => {
   const navigate = useNavigate();
-
-
-
 
   const fetcher = useFetcher();
 
@@ -91,6 +89,14 @@ const Accounts = ({ data }) => {
   const delteAccount = (id) => {
     if (window.confirm("Are you sure to delete this account?")) {
       AccountAPI.delete(id).then(() => {
+        navigate();
+      });
+    }
+  };
+
+  const resetTraffic = (id) => {
+    if (window.confirm("Are you sure to rested traffic this account?")) {
+      AccountAPI.reseteTraffic(id).then(() => {
         navigate();
       });
     }
@@ -233,7 +239,7 @@ const Accounts = ({ data }) => {
         <Switch
           isChecked={enable}
           onChange={handleEnableChange}
-        // onBlur={formik.handleBlur}
+          // onBlur={formik.handleBlur}
         />
       </Stack>
       <Box>
@@ -283,14 +289,6 @@ const Accounts = ({ data }) => {
 
                         <MenuList>
                           <MenuItem
-                            icon={<DeleteIcon />}
-                            onClick={() => {
-                              delteAccount(account.id);
-                            }}
-                          >
-                            Delete
-                          </MenuItem>
-                          <MenuItem
                             icon={<EditIcon />}
                             onClick={() => {
                               setAccount(account);
@@ -298,6 +296,23 @@ const Accounts = ({ data }) => {
                             }}
                           >
                             Edit
+                          </MenuItem>
+                          <MenuItem
+                            icon={<RepeatIcon />}
+                            onClick={() => {
+                              resetTraffic(account.id);
+                            }}
+                          >
+                            Reset Traffic
+                          </MenuItem>
+
+                          <MenuItem
+                            icon={<DeleteIcon />}
+                            onClick={() => {
+                              delteAccount(account.id);
+                            }}
+                          >
+                            Delete
                           </MenuItem>
                         </MenuList>
                       </Menu>

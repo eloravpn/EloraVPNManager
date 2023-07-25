@@ -63,7 +63,7 @@ def my_services(message):
     my_accounts = user.accounts
 
     if not my_accounts:
-        bot.reply_to(message, "No accounts", reply_markup=BotUserKeyboard.confirm_action(action='restart'))
+        bot.reply_to(message, messages.NO_ACCOUNT_MESSAGE)
     else:
         bot.reply_to(message, messages.ACCOUNT_LIST_MESSAGE,
                      reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),

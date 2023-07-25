@@ -53,6 +53,7 @@ def get_user_chat_id(email: str):
     sql = f"select chat_id from user inner join account a on user.id = a.user_id where a.email = '{email}'"
     return conn.execute(sql).fetchone()[0]
 
+
 def get_account_uuid(email: str):
     conn = sqlite3.connect(config.OLD_BOT_DB_PATH)
     sql = f"select uuid from account where email = '{email}'"
@@ -61,38 +62,6 @@ def get_account_uuid(email: str):
 
 if __name__ == "__main__":
     client_list = get_all_client_infos(1, 500, 0, True)
-    # settings = get_inbound_settings(1)
-
-    for index, client in enumerate(client_list):
-        print("X-UI {} - {}, {}".format(index, client['email'], datetime.fromtimestamp(client['expiry_time'] / 1000)))
-        chat_id = get_user_chat_id(email=client['email'])
-        uuid = get_account_uuid(email=client['email'])
-        print(f"Telegram ChatID: {chat_id}")
-        if chat_id:
-            with GetDB() as db:
-                user = src.users.service.get_user_by_telegram_chat_id(db=db, telegram_chat_id=chat_id)
-                if user:
-                    print(f"New User ID: {user.id}")
-                    account_model = AccountCreate(user_id=user.id,uuid=uuid, data_limit=client["total"], email=client['email'],
-                                                  enable=True,expired_at=datetime.fromtimestamp(client['expiry_time'] / 1000))
-                    print(f"Final account model is : {account_model}")
-                    try:
-                        src.accounts.service.create_account(db=db,db_user=user, account=account_model)
-                    except IntegrityError as error:
-                        print("Duplicated ...")
-
-                else:
-                    print("Error: User does not found!")
-
-        # account_model = AccountCreate(user_id=)
-        # print(client['expiry_time'])
-
-    # print(settings)
-    # for index, client in enumerate(client_list):
-    #     print("{} - {}".format(index, client['email']))
-    #     settings = settings.replace(client["email"], "0_1_" + client["email"])
-    #
-    # print(settings)
 
     # for c in get_old_users():
     #     with GetDB() as db:
@@ -104,8 +73,42 @@ if __name__ == "__main__":
     #         user_model.last_name = c[4] if c[4] else ""
     #         print(user_model)
     #
+    #
     #         try:
     #             src.users.service.create_user(db, user_model)
     #         except IntegrityError as error:
     #             print("Duplicated ...")
-    #             # print(error)
+
+    for index, client in enumerate(client_list):
+        expire_time = None
+        if client['expiry_time'] > 0:
+            expire_time = datetime.fromtimestamp(client['expiry_time'] / 1000)
+        print("X-UI {} - {}, {}".format(index, client['email'], expire_time))
+        chat_id = get_user_chat_id(email=client['email'])
+        uuid = get_account_uuid(email=client['email'])
+        print(f"Telegram ChatID: {chat_id}")
+        if chat_id:
+            with GetDB() as db:
+                user = src.users.service.get_user_by_telegram_chat_id(db=db, telegram_chat_id=chat_id)
+                if user:
+                    print(f"New User ID: {user.id}")
+                    account_model = AccountCreate(user_id=user.id, uuid=uuid, data_limit=client["total"],
+                                                  email=client['email'],
+                                                  enable=True,
+                                                  expired_at=expire_time)
+                    print(f"Final account model is : {account_model}")
+                    try:
+                        src.accounts.service.create_account(db=db, db_user=user, account=account_model)
+                    except IntegrityError as error:
+                        print("Duplicated ...")
+
+                else:
+                    print("Error: User does not found!")
+
+    # settings = get_inbound_settings(1)
+    # print(settings)
+    # for index, client in enumerate(client_list):
+    #     print("{} - {}".format(index, client['email']))
+    #     settings = settings.replace(client["email"], "1_1_" + client["email"])
+    #
+    # print(settings)

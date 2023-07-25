@@ -33,6 +33,12 @@ export const AccountAPI = {
       method: "DELETE",
     });
   },
+  reseteTraffic: async function (accountId) {
+    await api.request({
+      url: `/accounts/${accountId}/reset_traffic`,
+      method: "POST",
+    });
+  },
   getAll: async function () {
     const response = await api.request({
       url: "/accounts/",

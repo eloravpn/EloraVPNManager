@@ -52,6 +52,16 @@ def update_account_used_traffic(db: Session, db_account: Account, used_traffic: 
     return db_account
 
 
+def reset_traffic(db: Session, db_account: Account):
+    db.query(AccountUsedTraffic).filter(AccountUsedTraffic.account_id == db_account.id).delete()
+    db_account.used_traffic = 0
+
+    db.commit()
+    db.refresh(db_account)
+
+    return db_account
+
+
 def update_account_status(db: Session, db_account: Account, enable: bool = True):
     db_account.enable = enable
 
