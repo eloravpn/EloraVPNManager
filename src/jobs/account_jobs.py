@@ -183,10 +183,10 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
             logger.info(f"Client does not exist in this inbound yet")
 
 
-def sync_accounts():
+def sync_new_accounts():
     with GetDB() as db:
 
-        print('Start syncing accounts in all inbounds ' + str(datetime.now()))
+        print('Start syncing new accounts in all inbounds ' + str(datetime.now()))
 
         inbounds, count = get_inbounds(db=db)
         for inbound in inbounds:
@@ -213,6 +213,43 @@ def sync_accounts():
                 account_unique_email = get_account_email_prefix(host.id, inbound.key, account.email)
 
                 client_stat = xui.api.get_client_stat(email=account_unique_email)
+                if client_stat is None:
+                    logger.info(f"Client does not exist in this inbound yet")
+                    logger.info(f"Try to add client in this inbound")
+
+                    xui.api.add_client(inbound_id=inbound.key, email=account_unique_email, uuid=account.uuid)
+
+
+def sync_accounts_traffic():
+    with GetDB() as db:
+
+        print('Start syncing accounts traffic from all inbounds ' + str(datetime.now()))
+
+        inbounds, count = get_inbounds(db=db)
+        for inbound in inbounds:
+            logger.info(f"Inbound Remark: {inbound.remark}")
+            logger.info(f"Inbound host ID: {inbound.host_id}")
+
+            host = get_host(db, inbound.host_id)
+
+            xui = XUI(host=HostResponse.from_orm(host))
+
+            logger.info("Host name: " + host.name)
+
+            for account in get_accounts(db, return_with_count=False):
+                # account_expire_time = account.expired_at.timestamp() * 1000
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(f"Account Expire time: {account.expired_at}")
+                logger.info(f"Account Status: {account.enable}")
+
+                if not account.enable:
+                    logger.info("Account is disable, skipped to update traffic!")
+                    continue
+
+                account_unique_email = get_account_email_prefix(host.id, inbound.key, account.email)
+
+                client_stat = xui.api.get_client_stat(email=account_unique_email)
                 if client_stat is not None:
                     total_usage = int(client_stat['up']) + int(client_stat['down'])
                     logger.info(f"Client Upload: {client_stat['up']}")
@@ -227,14 +264,7 @@ def sync_accounts():
                         logger.info(
                             f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}")
                     else:
-                        logger.error(f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}")
-
-
-                else:
-                    logger.info(f"Client does not exist in this inbound yet")
-                    logger.info(f"Try to add client in this inbound")
-
-                    xui.api.add_client(inbound_id=inbound.key, email=account_unique_email, uuid=account.uuid)
+                        logger.warn(f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}")
 
 
 def review_accounts():
@@ -342,4 +372,5 @@ def run_review_account_jobs():
 
 scheduler.add_job(run_review_account_jobs, trigger='interval', seconds=config.REVIEW_ACCOUNTS_INTERVAL)
 
-scheduler.add_job(sync_accounts, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
+scheduler.add_job(sync_new_accounts, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
+scheduler.add_job(sync_accounts_traffic, trigger='interval', seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
