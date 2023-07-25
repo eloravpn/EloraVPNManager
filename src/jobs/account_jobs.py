@@ -258,7 +258,7 @@ def review_accounts():
                 update_account_status(db=db, db_account=account, enable=False)
 
 
-            elif account.used_traffic >= account.data_limit and account.enable:
+            elif account.used_traffic >= account.data_limit > 0 and account.enable:
                 logger.info("Account has been expired due to exceeded Data limit usage.")
                 update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
