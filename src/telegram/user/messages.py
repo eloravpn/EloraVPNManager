@@ -31,7 +31,7 @@ MY_ACCOUNT_MESSAGE = """
 
 روی متن زیر کلیک نمایید تا لینک اشتراک پروفایل شما در کلیپ بورد کپی شود: 
  
- <code>{}?uuid={}</code>
+ <code>{}/{}</code>
 """
 
 ACCOUNT_LIST_MESSAGE = """

@@ -162,7 +162,7 @@ def account_qrcode(call: types.CallbackQuery):
 
     file_name = "./pyqrcode/" + account_id + ".png"
 
-    img = qrcode.make("{}?uuid={}".format(config.SUBSCRIPTION_BASE_URL, account.uuid))
+    img = qrcode.make("{}/{}".format(config.SUBSCRIPTION_BASE_URL, account.uuid))
     type(img)  # qrcode.image.pil.PilImage
     img.save(file_name)
 
