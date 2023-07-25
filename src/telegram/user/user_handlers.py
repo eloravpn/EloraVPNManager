@@ -182,15 +182,15 @@ def account_detail(call: types.CallbackQuery):
 
     account = utils.get_account(account_id)
 
-    logger.info("Create telegram_user for:" + str(telegram_user))
-
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
+    percent_traffic_usage = round((account.used_traffic / account.data_limit) * 100,
+                                  2) if account.data_limit > 0 else "Unlimited"
     bot.send_message(
         text=messages.MY_ACCOUNT_MESSAGE.format(captions.ENABLE if account.enable else captions.DISABLE,
                                                 account.id, utils.get_readable_size(account.used_traffic),
                                                 utils.get_readable_size(account.data_limit),
-                                                round((account.used_traffic / account.data_limit) * 100, 2)
+                                                percent_traffic_usage
                                                 , utils.get_jalali_date(account.expired_at.timestamp()),
                                                 config.SUBSCRIPTION_BASE_URL, account.uuid),
         chat_id=telegram_user.id,
