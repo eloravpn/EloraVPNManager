@@ -26,8 +26,6 @@ def add_account(account_id: int,
     return service.reset_traffic(db=db, db_account=db_account)
 
 
-
-
 @router.post("/accounts/", tags=["Account"], response_model=AccountResponse)
 def add_account(account: AccountCreate,
                 db: Session = Depends(get_db),
@@ -82,9 +80,27 @@ def delete_account(account_id: int, db: Session = Depends(get_db),
 
 @router.get("/accounts/", tags=['Account'], response_model=AccountsResponse)
 def get_accounts(
+        offset: int = None,
+        limit: int = None,
+        sort: str = None,
         db: Session = Depends(get_db),
         admin: Admin = Depends(Admin.get_current)
 ):
-    accounts, count = service.get_accounts(db=db)
+    if sort is not None:
+        opts = sort.strip(',').split(',')
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(service.AccountSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(status_code=400,
+                                    detail=f'"{opt}" is not a valid sort option')
+
+    accounts, count = service.get_accounts(
+        db=db,
+        offset=offset,
+        limit=limit,
+        sort=sort
+    )
 
     return {"accounts": accounts, "total": count}

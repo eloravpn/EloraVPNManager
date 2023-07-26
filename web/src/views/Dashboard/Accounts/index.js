@@ -45,6 +45,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Select,
   Stack,
   Switch,
   Table,
@@ -106,7 +107,7 @@ const Accounts = ({ data }) => {
 
   const handleQChange = (event) => setQ(event.target.value);
 
-  const [enable, setEnable] = useState(true);
+  const [enable, setEnable] = useState(false);
   const handleEnableChange = (event) => {
     console.log(event);
     setEnable(event.target.checked);
@@ -206,7 +207,7 @@ const Accounts = ({ data }) => {
         account={account}
         redirect={"/admin/accounts"}
       />
-      >
+
       <Box>
         <Heading as="h3" size="lg">
           Accounts
@@ -216,7 +217,7 @@ const Accounts = ({ data }) => {
         <Button
           leftIcon={<AddIcon />}
           ref={btnRef}
-          colorScheme="teal"
+          // colorScheme="teal"
           onClick={() => {
             setAccount();
             onEditAccountOpen();
@@ -225,22 +226,35 @@ const Accounts = ({ data }) => {
           Create User
         </Button>
       </Box>
-      <Stack spacing={5} direction="row">
-        <Input
-          onChange={handleQChange}
-          value={q}
-          type="text"
-          placeholder="Search"
-        />
+      <Stack spacing={5} direction={{ sm: "column", md: "row" }}>
+        <Box w={{ base: '50%', sm: '100%' }}>
+          <Input
+            onChange={handleQChange}
+            value={q}
+            type="text"
+            placeholder="Search"
+          />
+        </Box>
 
-        <FormLabel htmlFor="enable" mb="0">
-          Enable?
-        </FormLabel>
-        <Switch
-          isChecked={enable}
-          onChange={handleEnableChange}
-          // onBlur={formik.handleBlur}
-        />
+        <Stack w={{ base: '50%', sm: '100%' }} direction={{ base: "row" }}>
+
+          <FormLabel htmlFor="enable" mb="0">
+            Enable?
+          </FormLabel>
+          <Switch
+            isChecked={enable}
+            onChange={handleEnableChange}
+          />
+          <Select placeholder='Select option'>
+            <option value='all'>All</option>
+            <option value='expire-soon'>Expire soon</option>
+          </Select>
+
+
+        </Stack>
+
+
+
       </Stack>
       <Box>
         <FormControl></FormControl>

@@ -1,11 +1,17 @@
 import datetime
-from typing import List, Tuple
+from enum import Enum
+from typing import List, Tuple, Optional
 
 from sqlalchemy.orm import Session
 
 from src.accounts.models import Account, AccountUsedTraffic
 from src.accounts.schemas import AccountCreate, AccountModify
 from src.users.models import User
+
+AccountSortingOptions = Enum('AccountSortingOptions', {
+    'expire': Account.expired_at.asc(),
+    '-expire': Account.expired_at.desc()
+})
 
 
 def create_account(db: Session, db_user: User, account: AccountCreate):
@@ -74,8 +80,21 @@ def update_account_status(db: Session, db_account: Account, enable: bool = True)
     return db_account
 
 
-def get_accounts(db: Session, return_with_count: bool = True) -> Tuple[List[Account], int]:
+def get_accounts(db: Session,
+                 offset: Optional[int] = None,
+                 limit: Optional[int] = None,
+                 sort: Optional[List[AccountSortingOptions]] = None,
+                 return_with_count: bool = True,
+                 ) -> Tuple[List[Account], int]:
     query = db.query(Account)
+
+    if sort:
+        query = query.order_by(*(opt.value for opt in sort))
+
+    if offset:
+        query = query.offset(offset)
+    if limit:
+        query = query.limit(limit)
 
     count = query.count()
 

@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, Union, TYPE_CHECKING
-from uuid import uuid4, UUID
+from typing import List, Union
+from uuid import uuid4
 
 from pydantic import BaseModel, validator, Field
 

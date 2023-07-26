@@ -114,6 +114,10 @@ class BotUserKeyboard:
             types.InlineKeyboardButton(
                 text="دریافت QR کد",
                 callback_data=f"qrcode:{account_id}"
+            ),
+            types.InlineKeyboardButton(
+                text="🔄 بروزرسانی",
+                callback_data=f"account_detail:{account_id}"
             )
         )
 

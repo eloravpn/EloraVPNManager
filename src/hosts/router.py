@@ -71,7 +71,7 @@ def get_hosts(offset: int = None,
         sort = []
         for opt in opts:
             try:
-                sort.append(service.UsersSortingOptions[opt])
+                sort.append(service.HostSortingOptions[opt])
             except KeyError:
                 raise HTTPException(status_code=400,
                                     detail=f'"{opt}" is not a valid sort option')

@@ -2,6 +2,7 @@ import random
 
 import qrcode as qrcode
 from telebot import types
+from telebot.apihelper import ApiTelegramException
 
 from src import logger, config
 from src.telegram import bot, utils
@@ -186,17 +187,23 @@ def account_detail(call: types.CallbackQuery):
 
     percent_traffic_usage = round((account.used_traffic / account.data_limit) * 100,
                                   2) if account.data_limit > 0 else "Unlimited"
-    bot.send_message(
-        text=messages.MY_ACCOUNT_MESSAGE.format(captions.ENABLE if account.enable else captions.DISABLE,
-                                                account.id, utils.get_readable_size(account.used_traffic),
-                                                utils.get_readable_size(account.data_limit),
-                                                percent_traffic_usage
-                                                , utils.get_jalali_date(account.expired_at.timestamp()),
-                                                config.SUBSCRIPTION_BASE_URL, account.uuid),
-        chat_id=telegram_user.id,
-        reply_markup=BotUserKeyboard.my_account(account_id),
-        parse_mode='html'
-    )
+
+    try:
+        bot.edit_message_text(
+            message_id=call.message.message_id,
+            text=messages.MY_ACCOUNT_MESSAGE.format(captions.ENABLE if account.enable else captions.DISABLE,
+                                                    account.id, utils.get_readable_size(account.used_traffic),
+                                                    utils.get_readable_size(account.data_limit),
+                                                    percent_traffic_usage
+                                                    , utils.get_jalali_date(account.expired_at.timestamp()),
+                                                    config.SUBSCRIPTION_BASE_URL, account.uuid),
+            chat_id=telegram_user.id,
+            reply_markup=BotUserKeyboard.my_account(account_id),
+            parse_mode='html'
+        )
+    except ApiTelegramException as error:
+        logger.warn(error)
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'user_info')

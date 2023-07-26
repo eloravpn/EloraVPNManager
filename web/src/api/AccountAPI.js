@@ -40,9 +40,15 @@ export const AccountAPI = {
     });
   },
   getAll: async function () {
+    let params = {
+      limit: 10,
+      sort: '-expire'
+    };
+
     const response = await api.request({
       url: "/accounts/",
       method: "GET",
+      params: params
     });
 
     return response.data.accounts;
