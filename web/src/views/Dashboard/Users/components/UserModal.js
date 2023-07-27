@@ -62,6 +62,8 @@ const UserModal = ({ isOpen, onClose, btnRef, user }) => {
       values.enable ? (values.enable = true) : (values.enable = false);
       values.banned ? (values.banned = true) : (values.banned = false);
       if (!values.telegram_chat_id) delete values.telegram_chat_id;
+      if (!values.phone_number) delete values.phone_number;
+      if (!values.telegram_username) delete values.telegram_username;
 
       alert(JSON.stringify(values, null, 4));
 
