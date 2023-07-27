@@ -29,8 +29,6 @@ class Admin(BaseModel):
                     db: Session = Depends(get_db),
                     token: str = Depends(oauth2_scheme)):
 
-        print("Token is " + token)
-
         exc = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

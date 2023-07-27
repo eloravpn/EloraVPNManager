@@ -192,7 +192,7 @@ def account_detail(call: types.CallbackQuery):
         bot.edit_message_text(
             message_id=call.message.message_id,
             text=messages.MY_ACCOUNT_MESSAGE.format(captions.ENABLE if account.enable else captions.DISABLE,
-                                                    account.id, utils.get_readable_size(account.used_traffic),
+                                                    account.email, utils.get_readable_size(account.used_traffic),
                                                     utils.get_readable_size(account.data_limit),
                                                     percent_traffic_usage
                                                     , utils.get_jalali_date(account.expired_at.timestamp()),

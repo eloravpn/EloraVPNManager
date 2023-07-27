@@ -28,7 +28,6 @@ def create_admin_token(username: str, is_sudo=False) -> str:
 def get_admin_payload(token: str) -> Union[dict, None]:
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-        print(payload)
         username: str = payload.get("sub")
         access: str = payload.get("access")
         if not username or access not in ('admin', 'sudo'):

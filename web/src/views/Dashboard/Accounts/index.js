@@ -51,6 +51,8 @@ import {
   Table,
   TableCaption,
   TableContainer,
+  Tag,
+  TagLabel,
   Tbody,
   Td,
   Th,
@@ -104,12 +106,13 @@ const Accounts = ({ data }) => {
   };
 
   const [q, setQ] = useState();
+  const [rows, setRows] = useState(20);
+  const [sort, setSort] = useState("expire");
 
   const handleQChange = (event) => setQ(event.target.value);
 
-  const [enable, setEnable] = useState(false);
+  const [enable, setEnable] = useState(true);
   const handleEnableChange = (event) => {
-    console.log(event);
     setEnable(event.target.checked);
   };
 
@@ -171,7 +174,7 @@ const Accounts = ({ data }) => {
   const btnRef = React.useRef();
 
   const fetchAccounts = () => {
-    AccountAPI.getAll().then((res) => {
+    AccountAPI.getAll(rows, sort).then((res) => {
       setAccounts(res);
     });
   };
@@ -181,15 +184,15 @@ const Accounts = ({ data }) => {
     const interval = setInterval(fetchAccounts, 5000);
 
     return () => clearInterval(interval);
-  }, [enable]);
+  }, [enable, rows, sort]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // navigate();
-    }, 5000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     // navigate();
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, [fetcher]);
+  //   return () => clearInterval(interval);
+  // }, [fetcher]);
 
   return (
     <VStack spacing={4} p={5} align="stretch">
@@ -227,7 +230,7 @@ const Accounts = ({ data }) => {
         </Button>
       </Box>
       <Stack spacing={5} direction={{ sm: "column", md: "row" }}>
-        <Box w={{ base: '50%', sm: '100%' }}>
+        <Box w={{ base: "50%", sm: "100%" }}>
           <Input
             onChange={handleQChange}
             value={q}
@@ -236,25 +239,38 @@ const Accounts = ({ data }) => {
           />
         </Box>
 
-        <Stack w={{ base: '50%', sm: '100%' }} direction={{ base: "row" }}>
-
+        <Stack w={{ base: "50%", sm: "100%" }} direction={{ base: "row" }}>
           <FormLabel htmlFor="enable" mb="0">
             Enable?
           </FormLabel>
-          <Switch
-            isChecked={enable}
-            onChange={handleEnableChange}
-          />
-          <Select placeholder='Select option'>
-            <option value='all'>All</option>
-            <option value='expire-soon'>Expire soon</option>
+          <Switch isChecked={enable} onChange={handleEnableChange} />
+          <Select
+            placeholder="Rows"
+            onChange={(event) => {
+              setRows(event.target.value);
+            }}
+            defaultValue={rows}
+          >
+            <option value="10">First 10</option>
+            <option value="20">First 20</option>
+            <option value="50">First 50</option>
+            <option value="0">All</option>
           </Select>
-
-
+          <Select
+            placeholder="Sort by"
+            onChange={(event) => {
+              setSort(event.target.value);
+            }}
+            defaultValue={sort}
+          >
+            <option value="expire">Expire ASC</option>
+            <option value="-expire">Expire DESC</option>
+            <option value="used-traffic">Used traffic ASC</option>
+            <option value="-used-traffic">Used traffic DESC</option>
+            <option value="data-limit">Data limit ASC</option>
+            <option value="-data-limit">Data limit DESC</option>
+          </Select>
         </Stack>
-
-
-
       </Stack>
       <Box>
         <FormControl></FormControl>
@@ -266,9 +282,10 @@ const Accounts = ({ data }) => {
               <Thead>
                 <Tr>
                   <Th>UUID</Th>
-                  <Th>Email</Th>
+                  {/* <Th>Email</Th> */}
                   <Th>User</Th>
                   <Th>Usage</Th>
+                  {/* <Th>Expire</Th> */}
                   <Th>Enable</Th>
                   <Th>Actions</Th>
                 </Tr>
@@ -277,13 +294,28 @@ const Accounts = ({ data }) => {
                 {search(accounts).map((account) => (
                   <Tr key={account.id}>
                     <Td>{account.uuid} </Td>
-                    <Td>{account.email}</Td>
+                    {/* <Td>{account.email}</Td> */}
                     <Td>
                       <User userId={account.user_id} />
+                      <Tag size="sm" colorScheme="green" borderRadius="full">
+                        <TagLabel>{account.email}</TagLabel>
+                      </Tag>
                     </Td>
                     <Td>
-                      {niceBytes(account.used_traffic)} /{" "}
-                      {niceBytes(account.data_limit)}
+                      <Stack direction={"column"}>
+                        <Badge variant="solid" colorScheme="green">
+                          {niceBytes(account.used_traffic)} /{" "}
+                          {niceBytes(account.data_limit)}
+                        </Badge>
+
+                        <Badge variant="solid" colorScheme="pink">
+                          {account.expired_at
+                            ? new Date(account.expired_at).toLocaleDateString(
+                                "fa-IR-u-nu-latn"
+                              )
+                            : "Unlimited"}
+                        </Badge>
+                      </Stack>
                     </Td>
                     <Td>
                       {account.enable ? (

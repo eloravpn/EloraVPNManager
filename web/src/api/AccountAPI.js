@@ -39,16 +39,16 @@ export const AccountAPI = {
       method: "POST",
     });
   },
-  getAll: async function () {
+  getAll: async function (rows, sort) {
     let params = {
-      limit: 10,
-      sort: '-expire'
+      limit: rows ? rows : 20,
+      sort: sort ? sort : "-expire",
     };
 
     const response = await api.request({
       url: "/accounts/",
       method: "GET",
-      params: params
+      params: params,
     });
 
     return response.data.accounts;

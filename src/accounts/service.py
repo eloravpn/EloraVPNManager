@@ -10,7 +10,11 @@ from src.users.models import User
 
 AccountSortingOptions = Enum('AccountSortingOptions', {
     'expire': Account.expired_at.asc(),
-    '-expire': Account.expired_at.desc()
+    '-expire': Account.expired_at.desc(),
+    'used-traffic': Account.used_traffic.asc(),
+    '-used-traffic': Account.expired_at.desc(),
+    'data-limit': Account.data_limit.asc(),
+    '-data-limit': Account.data_limit.desc(),
 })
 
 

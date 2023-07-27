@@ -13,7 +13,6 @@ HostSortingOptions = Enum('HostSortingOptions', {
 
 
 def create_host(db: Session, host: HostCreate):
-    print(host.port)
     db_host = Host(name=host.name, domain=host.domain, port=host.port, ip=host.ip,
                    username=host.username, password=host.password, api_path=host.api_path,
                    enable=host.enable, master=host.master, type=host.type)

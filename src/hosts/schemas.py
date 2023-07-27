@@ -26,12 +26,6 @@ class Host(BaseModel):
 class HostResponse(Host):
     id: int
 
-    # @root_validator
-    # def debug_usage(self, data: dict):
-    #     print("created pydantic model")
-    #
-    #     return data
-
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
 

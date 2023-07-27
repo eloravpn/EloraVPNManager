@@ -69,7 +69,6 @@ class BotUserKeyboard:
     def my_accounts(accounts):
         keyboard = types.InlineKeyboardMarkup()
         for account in accounts:
-            print(account.expired_at)
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),

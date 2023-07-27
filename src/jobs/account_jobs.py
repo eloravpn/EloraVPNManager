@@ -136,7 +136,6 @@ from src.middleware.x_ui import XUI
 #         "tgId": "",
 #         "subId": ""
 #     }
-#     print(client)
 #     clients = []
 #     clients.append(client)
 #     clients_object = {
