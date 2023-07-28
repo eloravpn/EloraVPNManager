@@ -68,12 +68,15 @@ class BotUserKeyboard:
     @staticmethod
     def my_accounts(accounts):
         keyboard = types.InlineKeyboardMarkup()
+
         for account in accounts:
+            expired_at = "Unlimited" if not account.expired_at else utils.get_jalali_date(
+                account.expired_at.timestamp())
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),
                                                            account.id,
-                                                           utils.get_jalali_date(account.expired_at.timestamp()),
+                                                           expired_at,
                                                            captions.ENABLE if account.enable else captions.DISABLE),
                     callback_data=f'account_detail:{account.id}'
                 )

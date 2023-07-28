@@ -167,10 +167,12 @@ def account_qrcode(call: types.CallbackQuery):
     type(img)  # qrcode.image.pil.PilImage
     img.save(file_name)
 
+    expired_at = "Unlimited" if not account.expired_at else utils.get_jalali_date(account.expired_at.timestamp())
+
     bot.send_chat_action(call.from_user.id, 'upload_document')
     bot.send_photo(caption=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),
                                                              account.id,
-                                                             utils.get_jalali_date(account.expired_at.timestamp()),
+                                                             expired_at,
                                                              captions.ENABLE if account.enable else captions.DISABLE),
                    chat_id=call.from_user.id, photo=open(file_name, 'rb'))
 
@@ -187,6 +189,7 @@ def account_detail(call: types.CallbackQuery):
 
     percent_traffic_usage = round((account.used_traffic / account.data_limit) * 100,
                                   2) if account.data_limit > 0 else "Unlimited"
+    expired_at = "Unlimited" if not account.expired_at else utils.get_jalali_date(account.expired_at.timestamp())
 
     try:
         bot.edit_message_text(
@@ -194,8 +197,8 @@ def account_detail(call: types.CallbackQuery):
             text=messages.MY_ACCOUNT_MESSAGE.format(captions.ENABLE if account.enable else captions.DISABLE,
                                                     account.email, utils.get_readable_size(account.used_traffic),
                                                     utils.get_readable_size(account.data_limit),
-                                                    percent_traffic_usage
-                                                    , utils.get_jalali_date(account.expired_at.timestamp()),
+                                                    percent_traffic_usage,
+                                                    expired_at,
                                                     config.SUBSCRIPTION_BASE_URL, account.uuid),
             chat_id=telegram_user.id,
             reply_markup=BotUserKeyboard.my_account(account_id),
