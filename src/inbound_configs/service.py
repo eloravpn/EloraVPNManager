@@ -60,6 +60,8 @@ def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify:
 def get_inbound_configs(db: Session) -> Tuple[List[InboundConfig], int]:
     query = db.query(InboundConfig)
 
+    query.order_by(InboundConfig.remark.asc())
+
     count = query.count()
 
     return query.all(), count

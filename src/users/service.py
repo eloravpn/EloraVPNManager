@@ -39,6 +39,8 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
 def get_users(db: Session, return_with_count: bool = True) -> Tuple[List[User], int]:
     query = db.query(User)
 
+    query.order_by(User.modified_at.desc())
+
     count = query.count()
 
     if return_with_count:
