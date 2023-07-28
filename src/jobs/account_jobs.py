@@ -159,7 +159,7 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
         logger.info(f"Inbound host ID: {inbound.host_id}")
 
         if not inbound.enable:
-            logger.info("Skip this inbound because is disabled.")
+            logger.info("Skip this inbound because it is disabled.")
             continue
 
         host = get_host(db, inbound.host_id)
@@ -192,6 +192,10 @@ def sync_new_accounts():
             logger.info(f"Inbound Remark: {inbound.remark}")
             logger.info(f"Inbound host ID: {inbound.host_id}")
 
+            if not inbound.enable:
+                logger.info("Skip this inbound because it is disabled.")
+                continue
+
             host = get_host(db, inbound.host_id)
 
             xui = XUI(host=HostResponse.from_orm(host))
@@ -199,11 +203,7 @@ def sync_new_accounts():
             logger.info("Host name: " + host.name)
 
             for account in get_accounts(db, return_with_count=False):
-                # account_expire_time = account.expired_at.timestamp() * 1000
-                logger.info(f"Account uuid: {account.uuid}")
-                logger.info(f"Account email: {account.email}")
-                logger.info(f"Account Expire time: {account.expired_at}")
-                logger.info(f"Account Status: {account.enable}")
+                # account_expire_time = account.expired_at.timestamp() * 1000s
 
                 if not account.enable:
                     logger.info("Account is disable, skipped to add!")
@@ -215,6 +215,10 @@ def sync_new_accounts():
                 if client_stat is None:
                     logger.info(f"Client does not exist in this inbound yet")
                     logger.info(f"Try to add client in this inbound")
+                    logger.info(f"Account uuid: {account.uuid}")
+                    logger.info(f"Account email: {account.email}")
+                    logger.info(f"Account Expire time: {account.expired_at}")
+                    logger.info(f"Account Status: {account.enable}")
 
                     xui.api.add_client(inbound_id=inbound.key, email=account_unique_email, uuid=account.uuid)
 
@@ -369,7 +373,9 @@ def run_review_account_jobs():
 
 # scheduler.add_job(run_account_jobs)
 
-scheduler.add_job(run_review_account_jobs, trigger='interval', seconds=config.REVIEW_ACCOUNTS_INTERVAL)
+scheduler.add_job(func=run_review_account_jobs, max_instances=1, trigger='interval',
+                  seconds=config.REVIEW_ACCOUNTS_INTERVAL)
 
-scheduler.add_job(sync_new_accounts, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
-scheduler.add_job(sync_accounts_traffic, trigger='interval', seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
+scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
+scheduler.add_job(func=sync_accounts_traffic, max_instances=1, trigger='interval',
+                  seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)

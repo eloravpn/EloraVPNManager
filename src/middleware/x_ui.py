@@ -17,7 +17,7 @@ class XUI:
 
 class MHSANAEI:
     def __init__(self, host: HostResponse):
-        logger.info("Init Sanaei X-UI")
+        logger.debug("Init Sanaei X-UI")
         self._host: HostResponse = host
 
         self._base_api_url = self._generate_base_url(api_path=host.api_path)
@@ -26,7 +26,7 @@ class MHSANAEI:
     def _generate_base_url(self, ssl: bool = False, api_path: str = ""):
         return '%s://%s:%s%s' % ("https" if ssl else "http", self._host.ip,
                                  self._host.port, api_path)
-        logger.info("Base URL is: " + base_api_url)
+        logger.debug("Base URL is: " + base_api_url)
 
     def _get_login_cookie(self):
         login_url = self._generate_base_url() + "/login"
@@ -34,7 +34,7 @@ class MHSANAEI:
             "username": self._host.username,
             "password": self._host.password
         }
-        logger.info("Try login with url: " + login_url)
+        logger.debug("Try login with url: " + login_url)
         req = requests.request("POST", login_url, data=payload, verify=False)
         return req.cookies
 
@@ -42,13 +42,13 @@ class MHSANAEI:
         url = f'{self._base_api_url}/inbounds/getClientTraffics/{email}'
         client_stat = requests.get(url,
                                    cookies=self._login_cookies, verify=False)
-        logger.info(f"Status code: {client_stat.status_code} for client {email}")
+        logger.debug(f"Status code: {client_stat.status_code} for client {email}")
 
         if client_stat.status_code != 200:
             logger.info("Error in fetch api")
             return None
         else:
-            logger.info(f"Account info: {client_stat.text}")
+            logger.debug(f"Account info: {client_stat.text}")
             data = client_stat.json()
             obj = data['obj']
             if obj is None:
@@ -63,14 +63,14 @@ class MHSANAEI:
 
         url = f'{self._base_api_url}/inbounds/{inbound_id}/resetClientTraffic/{email}'
 
-        logger.info(f"Final url for reset client traffic is: {url}")
+        logger.debug(f"Final url for reset client traffic is: {url}")
 
         response = requests.post(
             url,
             cookies=self._login_cookies, verify=False, headers=headers)
         data = response.json()
-        logger.info(f"Response code: {response.status_code}")
-        logger.info(f"Response text: {response.text}")
+        logger.debug(f"Response code: {response.status_code}")
+        logger.debug(f"Response text: {response.text}")
 
         if response.status_code == 200 and data["success"] == True:
             return True
@@ -84,19 +84,19 @@ class MHSANAEI:
 
         url = f'{self._base_api_url}/inbounds/addClient'
 
-        logger.info(f"Final url fro add client is: {url}")
+        logger.debug(f"Final url fro add client is: {url}")
 
         payload_add_client = MHSANAEI.get_client_payload(data_limit, email, enable, expire_time, inbound_id, uuid)
 
-        logger.info(f"Final payload to add client is: {payload_add_client}")
+        logger.debug(f"Final payload to add client is: {payload_add_client}")
 
         response = requests.post(
             url,
             cookies=self._login_cookies, data=payload_add_client, verify=False, headers=headers)
         data = response.json()
 
-        logger.info(f"Response code: {response.status_code}")
-        logger.info(f"Response text: {response.text}")
+        logger.debug(f"Response code: {response.status_code}")
+        logger.debug(f"Response text: {response.text}")
 
         if response.status_code == 200 and data["success"] == True:
             return True
@@ -110,19 +110,19 @@ class MHSANAEI:
 
         url = f'{self._base_api_url}/inbounds/updateClient/{uuid}'
 
-        logger.info(f"Final url for update client is: {url}")
+        logger.debug(f"Final url for update client is: {url}")
 
         payload_add_client = MHSANAEI.get_client_payload(data_limit, email, enable, expire_time, inbound_id, uuid)
 
-        logger.info(f"Final payload to update is: {payload_add_client}")
+        logger.debug(f"Final payload to update is: {payload_add_client}")
 
         response = requests.post(
             url,
             cookies=self._login_cookies, data=payload_add_client, verify=False, headers=headers)
         data = response.json()
 
-        logger.info(f"Response code: {response.status_code}")
-        logger.info(f"Response text: {response.text}")
+        logger.debug(f"Response code: {response.status_code}")
+        logger.debug(f"Response text: {response.text}")
 
         if response.status_code == 200 and data["success"] == True:
             return True
