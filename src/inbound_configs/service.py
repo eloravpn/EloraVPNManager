@@ -23,7 +23,8 @@ def create_inbound_config(db: Session, db_inbound: Inbound, inbound_config: Inbo
 
 
 def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
-    new_db_inbound_config = InboundConfig(remark=db_inbound_config.remark + " Clone", inbound_id=db_inbound_config.inbound_id,
+    new_db_inbound_config = InboundConfig(remark=db_inbound_config.remark + " Clone",
+                                          inbound_id=db_inbound_config.inbound_id,
                                           port=db_inbound_config.port, domain=db_inbound_config.domain,
                                           host=db_inbound_config.host, sni=db_inbound_config.sni,
                                           finger_print=db_inbound_config.finger_print,
@@ -60,7 +61,7 @@ def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify:
 def get_inbound_configs(db: Session) -> Tuple[List[InboundConfig], int]:
     query = db.query(InboundConfig)
 
-    query.order_by(InboundConfig.remark.asc())
+    query = query.order_by(InboundConfig.remark.asc())
 
     count = query.count()
 

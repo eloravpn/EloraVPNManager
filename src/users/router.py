@@ -57,7 +57,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db),
 
 
 @router.get("/users/", tags=['User'], response_model=UsersResponse)
-def get_USERS(
+def get_users(
         db: Session = Depends(get_db),
         admin: Admin = Depends(Admin.get_current)
 ):
