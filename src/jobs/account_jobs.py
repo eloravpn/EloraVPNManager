@@ -280,19 +280,22 @@ def review_accounts():
             if account.expired_at:
                 account_expire_time = account.expired_at.timestamp()
 
-            logger.info(f"Account uuid: {account.uuid}")
-            logger.info(f"Account email: {account.email}")
-            logger.info(f"Account Expire time: {account.expired_at}")
-            logger.info(f"Account status: {account.enable}")
-
             if (0 < account_expire_time <= now) and account.enable:
                 logger.info("Account has been expired due to expired time.")
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(f"Account Expire time: {account.expired_at}")
+                logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
 
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
                 logger.info("Account has been expired due to exceeded Data limit usage.")
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(f"Account Expire time: {account.expired_at}")
+                logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
 
@@ -368,8 +371,8 @@ def sync_accounts_status():
 
 
 def run_review_account_jobs():
-    sync_accounts_status()
     review_accounts()
+    sync_accounts_status()
 
 
 # scheduler.add_job(run_account_jobs)

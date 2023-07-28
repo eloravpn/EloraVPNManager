@@ -82,6 +82,7 @@ def reset_traffic(db: Session, db_account: Account):
 
 def update_account_status(db: Session, db_account: Account, enable: bool = True):
     db_account.enable = enable
+    db_account.modified_at = datetime.datetime.utcnow()
 
     db.commit()
     db.refresh(db_account)
