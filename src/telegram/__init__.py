@@ -32,3 +32,5 @@ if TELEGRAM_API_TOKEN:
 
         thread = Thread(target=bot.infinity_polling, daemon=True)
         thread.start()
+else:
+    logger.warn('Telegram Bot not set!')

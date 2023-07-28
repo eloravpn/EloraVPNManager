@@ -135,7 +135,6 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
       //   setFieldValue("uuid", uuid);
       // }
       values.enable ? (values.enable = true) : (values.enable = false);
-      console.log(values);
       alert(JSON.stringify(values, null, 4));
 
       if (values.id === 0) {

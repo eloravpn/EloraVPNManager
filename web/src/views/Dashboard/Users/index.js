@@ -42,6 +42,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Select,
   Stack,
   Table,
   TableCaption,
@@ -67,6 +68,7 @@ import {
 import UserModal from "./components/UserModal";
 import AccountModal from "./components/AccountModal";
 import { AccountAPI } from "../../../api/AccountAPI";
+import { UserAPI } from "../../../api/UserAPI";
 
 const Users = ({ data }) => {
   const navigate = useNavigate();
@@ -77,6 +79,11 @@ const Users = ({ data }) => {
   let actionData = useActionData();
   const [hostId, setHostId] = useState();
   const [account, setAccount] = useState();
+  const [q, setQ] = useState();
+
+  const [users, setUsers] = useState();
+
+  const [rows, setRows] = useState(20);
 
   const delteAccount = (id) => {
     if (window.confirm("Are you sure to delete this account?")) {
@@ -84,6 +91,31 @@ const Users = ({ data }) => {
         navigate();
       });
     }
+  };
+
+  const fetchUsers = () => {
+    UserAPI.getAll(rows).then((res) => {
+      setUsers(res);
+    });
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    const interval = setInterval(fetchUsers, 5000);
+
+    return () => clearInterval(interval);
+  }, [rows]);
+
+  const handleQChange = (event) => setQ(event.target.value);
+
+  const search = (items) => {
+    return items.filter((item) => {
+      let searchQuery = q || "";
+      return (
+        JSON.stringify(item).toLowerCase().indexOf(searchQuery.toLowerCase()) >
+        -1
+      );
+    });
   };
 
   const units = [
@@ -211,23 +243,47 @@ const Users = ({ data }) => {
         </Button>
       </Box>
 
+      <Stack spacing={5} direction={{ sm: "column", md: "row" }}>
+        <Box w={{ base: "50%", sm: "100%" }}>
+          <Input
+            onChange={handleQChange}
+            value={q}
+            type="text"
+            placeholder="Search"
+          />
+        </Box>
+
+        <Select
+          placeholder="Rows"
+          onChange={(event) => {
+            setRows(event.target.value);
+          }}
+          defaultValue={rows}
+        >
+          <option value="10">First 10</option>
+          <option value="20">First 20</option>
+          <option value="50">First 50</option>
+          <option value="0">All</option>
+        </Select>
+      </Stack>
+
       <Box>
-        {data.length ? (
+        {users && users.length ? (
           <TableContainer>
             <Table variant="striped" colorScheme="teal">
               <Thead>
                 <Tr>
                   <Th>Name</Th>
                   <Th>Username</Th>
-                  <Th>TG Username</Th>
-                  <Th>TG Chat Id</Th>
-                  <Th>Enable</Th>
-                  <Th>Banned</Th>
+                  {/* <Th>TG Username</Th> */}
+                  {/* <Th>TG Chat Id</Th> */}
+                  <Th display={{ sm: "None" }}>Enable</Th>
+                  <Th display={{ sm: "None" }}>Banned</Th>
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {data.map((user) => (
+                {search(users).map((user) => (
                   <Tr key={user.id}>
                     <Td>
                       <Accordion allowToggle>
@@ -324,17 +380,38 @@ const Users = ({ data }) => {
                         </AccordionItem>
                       </Accordion>
                     </Td>
-                    <Td>{user.username} </Td>
-                    <Td>{user.telegram_chat_id}</Td>
-                    <Td>{user.telegram_username}</Td>
+
                     <Td>
+                      <Stack direction={"column"}>
+                        <Badge variant="solid" colorScheme="green">
+                          {user.username}
+                        </Badge>
+                        <Badge variant="solid" colorScheme="pink">
+                          {user.telegram_chat_id}
+                        </Badge>
+                        <Badge variant="solid" colorScheme="blue">
+                          {user.telegram_username}
+                        </Badge>
+
+                        {/* <Badge variant="solid" colorScheme="pink">
+                          {account.expired_at
+                            ? new Date(account.expired_at).toLocaleDateString(
+                                "fa-IR-u-nu-latn"
+                              )
+                            : "Unlimited"}
+                        </Badge> */}
+                      </Stack>
+                    </Td>
+                    {/* <Td>{user.telegram_chat_id}</Td> */}
+                    {/* <Td>{user.telegram_username}</Td> */}
+                    <Td display={{ sm: "None" }}>
                       {user.enable ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
                         <NotAllowedIcon />
                       )}
                     </Td>
-                    <Td>
+                    <Td display={{ sm: "None" }}>
                       {user.banned ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (
@@ -359,15 +436,7 @@ const Users = ({ data }) => {
                           >
                             Add Acccount
                           </MenuItem>
-                          <MenuItem
-                            icon={<DeleteIcon />}
-                            onClick={() => {
-                              setUser(user);
-                              onOpen();
-                            }}
-                          >
-                            Delete
-                          </MenuItem>
+
                           <MenuItem
                             icon={<EditIcon />}
                             onClick={() => {
@@ -376,6 +445,16 @@ const Users = ({ data }) => {
                             }}
                           >
                             Edit
+                          </MenuItem>
+
+                          <MenuItem
+                            icon={<DeleteIcon />}
+                            onClick={() => {
+                              setUser(user);
+                              onOpen();
+                            }}
+                          >
+                            Delete
                           </MenuItem>
                         </MenuList>
                       </Menu>

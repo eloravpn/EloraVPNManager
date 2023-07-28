@@ -373,9 +373,13 @@ def run_review_account_jobs():
 
 # scheduler.add_job(run_account_jobs)
 
-scheduler.add_job(func=run_review_account_jobs, max_instances=1, trigger='interval',
-                  seconds=config.REVIEW_ACCOUNTS_INTERVAL)
+if config.ENABLE_SYNC_ACCOUNTS:
 
-scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
-scheduler.add_job(func=sync_accounts_traffic, max_instances=1, trigger='interval',
-                  seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
+    scheduler.add_job(func=run_review_account_jobs, max_instances=1, trigger='interval',
+                      seconds=config.REVIEW_ACCOUNTS_INTERVAL)
+
+    scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
+    scheduler.add_job(func=sync_accounts_traffic, max_instances=1, trigger='interval',
+                      seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
+else:
+    logger.warn('Sync accounts are disabled!')

@@ -216,7 +216,7 @@ const Accounts = ({ data }) => {
           Accounts
         </Heading>
       </Box>
-      <Box>
+      {/* <Box>
         <Button
           leftIcon={<AddIcon />}
           ref={btnRef}
@@ -228,7 +228,7 @@ const Accounts = ({ data }) => {
         >
           Create User
         </Button>
-      </Box>
+      </Box> */}
       <Stack spacing={5} direction={{ sm: "column", md: "row" }}>
         <Box w={{ base: "50%", sm: "100%" }}>
           <Input
@@ -239,7 +239,10 @@ const Accounts = ({ data }) => {
           />
         </Box>
 
-        <Stack w={{ base: "50%", sm: "100%" }} direction={{ base: "row" }}>
+        <Stack
+          w={{ base: "50%", sm: "100%" }}
+          direction={{ base: "row", sm: "column" }}
+        >
           <FormLabel htmlFor="enable" mb="0">
             Enable?
           </FormLabel>
@@ -285,19 +288,19 @@ const Accounts = ({ data }) => {
             <Table variant="striped" colorScheme="teal">
               <Thead>
                 <Tr>
-                  <Th>UUID</Th>
+                  <Th display={{ sm: "None" }}>UUID</Th>
                   {/* <Th>Email</Th> */}
                   <Th>User</Th>
                   <Th>Usage</Th>
                   {/* <Th>Expire</Th> */}
-                  <Th>Enable</Th>
+                  <Th display={{ sm: "None" }}>Enable</Th>
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {search(accounts).map((account) => (
                   <Tr key={account.id}>
-                    <Td>{account.uuid} </Td>
+                    <Td display={{ sm: "None" }}>{account.uuid} </Td>
                     {/* <Td>{account.email}</Td> */}
                     <Td>
                       <User userId={account.user_id} />
@@ -321,7 +324,7 @@ const Accounts = ({ data }) => {
                         </Badge>
                       </Stack>
                     </Td>
-                    <Td>
+                    <Td display={{ sm: "None" }}>
                       {account.enable ? (
                         <CheckCircleIcon color="green.400" />
                       ) : (

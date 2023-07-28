@@ -36,10 +36,15 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
     return db_user
 
 
-def get_users(db: Session, return_with_count: bool = True) -> Tuple[List[User], int]:
+def get_users(db: Session,
+              limit: int = 20,
+              return_with_count: bool = True) -> Tuple[List[User], int]:
     query = db.query(User)
 
     query = query.order_by(User.modified_at.desc())
+
+    if limit:
+        query = query.limit(limit)
 
     count = query.count()
 

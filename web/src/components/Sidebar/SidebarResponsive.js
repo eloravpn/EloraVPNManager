@@ -14,7 +14,7 @@ import {
   Stack,
   Text,
   useColorModeValue,
-  useDisclosure
+  useDisclosure,
 } from "@chakra-ui/react";
 import IconBox from "components/Icons/IconBox";
 import { CreativeTimLogo } from "components/Icons/Icons";
@@ -221,9 +221,10 @@ function SidebarResponsive(props) {
       alignItems="center"
     >
       <HamburgerIcon
+        m={"20px"}
         color={hamburgerColor}
-        w="18px"
-        h="18px"
+        w="36px"
+        h="36px"
         ref={btnRef}
         // colorScheme="teal"
         onClick={onOpen}
@@ -265,4 +266,4 @@ function SidebarResponsive(props) {
   );
 }
 
-export default SidebarResponsive
+export default SidebarResponsive;

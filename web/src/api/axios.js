@@ -3,12 +3,9 @@ import { getAuthToken } from "./AuthStorage";
 
 const { REACT_APP_API_BASE_URL } = process.env;
 
-console.log(REACT_APP_API_BASE_URL);
-
 // axios.defaults.headers.common['Authorization'] = `bearer `+ getAuthToken()
 
 // export const api = () => {
-//     console.log('API Call ..');
 //
 //     const defaultOptions = {
 //         baseURL: "http://localhost:8000/api",
@@ -23,7 +20,6 @@ console.log(REACT_APP_API_BASE_URL);
 //     // Set the AUTH token for any request
 //     instance.interceptors.request.use(function (config) {
 //         const token = localStorage.getItem('token');
-//         console.log("Tokes::: " + token);
 //         config.headers.Authorization = token ? `Bearer ${token}` : '';
 //         return config;
 //     });
@@ -43,7 +39,6 @@ export const api_base = axios.create({
 
 api.interceptors.request.use(function (config) {
   const token = getAuthToken();
-  console.log("Token::::" + token);
   config.headers.Authorization = `Bearer ` + token;
 
   return config;

@@ -17,7 +17,6 @@ function App() {
   //             initHosts(res.hosts)
   //         })
   //         .catch((e) => {
-  //             console.log(e.message)
   //         })
   // }, []);
   // return (

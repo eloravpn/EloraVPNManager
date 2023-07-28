@@ -13,7 +13,6 @@ export const InboundConfigAPI = {
   //     })
   //
   //     // returning the product returned by the API
-  //     console.log(response);
   //     return response.data;
   // },
   create: async function (inboundConfig) {

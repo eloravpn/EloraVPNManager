@@ -21,7 +21,6 @@ export const UserAPI = {
     });
   },
   updateUser: async function (user) {
-    console.log("User Update :", user);
     await api.request({
       url: `/users/${user.id}`,
       method: "PUT",
@@ -29,16 +28,21 @@ export const UserAPI = {
     });
   },
   deleteUser: async function (userId) {
-    console.log("User delete :", userId);
     await api.request({
       url: `/users/${userId}`,
       method: "DELETE",
     });
   },
-  getAll: async function () {
+  getAll: async function (rows, sort) {
+    let params = {
+      limit: rows ? rows : 20,
+      sort: sort ? sort : "-expire",
+    };
+
     const response = await api.request({
       url: "/users/",
       method: "GET",
+      params: params,
     });
 
     return response.data.users;
