@@ -265,6 +265,10 @@ const Accounts = ({ data }) => {
           >
             <option value="expire">Expire ASC</option>
             <option value="-expire">Expire DESC</option>
+            <option value="created">Created ASC</option>
+            <option value="-created">Created DESC</option>
+            <option value="modified">Modified ASC</option>
+            <option value="-modified">Modified DESC</option>
             <option value="used-traffic">Used traffic ASC</option>
             <option value="-used-traffic">Used traffic DESC</option>
             <option value="data-limit">Data limit ASC</option>

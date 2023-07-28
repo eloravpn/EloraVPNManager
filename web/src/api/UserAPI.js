@@ -41,7 +41,6 @@ export const UserAPI = {
       method: "GET",
     });
 
-    console.log(response.data.users);
     return response.data.users;
   },
 };
