@@ -29,6 +29,12 @@ import {
   SliderThumb,
   SliderTrack,
   Stack,
+  Stat,
+  StatArrow,
+  StatGroup,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
   Switch,
 } from "@chakra-ui/react";
 import { useField, useFormik, useFormikContext } from "formik";
@@ -39,6 +45,7 @@ import { toast } from "../../../../index";
 import { redirect, useNavigate } from "react-router-dom";
 import { UserAPI } from "../../../../api/UserAPI";
 import { AccountAPI } from "../../../../api/AccountAPI";
+import { AccountUsageStat } from "./AccountUsageStat";
 const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
   const navigate = useNavigate();
 
@@ -395,6 +402,26 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
                 />
               </Stack>
             </Stack>
+            <StatGroup mt={4}>
+              <AccountUsageStat
+                accountId={account ? account.id : null}
+                stateName={"Last Day"}
+                delta={1}
+              />
+
+              <AccountUsageStat
+                accountId={account ? account.id : null}
+                stateName={"Last 3 days"}
+                delta={3}
+              />
+
+              <AccountUsageStat
+                accountId={account ? account.id : null}
+                stateName={"Last Week"}
+                delta={7}
+              />
+
+            </StatGroup>
           </form>
         </DrawerBody>
 

@@ -2,10 +2,11 @@ import datetime
 from enum import Enum
 from typing import List, Tuple, Optional
 
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 from src.accounts.models import Account, AccountUsedTraffic
-from src.accounts.schemas import AccountCreate, AccountModify
+from src.accounts.schemas import AccountCreate, AccountModify, AccountUsedTrafficResponse
 from src.users.models import User
 
 AccountSortingOptions = Enum('AccountSortingOptions', {
@@ -110,6 +111,51 @@ def get_accounts(db: Session,
         return query.all(), count
     else:
         return query.all()
+
+
+def get_account_used_traffic(db: Session,
+                             db_account: Account,
+                             delta: int = 3
+                             ) -> AccountUsedTraffic:
+    today = datetime.datetime.now()
+    n_days_ago = today - datetime.timedelta(days=delta)
+
+    print('Generate report from ' + str(n_days_ago))
+
+    query = db.query(func.sum(AccountUsedTraffic.download).label("total_download"),
+                     func.sum(AccountUsedTraffic.upload).label("total_upload")).filter(
+        and_(AccountUsedTraffic.created_at >= n_days_ago, AccountUsedTraffic.account_id == db_account.id)
+    )
+
+    sum_result = query.one()
+
+    if query:
+        return AccountUsedTrafficResponse(account_id=db_account.id, download=sum_result[0], upload=sum_result[1])
+
+    else:
+        return AccountUsedTrafficResponse(account_id=db_account.id)
+
+
+def get_all_accounts_used_traffic(db: Session,
+                                  delta: int = 3
+                                  ) -> AccountUsedTraffic:
+    today = datetime.datetime.now()
+    n_days_ago = today - datetime.timedelta(days=delta)
+
+    print('Generate report from ' + str(n_days_ago))
+
+    query = db.query(func.sum(AccountUsedTraffic.download).label("total_download"),
+                     func.sum(AccountUsedTraffic.upload).label("total_upload")).filter(
+        and_(AccountUsedTraffic.created_at >= n_days_ago)
+    )
+
+    sum_result = query.one()
+
+    if query:
+        return AccountUsedTrafficResponse(account_id=0, download=sum_result[0], upload=sum_result[1])
+
+    else:
+        return AccountUsedTrafficResponse(account_id=0)
 
 
 def remove_account(db: Session, db_account: Account):

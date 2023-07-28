@@ -39,6 +39,32 @@ export const AccountAPI = {
       method: "POST",
     });
   },
+  getAccountUsedTraffic: async function (accountId, delta) {
+    let params = {
+      delta: delta ? delta : 1,
+    };
+
+    const response = await api.request({
+      url: `/accounts/${accountId}/used_traffic`,
+      method: "GET",
+      params: params,
+    });
+
+    return response.data;
+  },
+  getAllAccountUsedTraffic: async function (delta) {
+    let params = {
+      delta: delta ? delta : 1,
+    };
+
+    const response = await api.request({
+      url: `/accounts/used_traffic`,
+      method: "GET",
+      params: params,
+    });
+
+    return response.data;
+  },
   getAll: async function (rows, sort) {
     let params = {
       limit: rows ? rows : 20,

@@ -163,14 +163,6 @@ const Users = ({ data }) => {
 
   const btnRef = React.useRef();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      navigate();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [fetcher]);
-
   return (
     <VStack spacing={4} p={5} align="stretch">
       <UserModal

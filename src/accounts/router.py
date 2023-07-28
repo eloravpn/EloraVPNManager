@@ -2,11 +2,14 @@ import logging
 from sqlite3 import IntegrityError
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.openapi.models import Response
+from pyasn1.type.univ import Integer
 from sqlalchemy.orm import Session
 
 import src.accounts.service as service
 import src.users.service as user_service
-from src.accounts.schemas import AccountCreate, AccountResponse, AccountModify, AccountsResponse
+from src.accounts.schemas import AccountCreate, AccountResponse, AccountModify, AccountsResponse, \
+    AccountUsedTrafficResponse
 from src.admins.schemas import Admin
 from src.database import get_db
 
@@ -24,6 +27,26 @@ def add_account(account_id: int,
         raise HTTPException(status_code=404, detail="Account not found")
 
     return service.reset_traffic(db=db, db_account=db_account)
+
+
+@router.get("/accounts/{account_id}/used_traffic", tags=["Account"], response_model=AccountUsedTrafficResponse)
+def add_account(account_id: int,
+                delta: int = None,
+                db: Session = Depends(get_db),
+                admin: Admin = Depends(Admin.get_current)):
+    db_account = service.get_account(db, account_id)
+    if not db_account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    return service.get_account_used_traffic(db=db, db_account=db_account, delta=delta)
+
+
+@router.get("/accounts/used_traffic", tags=["Account"], response_model=AccountUsedTrafficResponse)
+def add_account(delta: int = None,
+                db: Session = Depends(get_db),
+                admin: Admin = Depends(Admin.get_current)):
+
+    return service.get_all_accounts_used_traffic(db=db, delta=delta)
 
 
 @router.post("/accounts/", tags=["Account"], response_model=AccountResponse)

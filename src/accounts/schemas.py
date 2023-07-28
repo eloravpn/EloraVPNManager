@@ -5,6 +5,12 @@ from uuid import uuid4
 from pydantic import BaseModel, validator, Field
 
 
+class AccountUsedTrafficResponse(BaseModel):
+    account_id: int
+    download: int = 0
+    upload: int = 0
+
+
 class AccountBase(BaseModel):
     user_id: int
     # TODO: due to a circular import

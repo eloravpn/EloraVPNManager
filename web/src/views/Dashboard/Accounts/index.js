@@ -241,7 +241,7 @@ const Accounts = ({ data }) => {
 
         <Stack
           w={{ base: "50%", sm: "100%" }}
-          direction={{ base: "row", sm: "column" }}
+          direction={{ base: "row", md: "row", sm: "column" }}
         >
           <FormLabel htmlFor="enable" mb="0">
             Enable?

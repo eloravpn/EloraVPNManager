@@ -37,7 +37,7 @@ const Login = () => {
       .post("/admin/token", formData)
       .then((res) => {
         setAuthToken(res.data.access_token);
-        navigate("/admin");
+        navigate("/admin/dashboard");
       })
       .catch((err) => {
         console.log(err);

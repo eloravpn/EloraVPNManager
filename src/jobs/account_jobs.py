@@ -287,13 +287,13 @@ def review_accounts():
 
             if (0 < account_expire_time <= now) and account.enable:
                 logger.info("Account has been expired due to expired time.")
-                update_client_in_all_inbounds(db=db, db_account=account, enable=False)
+                # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
 
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
                 logger.info("Account has been expired due to exceeded Data limit usage.")
-                update_client_in_all_inbounds(db=db, db_account=account, enable=False)
+                # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
 
 
@@ -307,12 +307,13 @@ def sync_accounts_status():
             second_ago_updated = 0
             if account.modified_at:
                 second_ago_updated = now - account.modified_at.timestamp()
-            logger.info(f"Account uuid: {account.uuid}")
-            logger.info(f"Account email: {account.email}")
-            logger.info(f"Account expire time: {account.expired_at}")
-            logger.info(f"Account status: {account.enable}")
-            logger.info((f"Account modified at: {account.modified_at}"))
+
             if second_ago_updated < config.REVIEW_ACCOUNTS_INTERVAL * 2:
+                logger.info(f"Account uuid: {account.uuid}")
+                logger.info(f"Account email: {account.email}")
+                logger.info(f"Account expire time: {account.expired_at}")
+                logger.info(f"Account status: {account.enable}")
+                logger.info((f"Account modified at: {account.modified_at}"))
                 if account.enable:
                     update_client_in_all_inbounds(db=db, db_account=account, enable=True)
                     logger.info(f"Account with email {account.email} enable successfully")
@@ -378,7 +379,8 @@ if config.ENABLE_SYNC_ACCOUNTS:
     scheduler.add_job(func=run_review_account_jobs, max_instances=1, trigger='interval',
                       seconds=config.REVIEW_ACCOUNTS_INTERVAL)
 
-    scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval', seconds=config.SYNC_ACCOUNTS_INTERVAL)
+    scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval',
+                      seconds=config.SYNC_ACCOUNTS_INTERVAL)
     scheduler.add_job(func=sync_accounts_traffic, max_instances=1, trigger='interval',
                       seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
 else:
