@@ -5,6 +5,7 @@ from typing import List, Tuple, Optional
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
+from src import config
 from src.accounts.models import Account, AccountUsedTraffic
 from src.accounts.schemas import AccountCreate, AccountModify, AccountUsedTrafficResponse
 from src.users.models import User
@@ -112,6 +113,19 @@ def get_accounts(db: Session,
         return query.all(), count
     else:
         return query.all()
+
+
+def get_user_last_test_account(db: Session,
+                           db_user: User,
+                           return_with_count: bool = True
+                           ) -> Account:
+    query = db.query(Account)
+
+    query = query.order_by(Account.created_at.desc())
+
+    query = query.filter(Account.email.ilike(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"))
+
+    return query.first()
 
 
 def get_account_used_traffic(db: Session,

@@ -7,15 +7,15 @@ from pydantic import BaseModel, validator, Field
 
 class AccountUsedTrafficResponse(BaseModel):
     account_id: int
-    download: int = 0
-    upload: int = 0
+    download: Union[int, None] = 0
+    upload: Union[int, None] = 0
 
 
 class AccountBase(BaseModel):
     user_id: int
     # TODO: due to a circular import
     # user: Optional["UserResponse"]
-    uuid: str = Field(default_factory=uuid4)
+    uuid: str = Field(default_factory=lambda: str(uuid4()))
     data_limit: int
     email: str
     enable: bool

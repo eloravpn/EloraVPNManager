@@ -7,7 +7,6 @@ from telebot import TeleBot, apihelper
 
 from src import app, logger
 from src.config import TELEGRAM_API_TOKEN, TELEGRAM_PROXY_URL
-from src.telegram.user.keyboard import BotUserKeyboard
 
 bot = None
 

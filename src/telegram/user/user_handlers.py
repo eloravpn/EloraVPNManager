@@ -1,3 +1,4 @@
+import datetime
 import random
 
 import qrcode as qrcode
@@ -18,7 +19,7 @@ def send_welcome(message: types.Message):
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
     bot.send_message(chat_id=message.from_user.id,
-                     text=messages.WELCOME_MESSAGE.format(telegram_user.full_name, config.TELEGRAM_ADMIN_USER_NAME),
+                     text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
                      disable_web_page_preview=True, reply_markup=BotUserKeyboard.main_menu(), parse_mode='markdown')
 
 
@@ -69,6 +70,46 @@ def my_services(message):
         bot.reply_to(message, messages.ACCOUNT_LIST_MESSAGE,
                      reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),
                      parse_mode='markdown'
+                     )
+
+
+@bot.message_handler(regexp=captions.GET_TEST_SERVICE)
+def get_test_service(message):
+    telegram_user = message.from_user
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
+    test_account = utils.get_last_test_account(user_id=user.id)
+
+    if test_account:
+        created_at = test_account.created_at
+
+        logger.debug(f"Account created at {created_at}")
+
+        first_valid_date = datetime.datetime.utcnow() - datetime.timedelta(days=config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS)
+
+        allow_to_get_new_account = created_at < first_valid_date
+    else:
+        allow_to_get_new_account = True
+
+    if allow_to_get_new_account:
+        utils.add_test_account(user_id=user.id)
+
+        bot.reply_to(message, messages.GET_TEST_SERVICE_ُSUCCESS,
+                     # reply_markup="Test Service",
+                     parse_mode='html',
+                     disable_web_page_preview=True
+                     )
+
+        utils.send_message_to_admin(messages.GET_TEST_SERVICE_ADMIN_ALERT.format(chat_id=telegram_user.id,
+                                                                                 full_name=telegram_user.full_name),
+                                    disable_notification=True)
+
+    else:
+        bot.reply_to(message, messages.GET_TEST_SERVICE_NOT_ALLOWED.format(day=config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS,
+                                                                           admin_id=config.TELEGRAM_ADMIN_USER_NAME),
+                     # reply_markup="Test Service",
+                     parse_mode='html',
+                     disable_web_page_preview=True
                      )
 
 
@@ -142,7 +183,6 @@ def account_qrcode(call: types.CallbackQuery):
         text=messages.NEW_ORDER_ADMIN_ALERT.format(order_id, telegram_user.id, telegram_user.full_name,
                                                    month, traffic, price),
         chat_id=config.TELEGRAM_ADMIN_ID,
-        # reply_markup=BotUserKeyboard.my_account(account_id),
         parse_mode='html'
     )
 
@@ -171,7 +211,6 @@ def account_qrcode(call: types.CallbackQuery):
 
     bot.send_chat_action(call.from_user.id, 'upload_document')
     bot.send_photo(caption=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),
-                                                             account.id,
                                                              expired_at,
                                                              captions.ENABLE if account.enable else captions.DISABLE),
                    chat_id=call.from_user.id, photo=open(file_name, 'rb'))

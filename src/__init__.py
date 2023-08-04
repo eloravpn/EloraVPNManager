@@ -40,7 +40,7 @@ from src.users.schemas import UserResponse
 app = FastAPI(
     docs_url='/docs' if DOCS else None,
     redoc_url='/redoc' if DOCS else None,
-    debug= DEBUG
+    debug=DEBUG
 )
 app.openapi = custom_openapi(app)
 scheduler = BackgroundScheduler(

@@ -1,5 +1,7 @@
 import uvicorn
 from src import app
+
+from src import config
 from src.config import (
     DEBUG,
     UVICORN_HOST,
@@ -16,6 +18,7 @@ if __name__ == "__main__":
     log_config = uvicorn.config.LOGGING_CONFIG
     log_config["formatters"]["default"][
         "fmt"] = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s"
+    log_config["loggers"]["uvicorn"]["level"] = config.LOG_LEVEL
     try:
         uvicorn.run(
             "main:app",
@@ -27,7 +30,7 @@ if __name__ == "__main__":
             workers=1,
             reload=DEBUG,
             use_colors=True,
-            log_config=log_config
+            log_config=log_config,
         )
     except FileNotFoundError:  # to prevent error on removing unix sock
         pass

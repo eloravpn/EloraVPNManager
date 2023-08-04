@@ -75,7 +75,6 @@ class BotUserKeyboard:
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=captions.ACCOUNT_LIST_ITEM.format(utils.get_readable_size_short(account.data_limit),
-                                                           account.id,
                                                            expired_at,
                                                            captions.ENABLE if account.enable else captions.DISABLE),
                     callback_data=f'account_detail:{account.id}'
