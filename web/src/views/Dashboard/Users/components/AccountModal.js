@@ -103,6 +103,8 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
       setexpiredAt(null);
     } else {
       setexpiredAt(account.expired_at);
+      formik.setFieldValue("uuid", account.uuid);
+      formik.setFieldValue("email", account.email);
     }
   }, [isOpen]);
 
@@ -264,7 +266,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
                     name={"uuid"}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    value={formik.initialValues.uuid || uuid}
+                    defaultValue={account ? account.uuid : uuid}
                     type="text"
                   />
                   {formik.touched.uuid && formik.errors.uuid ? (
@@ -283,7 +285,7 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
                     name={"email"}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    value={formik.initialValues.email || email}
+                    defaultValue={account ? account.email : email}
                     type="text"
                   />
                   {formik.touched.email && formik.errors.email ? (
@@ -420,7 +422,6 @@ const AccountModal = ({ isOpen, onClose, btnRef, user, account, redirect }) => {
                 stateName={"Last Week"}
                 delta={7}
               />
-
             </StatGroup>
           </form>
         </DrawerBody>
