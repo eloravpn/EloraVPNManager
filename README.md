@@ -1,5 +1,22 @@
 # Elora VPN Manager
-A central solution to manage accounts in a Cluster enviroment of VPN Servers
+A central solution to manage accounts in a Cluster enviroment of VPN Servers.
+
+## Overview
+By this application you can manage multi x-ui host and multi inbounds.  
+all accounts that created in panel, automatically created and managed in all hosts and inbounds.  
+you have a telgram bot for users to view thier accounts sub scription url and used traffic.  
+a simple order workfllow for new customers are avialable in telgram bot.  
+
+
+
+### Supported:
+- [3x-ui](https://github.com/MHSanaei/3x-ui)
+
+### Features
+- Web based panel Manage users and accounts
+- Web based panel to manage hosts, inbounds, inbound configs
+- Telegram Bot for Users
+
 
 # Screen shots
 ## Web panel
@@ -14,24 +31,23 @@ A central solution to manage accounts in a Cluster enviroment of VPN Servers
 
 ![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/ef5748a1-b8f3-445e-98df-a6bc1651666d)
 
-
-### Supported:
-- x-ui
-
-### Features
-- Web based panel Manage users and accounts
-- Web based panel to manage hosts, inbounds, inbound configs
-- Telegram Bot for Users
-
 ### How to install
 #### Requirements
 ``python3`` and ``pip3`` installed on your system.
+Also to start web panel you need `node v20.4.0+` and `yarn`
 
+#### Configuration
+You can create a `.env` file and override all configurations in `src/config.py`.
+also you can use `.env.example` file as an exmaple.
+
+> [!NOTE]
+> *We  strongly recomended to use postgresql as your database*
 #### Install python dependencies and start backend
 
 `git clone https://github.com/eloravpn/EloraVPNManager.git && cd EloraVPNManager`
 
-*Note: if you want to use `sqlite` as your database, you can comment `psycopg2==2.9.6` line in `requirements.txt`*
+> [!NOTE]
+> *Note: if you want to use `sqlite` as your database, you can comment `psycopg2==2.9.6` line in `requirements.txt`*
 
 `pip install -r requirements.txt && python main.py`
 
