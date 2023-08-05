@@ -1,6 +1,20 @@
 # Elora VPN Manager
 A central solution to manage accounts in a Cluster enviroment of VPN Servers
 
+# Screen shots
+## Web panel
+![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/b738eba4-1569-40bc-b492-af9cd7cbf4c0)
+
+![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/5a2e927e-4ff2-4f5b-8c10-e2ce31a2e106)
+
+
+# Telegram Bot
+
+![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/71a26896-5275-4b60-bde6-5d803dc2130d)
+
+![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/ef5748a1-b8f3-445e-98df-a6bc1651666d)
+
+
 ### Supported:
 - x-ui
 
