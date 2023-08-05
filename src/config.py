@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 # Disable IPv6
 requests.packages.urllib3.util.connection.HAS_IPV6 = False
 
@@ -48,7 +47,7 @@ SUDOERS = {
     config("SUDO_USERNAME", default="admin"): config("SUDO_PASSWORD", default="admin")
 }
 
-SUBSCRIPTION_BASE_URL = config('SUBSCRIPTION_BASE_URL')
+SUBSCRIPTION_BASE_URL = config('SUBSCRIPTION_BASE_URL', default="https://localhost:8000/api/sub")
 
 AVAILABLE_SERVICES = config("AVAILABLE_SERVICES", default='').split(",")
 
