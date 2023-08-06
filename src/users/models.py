@@ -43,3 +43,10 @@ class User(Base):
                 'Username only can be 3 to 32 characters and contain a-z, 0-9, and underscores in between.')
 
         return username
+
+    @property
+    def full_name(self):
+        full_name = self.first_name
+        if self.last_name:
+            full_name += ' {0}'.format(self.last_name)
+        return full_name

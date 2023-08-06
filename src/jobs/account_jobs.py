@@ -9,6 +9,8 @@ from src.hosts.schemas import HostResponse
 from src.hosts.service import get_host
 from src.inbounds.service import get_inbounds
 from src.middleware.x_ui import XUI
+from src.telegram import utils
+from src.telegram.user import messages, captions
 
 
 # from src.users.service import get_users
@@ -280,6 +282,8 @@ def review_accounts():
             if account.expired_at:
                 account_expire_time = account.expired_at.timestamp()
 
+            telegram_user_name = account.user.telegram_username if account.user.telegram_username else ""
+
             if (0 < account_expire_time <= now) and account.enable:
                 logger.info("Account has been expired due to expired time.")
                 logger.info(f"Account uuid: {account.uuid}")
@@ -288,6 +292,12 @@ def review_accounts():
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
+                utils.send_message_to_admin(message=
+                                            messages.ADMIN_NOTIFICATION_USER_EXPIRED.
+                                            format(email=account.email,
+                                                   due=captions.EXPIRE_TIME,
+                                                   full_name=account.user.full_name,
+                                                   telegram_user_name=telegram_user_name))
 
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
@@ -298,6 +308,12 @@ def review_accounts():
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
+                utils.send_message_to_admin(message=
+                                            messages.ADMIN_NOTIFICATION_USER_EXPIRED.
+                                            format(email=account.email,
+                                                   due=captions.EXCEEDED_DATA_LIMIT,
+                                                   full_name=account.user.full_name,
+                                                   telegram_user_name=telegram_user_name))
 
 
 def sync_accounts_status():

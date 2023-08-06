@@ -130,3 +130,10 @@ GET_TEST_SERVICE_ُSUCCESS = """
 <b>قبلا از بروز بودن تمامی نرم افزار های دستگاه خود و سرعت اینترنت مطمئن شوید.</b>
 <a href="https://t.me/{admin_id}">💬 ارتباط با ادمین</a>
 """
+
+ADMIN_NOTIFICATION_USER_EXPIRED = """
+اکانت با ایمیل {email} بدلیل {due} به مالکیت {full_name} منقضی شد.
+
+<a href="https://t.me/{telegram_user_name}">{full_name}</a>
+
+"""
