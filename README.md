@@ -40,6 +40,12 @@ Also to start web panel you need `node v20.4.0+` and `yarn`
 You can create a `.env` file and override all configurations in `src/config.py`.
 also you can use `.env.example` file as an exmaple.
 
+##### Admin username and password
+Default sudoer username and password is `admin`.
+
+The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
+
+
 > [!NOTE]
 > *We  strongly recomended to use postgresql as your database*
 #### Install python dependencies and start backend
