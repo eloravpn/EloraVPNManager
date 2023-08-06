@@ -116,14 +116,15 @@ def get_accounts(db: Session,
 
 
 def get_user_last_test_account(db: Session,
-                           db_user: User,
-                           return_with_count: bool = True
-                           ) -> Account:
+                               db_user: User,
+                               return_with_count: bool = True
+                               ) -> Account:
     query = db.query(Account)
 
     query = query.order_by(Account.created_at.desc())
 
-    query = query.filter(Account.email.ilike(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"))
+    query = query.filter(and_(Account.email.like(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"),
+                              Account.user_id == db_user.id))
 
     return query.first()
 
