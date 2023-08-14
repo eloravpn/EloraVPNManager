@@ -1,8 +1,8 @@
-"""Init test
+"""Create a baseline migrations
 
-Revision ID: 2626c42aaac9
-Revises: 1dfbfc3f8d5c
-Create Date: 2023-07-15 22:01:04.170434
+Revision ID: 704bb66b328f
+Revises: 
+Create Date: 2023-08-14 13:21:15.265449
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2626c42aaac9'
-down_revision = '1dfbfc3f8d5c'
+revision = '704bb66b328f'
+down_revision = None
 branch_labels = None
 depends_on = None
 
