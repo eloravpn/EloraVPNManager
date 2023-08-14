@@ -14,14 +14,15 @@ router = APIRouter()
 # logger = logging.getLogger('uvicorn.error')
 
 @router.get("/sub/{uuid}", tags=["Subscription"], response_class=PlainTextResponse)
-def sub(uuid: str, size: int = -1, db: Session = Depends(get_db)):
+def sub(uuid: str, size: int = -1,
+        develop: bool = False,
+        db: Session = Depends(get_db)):
     inbound_configs, count = get_inbound_configs(db=db)
-
 
     rows = []
 
     for inbound_config in inbound_configs:
-        if inbound_config.enable is True:
+        if inbound_config.enable is True and (inbound_config.develop is not True or develop is True):
             link = xray.generate_vless_config(address=inbound_config.address, network_type="ws",
                                               port=inbound_config.port, uuid=uuid,
                                               host=inbound_config.host, path=inbound_config.path,

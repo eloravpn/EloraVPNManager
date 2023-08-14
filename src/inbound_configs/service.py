@@ -29,7 +29,7 @@ def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
                                           host=db_inbound_config.host, sni=db_inbound_config.sni,
                                           finger_print=db_inbound_config.finger_print,
                                           address=db_inbound_config.address, path=db_inbound_config.path,
-                                          enable=db_inbound_config.enable, develop=db_inbound_config.develop,
+                                          enable=db_inbound_config.enable, develop=True,
                                           security=db_inbound_config.security,
                                           type=db_inbound_config.type)
     db.add(new_db_inbound_config)
