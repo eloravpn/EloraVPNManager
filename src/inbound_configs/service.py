@@ -43,6 +43,7 @@ def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify:
     db_inbound_config.remark = modify.remark
     db_inbound_config.port = modify.port
     db_inbound_config.host = modify.host
+    db_inbound_config.domain = modify.domain
     db_inbound_config.sni = modify.sni
     db_inbound_config.address = modify.address
     db_inbound_config.path = modify.path

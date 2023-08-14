@@ -164,7 +164,7 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
                     name={"remark"}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    defaultValue={formik.values.remark}
+                    value={formik.values.remark}
                     type="text"
                   />
                   {formik.touched.remark && formik.errors.remark ? (
@@ -351,8 +351,10 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
                   >
                     {inbounds
                       ? inbounds.map((inbound) => (
-                        <option value={inbound.id}>{inbound.remark}</option>
-                      ))
+                          <option key={inbound.id} value={inbound.id}>
+                            {inbound.remark}
+                          </option>
+                        ))
                       : ""}
                   </Select>
 

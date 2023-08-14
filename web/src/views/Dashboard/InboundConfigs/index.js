@@ -12,17 +12,25 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Badge,
   Box,
   Button,
   Heading,
+  HStack,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
+  Stack,
   Table,
   TableContainer,
+  Tag,
+  TagLabel,
+  TagLeftIcon,
+  TagRightIcon,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -36,6 +44,7 @@ import {
   CopyIcon,
   DeleteIcon,
   EditIcon,
+  LinkIcon,
   NotAllowedIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
@@ -142,9 +151,7 @@ export const InboundConfigs = ({ data }) => {
               <Thead>
                 <Tr>
                   <Th>Remark</Th>
-                  <Th>Inbound</Th>
                   <Th>Domain</Th>
-                  <Th>SNI</Th>
                   <Th>Type</Th>
                   <Th>Enable</Th>
                   <Th>Develop</Th>
@@ -154,10 +161,20 @@ export const InboundConfigs = ({ data }) => {
               <Tbody>
                 {data.map((inboundConfig) => (
                   <Tr key={inboundConfig.id}>
-                    <Td>{inboundConfig.remark}</Td>
-                    <Td>{inboundConfig.inbound.remark}</Td>
+                    <Td>
+                      <Stack direction={"column"}>
+                        <Text as="b">{inboundConfig.remark}</Text>
+
+                        <HStack spacing={4}>
+                          <Tag p={1} size={5} colorScheme="blue">
+                            <TagLeftIcon as={LinkIcon} />
+
+                            <TagLabel>{inboundConfig.inbound.remark}</TagLabel>
+                          </Tag>
+                        </HStack>
+                      </Stack>
+                    </Td>
                     <Td>{inboundConfig.domain}</Td>
-                    <Td>{inboundConfig.sni}</Td>
                     <Td>{inboundConfig.type}</Td>
                     <Td>
                       {inboundConfig.enable ? (
