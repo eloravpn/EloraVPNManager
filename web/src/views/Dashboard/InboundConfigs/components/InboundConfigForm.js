@@ -66,6 +66,7 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
       develop: inboundConfig ? inboundConfig.develop : "",
       type: inboundConfig ? inboundConfig.type : "vless",
       finger_print: inboundConfig ? inboundConfig.finger_print : "none",
+      network: inboundConfig ? inboundConfig.network : "ws",
       security: inboundConfig ? inboundConfig.security : "tls",
     },
     validate,
@@ -335,7 +336,22 @@ const InboundConfigForm = ({ isOpen, onClose, btnRef, inboundConfig }) => {
               </Box>
 
               <Box>
-                <FormLabel>Type</FormLabel>
+                <FormLabel>Network</FormLabel>
+
+                <Select
+                  name={"network"}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.network}
+                  placeholder="Select network"
+                >
+                  <option value="ws">Websocket</option>
+                  <option value="tcp">TCP</option>
+                </Select>
+              </Box>
+
+              <Box>
+                <FormLabel>Inbound</FormLabel>
 
                 <FormControl
                   isInvalid={

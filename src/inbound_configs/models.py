@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from src.database import Base
-from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint
+from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint, InboundNetwork
 
 
 class InboundConfig(Base):
@@ -43,6 +43,13 @@ class InboundConfig(Base):
         unique=False,
         nullable=False,
         default=InboundSecurity.default.value,
+    )
+
+    network = Column(
+        Enum(InboundNetwork),
+        unique=False,
+        nullable=False,
+        default=InboundNetwork.ws.value,
     )
 
     type = Column(Enum(InboundType),

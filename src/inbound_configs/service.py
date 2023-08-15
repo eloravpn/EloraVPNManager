@@ -13,7 +13,7 @@ def create_inbound_config(db: Session, db_inbound: Inbound, inbound_config: Inbo
                                       sni=inbound_config.sni, finger_print=inbound_config.finger_print,
                                       address=inbound_config.address, path=inbound_config.path,
                                       enable=inbound_config.enable, develop=inbound_config.develop,
-                                      security=inbound_config.security,
+                                      security=inbound_config.security, network=inbound_config.network,
                                       type=inbound_config.type)
 
     db.add(db_inbound_config)
@@ -30,7 +30,7 @@ def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
                                           finger_print=db_inbound_config.finger_print,
                                           address=db_inbound_config.address, path=db_inbound_config.path,
                                           enable=db_inbound_config.enable, develop=True,
-                                          security=db_inbound_config.security,
+                                          security=db_inbound_config.security, network=db_inbound_config.network,
                                           type=db_inbound_config.type)
     db.add(new_db_inbound_config)
     db.commit()
@@ -52,6 +52,7 @@ def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify:
     db_inbound_config.develop = modify.develop
     db_inbound_config.security = modify.security
     db_inbound_config.type = modify.type
+    db_inbound_config.network = modify.network
 
     db.commit()
     db.refresh(db_inbound_config)

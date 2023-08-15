@@ -1,9 +1,9 @@
 import urllib.parse
 
 
-def generate_vless_config(address: str, network_type: str, port: str,
-                          uuid: str, host: str, path: str, remark: str):
-    alpn = 'h2,http/1.1'
+def generate_vless_config(address: str, port: str,
+                          uuid: str, host: str, path: str, remark: str, network_type: str = 'ws'):
+    alpn = 'h2,http/1.1,h3'
 
     prefix_txt = '%s@%s:%s' % (uuid, address, port)
     prefix = 'vless://' + prefix_txt

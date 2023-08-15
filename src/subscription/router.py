@@ -23,7 +23,7 @@ def sub(uuid: str, size: int = -1,
 
     for inbound_config in inbound_configs:
         if inbound_config.enable is True and (inbound_config.develop is not True or develop is True):
-            link = xray.generate_vless_config(address=inbound_config.address, network_type="ws",
+            link = xray.generate_vless_config(address=inbound_config.address, network_type=inbound_config.network,
                                               port=inbound_config.port, uuid=uuid,
                                               host=inbound_config.host, path=inbound_config.path,
                                               remark=inbound_config.remark)

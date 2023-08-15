@@ -12,6 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Badge,
   Box,
   Button,
   Heading,
@@ -173,7 +174,19 @@ export const InboundConfigs = ({ data }) => {
                       </Stack>
                     </Td>
                     <Td>{inboundConfig.domain}</Td>
-                    <Td>{inboundConfig.type}</Td>
+                    <Td>
+                      <Stack direction="row">
+                        <Badge colorScheme="green">{inboundConfig.type}</Badge>
+                        <Badge colorScheme="blue">
+                          {inboundConfig.network}
+                        </Badge>
+                        <Badge colorScheme="red">
+                          {inboundConfig.finger_print}
+                        </Badge>
+
+                        <Badge colorScheme="orange">{inboundConfig.path}</Badge>
+                      </Stack>
+                    </Td>
                     <Td>
                       {inboundConfig.enable ? (
                         <CheckCircleIcon color="green.400" />

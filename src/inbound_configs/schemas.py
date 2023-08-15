@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, validator
 
-from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint, InboundResponse
+from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint, InboundResponse, InboundNetwork
 
 
 class InboundConfigBase(BaseModel):
@@ -16,6 +16,7 @@ class InboundConfigBase(BaseModel):
     path: str
     enable: bool
     develop: bool
+    network: InboundNetwork = InboundNetwork.ws
     finger_print: InboundFingerPrint = InboundFingerPrint.default
     security: InboundSecurity = InboundSecurity.default
     type: InboundType = InboundType.default

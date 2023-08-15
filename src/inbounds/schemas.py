@@ -22,6 +22,11 @@ class InboundSecurity(str, Enum):
     tls = "tls"
 
 
+class InboundNetwork(str, Enum):
+    ws = "ws"
+    tcp = "tcp"
+
+
 class InboundFingerPrint(str, Enum):
     default = "none"
 
