@@ -97,9 +97,17 @@ def get_accounts(db: Session,
                  offset: Optional[int] = None,
                  limit: Optional[int] = None,
                  sort: Optional[List[AccountSortingOptions]] = None,
+                 filter_enable: bool = False,
+                 enable: bool = True,
+                 test_account: bool = True,
                  return_with_count: bool = True,
                  ) -> Tuple[List[Account], int]:
     query = db.query(Account)
+
+    if filter_enable:
+        if not test_account:
+            query = query.filter(Account.email.notlike(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"))
+        query = query.filter(Account.enable == enable)
 
     if sort:
         query = query.order_by(*(opt.value for opt in sort))

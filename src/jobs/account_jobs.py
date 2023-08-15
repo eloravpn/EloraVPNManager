@@ -204,7 +204,7 @@ def sync_new_accounts():
 
             logger.info("Host name: " + host.name)
 
-            for account in get_accounts(db, return_with_count=False):
+            for account in get_accounts(db=db, return_with_count=False):
                 # account_expire_time = account.expired_at.timestamp() * 1000s
 
                 if not account.enable:
@@ -241,7 +241,7 @@ def sync_accounts_traffic():
 
             logger.info("Host name: " + host.name)
 
-            for account in get_accounts(db, return_with_count=False):
+            for account in get_accounts(db=db, return_with_count=False):
                 # account_expire_time = account.expired_at.timestamp() * 1000
                 logger.info(f"Account uuid: {account.uuid}")
                 logger.info(f"Account email: {account.email}")
@@ -277,7 +277,7 @@ def review_accounts():
     print('Start Review accounts ' + str(datetime.now()))
 
     with GetDB() as db:
-        for account in get_accounts(db, return_with_count=False):
+        for account in get_accounts(db=db, return_with_count=False):
             account_expire_time = 0
             if account.expired_at:
                 account_expire_time = account.expired_at.timestamp()
@@ -321,7 +321,7 @@ def sync_accounts_status():
     logger.info('Start Sync accounts status' + str(datetime.now()))
 
     with GetDB() as db:
-        for account in get_accounts(db, return_with_count=False):
+        for account in get_accounts(db=db, return_with_count=False):
 
             second_ago_updated = 0
             if account.modified_at:

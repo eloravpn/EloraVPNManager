@@ -68,3 +68,8 @@ class AccountResponse(AccountBase):
 class AccountsResponse(BaseModel):
     accounts: List[AccountResponse]
     total: int
+
+
+class AccountsReport(BaseModel):
+    active: Union[int, None] = 0
+    total: Union[int, None] = 0

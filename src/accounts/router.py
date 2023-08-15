@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 import src.accounts.service as service
 import src.users.service as user_service
 from src.accounts.schemas import AccountCreate, AccountResponse, AccountModify, AccountsResponse, \
-    AccountUsedTrafficResponse
+    AccountUsedTrafficResponse, AccountsReport
 from src.admins.schemas import Admin
 from src.database import get_db
 
@@ -47,6 +47,27 @@ def add_account(delta: int = None,
                 admin: Admin = Depends(Admin.get_current)):
 
     return service.get_all_accounts_used_traffic(db=db, delta=delta)
+
+
+@router.get("/accounts/report", tags=['Account'], response_model=AccountsReport)
+def get_accounts_report(db: Session = Depends(get_db), admin: Admin = Depends(Admin.get_current)):
+    active_accounts = service.get_accounts(
+        db=db,
+        filter_enable=True,
+        enable=True,
+        test_account=False
+    )
+
+    disabled_accounts = service.get_accounts(
+        db=db,
+        filter_enable=True,
+        enable=False,
+        test_account=False
+    )
+
+    total = active_accounts[1] + disabled_accounts[1]
+
+    return AccountsReport(active=active_accounts[1], total=total)
 
 
 @router.post("/accounts/", tags=["Account"], response_model=AccountResponse)
@@ -106,6 +127,7 @@ def get_accounts(
         offset: int = None,
         limit: int = None,
         sort: str = None,
+        enable: bool = True,
         db: Session = Depends(get_db),
         admin: Admin = Depends(Admin.get_current)
 ):
@@ -120,7 +142,9 @@ def get_accounts(
                                     detail=f'"{opt}" is not a valid sort option')
 
     accounts, count = service.get_accounts(
+        filter_enable=True,
         db=db,
+        enable=enable,
         offset=offset,
         limit=limit,
         sort=sort

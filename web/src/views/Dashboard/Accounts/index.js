@@ -33,6 +33,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  HStack,
   IconButton,
   Input,
   Menu,
@@ -55,6 +56,7 @@ import {
   TagLabel,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -83,6 +85,7 @@ const Accounts = ({ data }) => {
   const fetcher = useFetcher();
 
   const [accounts, setAccounts] = useState();
+  const [accountsReport, setaccountsReport] = useState();
 
   let location = useLocation();
   let actionData = useActionData();
@@ -119,11 +122,9 @@ const Accounts = ({ data }) => {
   const search = (items) => {
     return items.filter((item) => {
       let searchQuery = q || "";
-      let enableFilter = item.enable == enable;
       return (
-        enableFilter &
-        (JSON.stringify(item).toLowerCase().indexOf(searchQuery.toLowerCase()) >
-          -1)
+        JSON.stringify(item).toLowerCase().indexOf(searchQuery.toLowerCase()) >
+        -1
       );
     });
   };
@@ -174,8 +175,14 @@ const Accounts = ({ data }) => {
   const btnRef = React.useRef();
 
   const fetchAccounts = () => {
-    AccountAPI.getAll(rows, sort).then((res) => {
+    AccountAPI.getAll(rows, sort, enable).then((res) => {
       setAccounts(res);
+    });
+  };
+
+  const fetchAccountsReport = () => {
+    AccountAPI.getAccountsReport().then((res) => {
+      setaccountsReport(res);
     });
   };
 
@@ -185,6 +192,13 @@ const Accounts = ({ data }) => {
 
     return () => clearInterval(interval);
   }, [enable, rows, sort]);
+
+  useEffect(() => {
+    fetchAccounts();
+    const interval = setInterval(fetchAccountsReport, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -215,6 +229,18 @@ const Accounts = ({ data }) => {
         <Heading as="h3" size="lg">
           Accounts
         </Heading>
+
+        {!accountsReport ? (
+          ""
+        ) : (
+          <HStack>
+            <Tag colorScheme="green">Active: {accountsReport.active}</Tag>
+            <Tag colorScheme="red">
+              Disabled: {accountsReport.total - accountsReport.active}
+            </Tag>
+            <Tag colorScheme="blue">Total: {accountsReport.total}</Tag>
+          </HStack>
+        )}
       </Box>
       {/* <Box>
         <Button
@@ -305,10 +331,17 @@ const Accounts = ({ data }) => {
                     <Td display={{ sm: "None" }}>{account.uuid} </Td>
                     {/* <Td>{account.email}</Td> */}
                     <Td>
-                      <User userId={account.user_id} />
-                      <Tag size="sm" colorScheme="green" borderRadius="full">
-                        <TagLabel>{account.email}</TagLabel>
-                      </Tag>
+                      <HStack spacing={1}>
+                        <User userId={account.user_id} />
+                        <Tag
+                          size="sm"
+                          bgColor={account.enable ? "green.200" : "red.400"}
+                          color={account.enable ? "black" : "white"}
+                          borderRadius="full"
+                        >
+                          <TagLabel>{account.email}</TagLabel>
+                        </Tag>
+                      </HStack>
                     </Td>
                     <Td>
                       <Stack direction={"column"}>
