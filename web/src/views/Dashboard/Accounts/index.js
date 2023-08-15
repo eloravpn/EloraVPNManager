@@ -268,6 +268,8 @@ const Accounts = ({ data }) => {
           >
             <option value="expire">Expire ASC</option>
             <option value="-expire">Expire DESC</option>
+            <option value="used-traffic-percent">Used traffic% ASC</option>
+            <option value="-used-traffic-percent">Used traffic% DESC</option>
             <option value="created">Created ASC</option>
             <option value="-created">Created DESC</option>
             <option value="modified">Modified ASC</option>
@@ -310,9 +312,15 @@ const Accounts = ({ data }) => {
                     </Td>
                     <Td>
                       <Stack direction={"column"}>
-                        <Badge variant="solid" colorScheme="green">
+                        <Badge
+                          variant="solid"
+                          colorScheme={
+                            account.used_traffic_percent > 85 ? "red" : "green"
+                          }
+                        >
                           {niceBytes(account.used_traffic)} /{" "}
-                          {niceBytes(account.data_limit)}
+                          {niceBytes(account.data_limit)} (
+                          {account.used_traffic_percent}%)
                         </Badge>
 
                         <Badge variant="solid" colorScheme="pink">

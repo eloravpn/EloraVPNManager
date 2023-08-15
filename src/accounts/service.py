@@ -21,6 +21,8 @@ AccountSortingOptions = Enum('AccountSortingOptions', {
     '-used-traffic': Account.used_traffic.desc(),
     'data-limit': Account.data_limit.asc(),
     '-data-limit': Account.data_limit.desc(),
+    'used-traffic-percent': Account.used_traffic_percent.asc(),
+    '-used-traffic-percent': Account.used_traffic_percent.desc(),
 })
 
 

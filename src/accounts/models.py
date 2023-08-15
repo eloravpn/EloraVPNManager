@@ -6,8 +6,9 @@ from sqlalchemy import (
     DateTime,
     Integer,
     String,
-    Boolean, ForeignKey, BigInteger,
+    Boolean, ForeignKey, BigInteger, case,
 )
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 
 from src.database import Base
@@ -29,6 +30,20 @@ class Account(Base):
     expired_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow)
+
+    @hybrid_property
+    def used_traffic_percent(self):
+        if self.data_limit > 0:
+            return 100 * (self.used_traffic / self.data_limit)
+        else:
+            return 0
+
+    @used_traffic_percent.expression
+    def used_traffic_percent(cls):
+        return case(
+            (cls.data_limit > 0, 100 * (cls.used_traffic / cls.data_limit)),
+            else_=0,
+        )
 
     @validates('uuid')
     def validate_uuid(self, key, uuid):

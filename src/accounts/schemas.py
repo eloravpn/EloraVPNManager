@@ -50,8 +50,13 @@ class AccountModify(AccountBase):
 class AccountResponse(AccountBase):
     id: int
     used_traffic: int
+    used_traffic_percent: float
     created_at: datetime
     modified_at: datetime
+
+    @validator('used_traffic_percent')
+    def used_traffic_percent_check(cls, v):
+        return round(v, 2)
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
