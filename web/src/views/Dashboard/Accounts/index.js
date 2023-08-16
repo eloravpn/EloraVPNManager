@@ -1,62 +1,33 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import {
-  Form,
-  Link,
-  json,
   useActionData,
   useFetcher,
   useLocation,
   useNavigate,
 } from "react-router-dom";
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   Badge,
   Box,
   Button,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
   FormControl,
   FormLabel,
   Heading,
   HStack,
-  IconButton,
   Input,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Select,
   Stack,
   Switch,
   Table,
-  TableCaption,
   TableContainer,
   Tag,
   TagLabel,
   Tbody,
   Td,
-  Text,
   Th,
   Thead,
   Tr,
@@ -64,31 +35,29 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import {
-  AddIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
   CheckCircleIcon,
   ChevronDownIcon,
   DeleteIcon,
   EditIcon,
-  EmailIcon,
   NotAllowedIcon,
   RepeatIcon,
   SettingsIcon,
 } from "@chakra-ui/icons";
-import UserModal from "../Users/components/UserModal";
 import AccountModal from "../Users/components/AccountModal";
 import { AccountAPI } from "../../../api/AccountAPI";
 import User from "./components/User";
+import ReactPaginate from "react-paginate";
+import "../../../assets/styles/pagination.css";
 
-const Accounts = ({ data }) => {
+const Accounts = () => {
   const navigate = useNavigate();
 
-  const fetcher = useFetcher();
-
   const [accounts, setAccounts] = useState();
+  const [total, setTotal] = useState();
   const [accountsReport, setaccountsReport] = useState();
 
-  let location = useLocation();
-  let actionData = useActionData();
   const [hostId, setHostId] = useState();
   const [account, setAccount] = useState();
 
@@ -112,21 +81,15 @@ const Accounts = ({ data }) => {
   const [rows, setRows] = useState(20);
   const [sort, setSort] = useState("expire");
 
-  const handleQChange = (event) => setQ(event.target.value);
+  const handleQChange = (event) => {
+    setQ(event.target.value);
+    setOffset(0);
+    setCurPage(1);
+  };
 
   const [enable, setEnable] = useState(true);
   const handleEnableChange = (event) => {
     setEnable(event.target.checked);
-  };
-
-  const search = (items) => {
-    return items.filter((item) => {
-      let searchQuery = q || "";
-      return (
-        JSON.stringify(item).toLowerCase().indexOf(searchQuery.toLowerCase()) >
-        -1
-      );
-    });
   };
 
   const units = [
@@ -153,8 +116,10 @@ const Accounts = ({ data }) => {
   }
 
   const [user, setUser] = useState();
+  const [offset, setOffset] = useState();
+  const [curPage, setCurPage] = useState(0);
 
-  const { isOpen, onOpen, onClose, getButtonProps } = useDisclosure();
+  const { getButtonProps } = useDisclosure();
 
   const {
     isOpen: isEditOpen,
@@ -168,15 +133,12 @@ const Accounts = ({ data }) => {
     onClose: onEditAccountClose,
   } = useDisclosure();
 
-  const buttonProps = getButtonProps();
-
-  const cancelRef = React.useRef();
-
   const btnRef = React.useRef();
 
   const fetchAccounts = () => {
-    AccountAPI.getAll(rows, sort, enable).then((res) => {
-      setAccounts(res);
+    AccountAPI.getAll(rows, sort, enable, offset, q).then((res) => {
+      setTotal(res.total);
+      setAccounts(res.accounts);
     });
   };
 
@@ -186,15 +148,22 @@ const Accounts = ({ data }) => {
     });
   };
 
+  const handlePageClick = (data) => {
+    let selected = data.selected;
+    let offset = Math.ceil(selected * rows);
+    setOffset(offset);
+    setCurPage(selected);
+  };
+
   useEffect(() => {
     fetchAccounts();
     const interval = setInterval(fetchAccounts, 5000);
 
     return () => clearInterval(interval);
-  }, [enable, rows, sort]);
+  }, [enable, rows, sort, offset, q]);
 
   useEffect(() => {
-    fetchAccounts();
+    fetchAccountsReport();
     const interval = setInterval(fetchAccountsReport, 5000);
 
     return () => clearInterval(interval);
@@ -280,10 +249,9 @@ const Accounts = ({ data }) => {
             }}
             defaultValue={rows}
           >
-            <option value="10">First 10</option>
-            <option value="20">First 20</option>
-            <option value="50">First 50</option>
-            <option value="0">All</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
           </Select>
           <Select
             placeholder="Sort by"
@@ -318,6 +286,7 @@ const Accounts = ({ data }) => {
                 <Tr>
                   <Th display={{ sm: "None" }}>UUID</Th>
                   {/* <Th>Email</Th> */}
+                  <Th>Index</Th>
                   <Th>User</Th>
                   <Th>Usage</Th>
                   {/* <Th>Expire</Th> */}
@@ -326,10 +295,11 @@ const Accounts = ({ data }) => {
                 </Tr>
               </Thead>
               <Tbody>
-                {search(accounts).map((account) => (
+                {accounts.map((account, index) => (
                   <Tr key={account.id}>
                     <Td display={{ sm: "None" }}>{account.uuid} </Td>
                     {/* <Td>{account.email}</Td> */}
+                    <Td>{index + 1 + curPage * rows}</Td>
                     <Td>
                       <HStack spacing={1}>
                         <User userId={account.user_id} />
@@ -419,6 +389,25 @@ const Accounts = ({ data }) => {
         ) : (
           <div>No Users</div>
         )}
+      </Box>
+
+      <Box>
+        <ReactPaginate
+          activeClassName={"item active "}
+          breakClassName={"item break-me "}
+          breakLabel={"..."}
+          containerClassName={"pagination"}
+          disabledClassName={"disabled-page"}
+          marginPagesDisplayed={2}
+          nextClassName={"item next "}
+          nextLabel={<ArrowRightIcon boxSize={5} />}
+          onPageChange={handlePageClick}
+          pageCount={total / rows}
+          pageClassName={"item pagination-page "}
+          pageRangeDisplayed={2}
+          previousClassName={"item previous"}
+          previousLabel={<ArrowLeftIcon boxSize={5} />}
+        />
       </Box>
     </VStack>
   );

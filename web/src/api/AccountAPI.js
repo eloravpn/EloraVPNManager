@@ -65,11 +65,13 @@ export const AccountAPI = {
 
     return response.data;
   },
-  getAll: async function (rows, sort, enable) {
+  getAll: async function (rows, sort, enable, offset, q) {
     let params = {
       limit: rows ? rows : 20,
       sort: sort ? sort : "-expire",
       enable: enable,
+      offset: offset ? offset : 0,
+      q: q ? q : "",
     };
 
     const response = await api.request({
@@ -78,7 +80,7 @@ export const AccountAPI = {
       params: params,
     });
 
-    return response.data.accounts;
+    return response.data;
   },
   getAccountsReport: async function () {
     const response = await api.request({

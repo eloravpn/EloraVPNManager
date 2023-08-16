@@ -2,7 +2,7 @@ import datetime
 from enum import Enum
 from typing import List, Tuple, Optional
 
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_, String, cast
 from sqlalchemy.orm import Session
 
 from src import config
@@ -101,6 +101,7 @@ def get_accounts(db: Session,
                  enable: bool = True,
                  test_account: bool = True,
                  return_with_count: bool = True,
+                 q: str = None,
                  ) -> Tuple[List[Account], int]:
     query = db.query(Account)
 
@@ -112,12 +113,23 @@ def get_accounts(db: Session,
     if sort:
         query = query.order_by(*(opt.value for opt in sort))
 
+    if q:
+        query = query.join(User, Account.user_id == User.id)
+        query = query.filter(or_(Account.email.ilike(f"%{q}%"),
+                                 Account.uuid.ilike(f"%{q}%"),
+                                 User.first_name.ilike(f"%{q}%"),
+                                 User.last_name.ilike(f"%{q}%"),
+                                 User.username.ilike(f"%{q}%"),
+                                 User.telegram_username.ilike(f"%{q}%"),
+                                 cast(User.telegram_chat_id, String).ilike(f"%{q}%")
+                                 ))
+
+    count = query.count()
+
     if offset:
         query = query.offset(offset)
     if limit:
         query = query.limit(limit)
-
-    count = query.count()
 
     if return_with_count:
         return query.all(), count

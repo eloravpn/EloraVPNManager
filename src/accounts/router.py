@@ -128,6 +128,7 @@ def get_accounts(
         limit: int = None,
         sort: str = None,
         enable: bool = True,
+        q: str = None,
         db: Session = Depends(get_db),
         admin: Admin = Depends(Admin.get_current)
 ):
@@ -147,7 +148,8 @@ def get_accounts(
         enable=enable,
         offset=offset,
         limit=limit,
-        sort=sort
+        sort=sort,
+        q=q
     )
 
     return {"accounts": accounts, "total": count}
