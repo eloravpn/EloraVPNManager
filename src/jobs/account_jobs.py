@@ -237,6 +237,10 @@ def sync_accounts_traffic():
 
             host = get_host(db, inbound.host_id)
 
+            if not inbound.enable or not host.enable:
+                logger.info("Skip this inbound because it is disabled.")
+                continue
+
             xui = XUI(host=HostResponse.from_orm(host))
 
             logger.info("Host name: " + host.name)
