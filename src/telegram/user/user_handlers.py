@@ -52,7 +52,7 @@ def support(message):
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
     bot.reply_to(message,
-                 text=messages.WELCOME_MESSAGE.format(telegram_user.full_name, config.TELEGRAM_ADMIN_USER_NAME),
+                 text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
                  parse_mode='markdown'
                  )
 
@@ -137,7 +137,7 @@ def main_menu(call: types.CallbackQuery):
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
     bot.send_message(chat_id=call.from_user.id,
-                     text=messages.WELCOME_MESSAGE.format(telegram_user.full_name, config.TELEGRAM_ADMIN_USER_NAME),
+                     text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
                      disable_web_page_preview=True, reply_markup=BotUserKeyboard.main_menu(), parse_mode='markdown')
 
 
