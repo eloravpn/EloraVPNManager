@@ -74,7 +74,7 @@ def on_startup():
     scheduler.start()
     # Base.metadata.drop_all(bind=engine)
     # Base.metadata.create_all(bind=engine)
-    print("Application started successfully!")
+    logger.info("Application started successfully!")
 
 
 @app.on_event("shutdown")
