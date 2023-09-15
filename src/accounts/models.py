@@ -29,6 +29,7 @@ class Account(Base):
     notification = relationship(
         "Notification", back_populates="account", cascade="all, delete-orphan"
     )
+    orders = relationship("Order", back_populates="account")
     uuid = Column(String(128), index=True, unique=True, nullable=False)
     email = Column(String(128), index=True, unique=True, nullable=False)
     enable = Column(Boolean, default=True)
