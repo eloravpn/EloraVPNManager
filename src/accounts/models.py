@@ -38,6 +38,13 @@ class Account(Base):
         else:
             return 0
 
+    @hybrid_property
+    def full_name(self):
+        if self.user:
+            return self.user.full_name
+        else:
+            return None
+
     @used_traffic_percent.expression
     def used_traffic_percent(cls):
         return case(

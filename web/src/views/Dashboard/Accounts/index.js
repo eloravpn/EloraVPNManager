@@ -302,7 +302,7 @@ const Accounts = () => {
                     <Td>{index + 1 + curPage * rows}</Td>
                     <Td>
                       <HStack spacing={1}>
-                        <User userId={account.user_id} />
+                        <User userId={account.user_id} fullName={account.full_name} />
                         <Tag
                           size="sm"
                           bgColor={account.enable ? "green.200" : "red.400"}
@@ -329,8 +329,8 @@ const Accounts = () => {
                         <Badge variant="solid" colorScheme="pink">
                           {account.expired_at
                             ? new Date(account.expired_at).toLocaleDateString(
-                                "fa-IR-u-nu-latn"
-                              )
+                              "fa-IR-u-nu-latn"
+                            )
                             : "Unlimited"}
                         </Badge>
                       </Stack>
