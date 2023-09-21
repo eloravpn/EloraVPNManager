@@ -73,7 +73,7 @@ from src import jobs, telegram  # noqa
 def on_startup():
     scheduler.start()
     # Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
     print('Application started successfully!')
 
 

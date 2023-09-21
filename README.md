@@ -55,7 +55,7 @@ The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
 > [!NOTE]
 > *Note: if you want to use `sqlite` as your database, you can comment `psycopg2==2.9.6` line in `requirements.txt`*
 
-`pip install -r requirements.txt && python main.py`
+`pip install -r requirements.txt && alembic upgrade head && python main.py`
 
 #### Install react dependencies and start front-end
 
