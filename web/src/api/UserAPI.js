@@ -36,7 +36,7 @@ export const UserAPI = {
   getAll: async function (rows, sort) {
     let params = {
       limit: rows ? rows : 20,
-      sort: sort ? sort : "-expire",
+      sort: sort ? sort : "-modified",
     };
 
     const response = await api.request({

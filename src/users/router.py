@@ -58,12 +58,23 @@ def delete_user(user_id: int, db: Session = Depends(get_db),
 
 @router.get("/users/", tags=['User'], response_model=UsersResponse)
 def get_users(
-        db: Session = Depends(get_db),
         offset: int = None,
         limit: int = None,
         sort: str = None,
+        q: str = None,
+        db: Session = Depends(get_db),
         admin: Admin = Depends(Admin.get_current)
 ):
-    users, count = service.get_users(db=db, limit=limit)
+    if sort is not None:
+        opts = sort.strip(',').split(',')
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(service.UserSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(status_code=400,
+                                    detail=f'"{opt}" is not a valid sort option')
+
+    users, count = service.get_users(db=db, limit=limit, offset=offset, q=q, sort=sort)
 
     return {"users": users, "total": count}
