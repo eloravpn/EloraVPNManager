@@ -2,8 +2,12 @@ from datetime import datetime
 
 from src import scheduler, logger, config
 from src.accounts.models import Account
-from src.accounts.service import get_accounts, update_account_used_traffic, update_account_status, \
-    create_account_used_traffic
+from src.accounts.service import (
+    get_accounts,
+    update_account_used_traffic,
+    update_account_status,
+    create_account_used_traffic,
+)
 from src.database import GetDB
 from src.hosts.schemas import HostResponse
 from src.hosts.service import get_host
@@ -150,6 +154,7 @@ from src.telegram.user import messages, captions
 #     return payload_add_client
 #
 
+
 def get_account_email_prefix(host_id: int, inbound_key: int, email: str):
     return "%s_%s_%s" % (host_id, inbound_key, email)
 
@@ -169,7 +174,9 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
         logger.info("Host name: " + host.name)
 
-        account_unique_email = get_account_email_prefix(host.id, inbound.key, db_account.email)
+        account_unique_email = get_account_email_prefix(
+            host.id, inbound.key, db_account.email
+        )
 
         client_stat = xui.api.get_client_stat(email=account_unique_email)
 
@@ -177,8 +184,12 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
             # if client_stat["enable"] == enable:
             #     logger.info("This client is synced with account!")
             # else:
-            xui.api.update_client(inbound_id=inbound.key, email=account_unique_email,
-                                  uuid=db_account.uuid, enable=enable)
+            xui.api.update_client(
+                inbound_id=inbound.key,
+                email=account_unique_email,
+                uuid=db_account.uuid,
+                enable=enable,
+            )
 
         else:
             logger.info(f"Client does not exist in this inbound yet")
@@ -186,8 +197,7 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
 def sync_new_accounts():
     with GetDB() as db:
-
-        print('Start syncing new accounts in all inbounds ' + str(datetime.now()))
+        print("Start syncing new accounts in all inbounds " + str(datetime.now()))
 
         inbounds, count = get_inbounds(db=db)
         for inbound in inbounds:
@@ -211,7 +221,9 @@ def sync_new_accounts():
                     logger.info("Account is disable, skipped to add!")
                     continue
 
-                account_unique_email = get_account_email_prefix(host.id, inbound.key, account.email)
+                account_unique_email = get_account_email_prefix(
+                    host.id, inbound.key, account.email
+                )
 
                 client_stat = xui.api.get_client_stat(email=account_unique_email)
                 if client_stat is None:
@@ -222,13 +234,16 @@ def sync_new_accounts():
                     logger.info(f"Account Expire time: {account.expired_at}")
                     logger.info(f"Account Status: {account.enable}")
 
-                    xui.api.add_client(inbound_id=inbound.key, email=account_unique_email, uuid=account.uuid)
+                    xui.api.add_client(
+                        inbound_id=inbound.key,
+                        email=account_unique_email,
+                        uuid=account.uuid,
+                    )
 
 
 def sync_accounts_traffic():
     with GetDB() as db:
-
-        print('Start syncing accounts traffic from all inbounds ' + str(datetime.now()))
+        print("Start syncing accounts traffic from all inbounds " + str(datetime.now()))
 
         inbounds, count = get_inbounds(db=db)
         for inbound in inbounds:
@@ -256,29 +271,43 @@ def sync_accounts_traffic():
                     logger.info("Account is disable, skipped to update traffic!")
                     continue
 
-                account_unique_email = get_account_email_prefix(host.id, inbound.key, account.email)
+                account_unique_email = get_account_email_prefix(
+                    host.id, inbound.key, account.email
+                )
 
                 client_stat = xui.api.get_client_stat(email=account_unique_email)
                 if client_stat is not None:
-                    total_usage = int(client_stat['up']) + int(client_stat['down'])
+                    total_usage = int(client_stat["up"]) + int(client_stat["down"])
                     logger.info(f"Client Upload: {client_stat['up']}")
                     logger.info(f"Client Download: {client_stat['down']}")
                     logger.info(f"Client total usage: {total_usage}")
-                    reset = xui.api.reset_client_traffic(inbound_id=inbound.key, email=account_unique_email)
+                    reset = xui.api.reset_client_traffic(
+                        inbound_id=inbound.key, email=account_unique_email
+                    )
                     if reset and total_usage > 0:
-                        create_account_used_traffic(db=db, db_account=account, upload=int(client_stat['up']),
-                                                    download=int(client_stat['down']))
-                        update_account_used_traffic(db=db, db_account=account,
-                                                    used_traffic=total_usage + account.used_traffic)
+                        create_account_used_traffic(
+                            db=db,
+                            db_account=account,
+                            upload=int(client_stat["up"]),
+                            download=int(client_stat["down"]),
+                        )
+                        update_account_used_traffic(
+                            db=db,
+                            db_account=account,
+                            used_traffic=total_usage + account.used_traffic,
+                        )
                         logger.info(
-                            f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}")
+                            f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}"
+                        )
                     else:
-                        logger.warn(f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}")
+                        logger.warn(
+                            f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}"
+                        )
 
 
 def review_accounts():
     now = datetime.utcnow().timestamp()
-    print('Start Review accounts ' + str(datetime.now()))
+    print("Start Review accounts " + str(datetime.now()))
 
     with GetDB() as db:
         for account in get_accounts(db=db, return_with_count=False):
@@ -286,7 +315,9 @@ def review_accounts():
             if account.expired_at:
                 account_expire_time = account.expired_at.timestamp()
 
-            telegram_user_name = account.user.telegram_username if account.user.telegram_username else ""
+            telegram_user_name = (
+                account.user.telegram_username if account.user.telegram_username else ""
+            )
 
             if (0 < account_expire_time <= now) and account.enable:
                 logger.info("Account has been expired due to expired time.")
@@ -296,37 +327,41 @@ def review_accounts():
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
-                utils.send_message_to_admin(message=
-                                            messages.ADMIN_NOTIFICATION_USER_EXPIRED.
-                                            format(email=account.email,
-                                                   due=captions.EXPIRE_TIME,
-                                                   full_name=account.user.full_name,
-                                                   telegram_user_name=telegram_user_name))
-
+                utils.send_message_to_admin(
+                    message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
+                        email=account.email,
+                        due=captions.EXPIRE_TIME,
+                        full_name=account.user.full_name,
+                        telegram_user_name=telegram_user_name,
+                    )
+                )
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
-                logger.info("Account has been expired due to exceeded Data limit usage.")
+                logger.info(
+                    "Account has been expired due to exceeded Data limit usage."
+                )
                 logger.info(f"Account uuid: {account.uuid}")
                 logger.info(f"Account email: {account.email}")
                 logger.info(f"Account Expire time: {account.expired_at}")
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
-                utils.send_message_to_admin(message=
-                                            messages.ADMIN_NOTIFICATION_USER_EXPIRED.
-                                            format(email=account.email,
-                                                   due=captions.EXCEEDED_DATA_LIMIT,
-                                                   full_name=account.user.full_name,
-                                                   telegram_user_name=telegram_user_name))
+                utils.send_message_to_admin(
+                    message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
+                        email=account.email,
+                        due=captions.EXCEEDED_DATA_LIMIT,
+                        full_name=account.user.full_name,
+                        telegram_user_name=telegram_user_name,
+                    )
+                )
 
 
 def sync_accounts_status():
     now = datetime.utcnow().timestamp()
-    logger.info('Start Sync accounts status' + str(datetime.now()))
+    logger.info("Start Sync accounts status" + str(datetime.now()))
 
     with GetDB() as db:
         for account in get_accounts(db=db, return_with_count=False):
-
             second_ago_updated = 0
             if account.modified_at:
                 second_ago_updated = now - account.modified_at.timestamp()
@@ -338,12 +373,20 @@ def sync_accounts_status():
                 logger.info(f"Account status: {account.enable}")
                 logger.info((f"Account modified at: {account.modified_at}"))
                 if account.enable:
-                    update_client_in_all_inbounds(db=db, db_account=account, enable=True)
-                    logger.info(f"Account with email {account.email} enable successfully")
+                    update_client_in_all_inbounds(
+                        db=db, db_account=account, enable=True
+                    )
+                    logger.info(
+                        f"Account with email {account.email} enable successfully"
+                    )
 
                 else:
-                    update_client_in_all_inbounds(db=db, db_account=account, enable=False)
-                    logger.info(f"Account with email {account.email} disable successfully")
+                    update_client_in_all_inbounds(
+                        db=db, db_account=account, enable=False
+                    )
+                    logger.info(
+                        f"Account with email {account.email} disable successfully"
+                    )
             else:
                 logger.info(f"Skip Account with email {account.email}")
 
@@ -398,13 +441,24 @@ def run_review_account_jobs():
 # scheduler.add_job(run_account_jobs)
 
 if config.ENABLE_SYNC_ACCOUNTS:
+    scheduler.add_job(
+        func=run_review_account_jobs,
+        max_instances=1,
+        trigger="interval",
+        seconds=config.REVIEW_ACCOUNTS_INTERVAL,
+    )
 
-    scheduler.add_job(func=run_review_account_jobs, max_instances=1, trigger='interval',
-                      seconds=config.REVIEW_ACCOUNTS_INTERVAL)
-
-    scheduler.add_job(func=sync_new_accounts, max_instances=1, trigger='interval',
-                      seconds=config.SYNC_ACCOUNTS_INTERVAL)
-    scheduler.add_job(func=sync_accounts_traffic, max_instances=1, trigger='interval',
-                      seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL)
+    scheduler.add_job(
+        func=sync_new_accounts,
+        max_instances=1,
+        trigger="interval",
+        seconds=config.SYNC_ACCOUNTS_INTERVAL,
+    )
+    scheduler.add_job(
+        func=sync_accounts_traffic,
+        max_instances=1,
+        trigger="interval",
+        seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL,
+    )
 else:
-    logger.warn('Sync accounts are disabled!')
+    logger.warn("Sync accounts are disabled!")

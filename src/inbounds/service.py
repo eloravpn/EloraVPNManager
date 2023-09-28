@@ -8,11 +8,21 @@ from src.inbounds.schemas import InboundCreate, InboundModify
 
 
 def create_inbound(db: Session, db_host: Host, inbound: InboundCreate):
-    db_inbound = Inbound(remark=inbound.remark, host_id=db_host.id, port=inbound.port,
-                         domain=inbound.domain, request_host=inbound.request_host, sni=inbound.sni,
-                         address=inbound.address,path=inbound.path,key= inbound.key,
-                         enable=inbound.enable, develop=inbound.develop, security=inbound.security,
-                         type=inbound.type)
+    db_inbound = Inbound(
+        remark=inbound.remark,
+        host_id=db_host.id,
+        port=inbound.port,
+        domain=inbound.domain,
+        request_host=inbound.request_host,
+        sni=inbound.sni,
+        address=inbound.address,
+        path=inbound.path,
+        key=inbound.key,
+        enable=inbound.enable,
+        develop=inbound.develop,
+        security=inbound.security,
+        type=inbound.type,
+    )
 
     db.add(db_inbound)
     db.commit()

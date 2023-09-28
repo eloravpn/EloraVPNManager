@@ -7,30 +7,41 @@ from sqlalchemy.orm import Session
 
 from src import config
 from src.accounts.models import Account, AccountUsedTraffic
-from src.accounts.schemas import AccountCreate, AccountModify, AccountUsedTrafficResponse
+from src.accounts.schemas import (
+    AccountCreate,
+    AccountModify,
+    AccountUsedTrafficResponse,
+)
 from src.users.models import User
 
-AccountSortingOptions = Enum('AccountSortingOptions', {
-    'expire': Account.expired_at.asc(),
-    '-expire': Account.expired_at.desc(),
-    'created': Account.created_at.asc(),
-    '-created': Account.created_at.desc(),
-    'modified': Account.modified_at.asc(),
-    '-modified': Account.modified_at.desc(),
-    'used-traffic': Account.used_traffic.asc(),
-    '-used-traffic': Account.used_traffic.desc(),
-    'data-limit': Account.data_limit.asc(),
-    '-data-limit': Account.data_limit.desc(),
-    'used-traffic-percent': Account.used_traffic_percent.asc(),
-    '-used-traffic-percent': Account.used_traffic_percent.desc(),
-})
+AccountSortingOptions = Enum(
+    "AccountSortingOptions",
+    {
+        "expire": Account.expired_at.asc(),
+        "-expire": Account.expired_at.desc(),
+        "created": Account.created_at.asc(),
+        "-created": Account.created_at.desc(),
+        "modified": Account.modified_at.asc(),
+        "-modified": Account.modified_at.desc(),
+        "used-traffic": Account.used_traffic.asc(),
+        "-used-traffic": Account.used_traffic.desc(),
+        "data-limit": Account.data_limit.asc(),
+        "-data-limit": Account.data_limit.desc(),
+        "used-traffic-percent": Account.used_traffic_percent.asc(),
+        "-used-traffic-percent": Account.used_traffic_percent.desc(),
+    },
+)
 
 
 def create_account(db: Session, db_user: User, account: AccountCreate):
-    db_account = Account(user_id=db_user.id, uuid=account.uuid, email=account.email,
-                         data_limit=account.data_limit,
-                         expired_at=account.expired_at,
-                         enable=account.enable)
+    db_account = Account(
+        user_id=db_user.id,
+        uuid=account.uuid,
+        email=account.email,
+        data_limit=account.data_limit,
+        expired_at=account.expired_at,
+        enable=account.enable,
+    )
 
     db.add(db_account)
     db.commit()
@@ -38,8 +49,12 @@ def create_account(db: Session, db_user: User, account: AccountCreate):
     return db_account
 
 
-def create_account_used_traffic(db: Session, db_account: Account, download: int, upload: int):
-    db_account_used_traffic = AccountUsedTraffic(account_id=db_account.id, download=download, upload=upload)
+def create_account_used_traffic(
+    db: Session, db_account: Account, download: int, upload: int
+):
+    db_account_used_traffic = AccountUsedTraffic(
+        account_id=db_account.id, download=download, upload=upload
+    )
 
     db.add(db_account_used_traffic)
     db.commit()
@@ -73,7 +88,9 @@ def update_account_used_traffic(db: Session, db_account: Account, used_traffic: 
 
 
 def reset_traffic(db: Session, db_account: Account):
-    db.query(AccountUsedTraffic).filter(AccountUsedTraffic.account_id == db_account.id).delete()
+    db.query(AccountUsedTraffic).filter(
+        AccountUsedTraffic.account_id == db_account.id
+    ).delete()
     db_account.used_traffic = 0
     db_account.modified_at = datetime.datetime.utcnow()
 
@@ -93,21 +110,24 @@ def update_account_status(db: Session, db_account: Account, enable: bool = True)
     return db_account
 
 
-def get_accounts(db: Session,
-                 offset: Optional[int] = None,
-                 limit: Optional[int] = None,
-                 sort: Optional[List[AccountSortingOptions]] = None,
-                 filter_enable: bool = False,
-                 enable: bool = True,
-                 test_account: bool = True,
-                 return_with_count: bool = True,
-                 q: str = None,
-                 ) -> Tuple[List[Account], int]:
+def get_accounts(
+    db: Session,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    sort: Optional[List[AccountSortingOptions]] = None,
+    filter_enable: bool = False,
+    enable: bool = True,
+    test_account: bool = True,
+    return_with_count: bool = True,
+    q: str = None,
+) -> Tuple[List[Account], int]:
     query = db.query(Account)
 
     if filter_enable:
         if not test_account:
-            query = query.filter(Account.email.notlike(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"))
+            query = query.filter(
+                Account.email.notlike(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%")
+            )
         query = query.filter(Account.enable == enable)
 
     if sort:
@@ -115,14 +135,17 @@ def get_accounts(db: Session,
 
     if q:
         query = query.join(User, Account.user_id == User.id)
-        query = query.filter(or_(Account.email.ilike(f"%{q}%"),
-                                 Account.uuid.ilike(f"%{q}%"),
-                                 User.first_name.ilike(f"%{q}%"),
-                                 User.last_name.ilike(f"%{q}%"),
-                                 User.username.ilike(f"%{q}%"),
-                                 User.telegram_username.ilike(f"%{q}%"),
-                                 cast(User.telegram_chat_id, String).ilike(f"%{q}%")
-                                 ))
+        query = query.filter(
+            or_(
+                Account.email.ilike(f"%{q}%"),
+                Account.uuid.ilike(f"%{q}%"),
+                User.first_name.ilike(f"%{q}%"),
+                User.last_name.ilike(f"%{q}%"),
+                User.username.ilike(f"%{q}%"),
+                User.telegram_username.ilike(f"%{q}%"),
+                cast(User.telegram_chat_id, String).ilike(f"%{q}%"),
+            )
+        )
 
     count = query.count()
 
@@ -137,60 +160,69 @@ def get_accounts(db: Session,
         return query.all()
 
 
-def get_user_last_test_account(db: Session,
-                               db_user: User,
-                               return_with_count: bool = True
-                               ) -> Account:
+def get_user_last_test_account(
+    db: Session, db_user: User, return_with_count: bool = True
+) -> Account:
     query = db.query(Account)
 
     query = query.order_by(Account.created_at.desc())
 
-    query = query.filter(and_(Account.email.like(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"),
-                              Account.user_id == db_user.id))
+    query = query.filter(
+        and_(
+            Account.email.like(f"{config.TEST_ACCOUNT_EMAIL_PREFIX}%"),
+            Account.user_id == db_user.id,
+        )
+    )
 
     return query.first()
 
 
-def get_account_used_traffic(db: Session,
-                             db_account: Account,
-                             delta: int = 3
-                             ) -> AccountUsedTraffic:
+def get_account_used_traffic(
+    db: Session, db_account: Account, delta: int = 3
+) -> AccountUsedTraffic:
     today = datetime.datetime.now()
     n_days_ago = today - datetime.timedelta(days=delta)
 
-    print('Generate report from ' + str(n_days_ago))
+    print("Generate report from " + str(n_days_ago))
 
-    query = db.query(func.sum(AccountUsedTraffic.download).label("total_download"),
-                     func.sum(AccountUsedTraffic.upload).label("total_upload")).filter(
-        and_(AccountUsedTraffic.created_at >= n_days_ago, AccountUsedTraffic.account_id == db_account.id)
+    query = db.query(
+        func.sum(AccountUsedTraffic.download).label("total_download"),
+        func.sum(AccountUsedTraffic.upload).label("total_upload"),
+    ).filter(
+        and_(
+            AccountUsedTraffic.created_at >= n_days_ago,
+            AccountUsedTraffic.account_id == db_account.id,
+        )
     )
 
     sum_result = query.one()
 
     if query:
-        return AccountUsedTrafficResponse(account_id=db_account.id, download=sum_result[0], upload=sum_result[1])
+        return AccountUsedTrafficResponse(
+            account_id=db_account.id, download=sum_result[0], upload=sum_result[1]
+        )
 
     else:
         return AccountUsedTrafficResponse(account_id=db_account.id)
 
 
-def get_all_accounts_used_traffic(db: Session,
-                                  delta: int = 3
-                                  ) -> AccountUsedTraffic:
+def get_all_accounts_used_traffic(db: Session, delta: int = 3) -> AccountUsedTraffic:
     today = datetime.datetime.now()
     n_days_ago = today - datetime.timedelta(days=delta)
 
-    print('Generate report from ' + str(n_days_ago))
+    print("Generate report from " + str(n_days_ago))
 
-    query = db.query(func.sum(AccountUsedTraffic.download).label("total_download"),
-                     func.sum(AccountUsedTraffic.upload).label("total_upload")).filter(
-        and_(AccountUsedTraffic.created_at >= n_days_ago)
-    )
+    query = db.query(
+        func.sum(AccountUsedTraffic.download).label("total_download"),
+        func.sum(AccountUsedTraffic.upload).label("total_upload"),
+    ).filter(and_(AccountUsedTraffic.created_at >= n_days_ago))
 
     sum_result = query.one()
 
     if query:
-        return AccountUsedTrafficResponse(account_id=0, download=sum_result[0], upload=sum_result[1])
+        return AccountUsedTrafficResponse(
+            account_id=0, download=sum_result[0], upload=sum_result[1]
+        )
 
     else:
         return AccountUsedTrafficResponse(account_id=0)

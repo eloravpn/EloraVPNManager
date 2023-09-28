@@ -7,7 +7,8 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    Boolean, UniqueConstraint,
+    Boolean,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -17,13 +18,13 @@ from src.inbounds.schemas import InboundSecurity, InboundType
 
 class Inbound(Base):
     __tablename__ = "inbound"
-    __table_args__ = (
-        UniqueConstraint('host_id', 'key'),
-    )
+    __table_args__ = (UniqueConstraint("host_id", "key"),)
 
     id = Column(Integer, primary_key=True, index=True)
     host_id = Column(Integer, ForeignKey("host.id"))
-    inbound_configs = relationship("InboundConfig", back_populates="inbound", cascade="all, delete-orphan")
+    inbound_configs = relationship(
+        "InboundConfig", back_populates="inbound", cascade="all, delete-orphan"
+    )
     host = relationship("Host", back_populates="inbounds")
     key = Column(Integer, index=True, nullable=False)
     remark = Column(String(128), index=True)
@@ -43,8 +44,7 @@ class Inbound(Base):
         default=InboundSecurity.default.value,
     )
 
-    type = Column(Enum(InboundType), nullable=False,
-                  default=InboundType.default.value)
+    type = Column(Enum(InboundType), nullable=False, default=InboundType.default.value)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

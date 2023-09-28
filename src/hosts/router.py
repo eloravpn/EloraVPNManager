@@ -14,9 +14,11 @@ router = APIRouter()
 
 
 @router.post("/hosts/", response_model=HostResponse)
-def add_host(host: HostCreate,
-             db: Session = Depends(get_db),
-             admin: Admin = Depends(Admin.get_current)):
+def add_host(
+    host: HostCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     try:
         db_host = service.create_host(db=db, host=host)
     except IntegrityError:
@@ -26,9 +28,12 @@ def add_host(host: HostCreate,
 
 
 @router.put("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
-def modify_host(host_id: int, host: HostModify,
-                db: Session = Depends(get_db),
-                admin: Admin = Depends(Admin.get_current)):
+def modify_host(
+    host_id: int,
+    host: HostModify,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_host = service.get_host(db, host_id)
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
@@ -36,10 +41,12 @@ def modify_host(host_id: int, host: HostModify,
     return service.update_host(db=db, db_host=db_host, modify=host)
 
 
-@router.get("/hosts/{host_id}", tags=["Host"],
-            response_model=HostResponse)
-def get_host(host_id: int, db: Session = Depends(get_db),
-             admin: Admin = Depends(Admin.get_current)):
+@router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
+def get_host(
+    host_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_host = service.get_host(db, host_id)
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
@@ -48,8 +55,11 @@ def get_host(host_id: int, db: Session = Depends(get_db),
 
 
 @router.delete("/hosts/{host_id}", tags=["Host"])
-def get_host(host_id: int, db: Session = Depends(get_db),
-             admin: Admin = Depends(Admin.get_current)):
+def get_host(
+    host_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_host = service.get_host(db, host_id)
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
@@ -58,30 +68,29 @@ def get_host(host_id: int, db: Session = Depends(get_db),
     return {}
 
 
-@router.get("/hosts/", tags=['Host'], response_model=HostsResponse)
-def get_hosts(offset: int = None,
-              limit: int = None,
-              sort: str = None,
-              enable: int = -1,
-              q: str = None,
-              db: Session = Depends(get_db),
-              admin: Admin = Depends(Admin.get_current)
-              ):
+@router.get("/hosts/", tags=["Host"], response_model=HostsResponse)
+def get_hosts(
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    enable: int = -1,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     if sort is not None:
-        opts = sort.strip(',').split(',')
+        opts = sort.strip(",").split(",")
         sort = []
         for opt in opts:
             try:
                 sort.append(service.HostSortingOptions[opt])
             except KeyError:
-                raise HTTPException(status_code=400,
-                                    detail=f'"{opt}" is not a valid sort option')
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
 
-    hosts, count = service.get_hosts(db=db,
-                                     offset=offset,
-                                     limit=limit,
-                                     enable=enable,
-                                     q=q,
-                                     sort=sort)
+    hosts, count = service.get_hosts(
+        db=db, offset=offset, limit=limit, enable=enable, q=q, sort=sort
+    )
 
     return {"hosts": hosts, "total": count}

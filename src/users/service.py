@@ -9,25 +9,36 @@ from src.inbounds.models import Inbound
 from src.users.models import User
 from src.users.schemas import UserCreate, UserModify
 
-UserSortingOptions = Enum('UserSortingOptions', {
-    'created': User.created_at.asc(),
-    '-created': User.created_at.desc(),
-    'modified': User.modified_at.asc(),
-    '-modified': User.modified_at.desc(),
-    'first_name': User.first_name.asc(),
-    '-first_name': User.first_name.desc(),
-    'last_name': User.last_name.asc(),
-    '-last_name': User.last_name.desc(),
-    'telegram_username': User.last_name.asc(),
-    '-telegram_username': User.last_name.desc(),
-})
+UserSortingOptions = Enum(
+    "UserSortingOptions",
+    {
+        "created": User.created_at.asc(),
+        "-created": User.created_at.desc(),
+        "modified": User.modified_at.asc(),
+        "-modified": User.modified_at.desc(),
+        "first_name": User.first_name.asc(),
+        "-first_name": User.first_name.desc(),
+        "last_name": User.last_name.asc(),
+        "-last_name": User.last_name.desc(),
+        "telegram_username": User.last_name.asc(),
+        "-telegram_username": User.last_name.desc(),
+    },
+)
 
 
 def create_user(db: Session, user: UserCreate):
-    db_user = User(username=user.username, first_name=user.first_name, last_name=user.last_name,
-                   hashed_password=user.hashed_password,
-                   description=user.description, telegram_chat_id=user.telegram_chat_id, phone_number=user.phone_number,
-                   telegram_username=user.telegram_username, enable=user.enable, banned=user.banned)
+    db_user = User(
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        hashed_password=user.hashed_password,
+        description=user.description,
+        telegram_chat_id=user.telegram_chat_id,
+        phone_number=user.phone_number,
+        telegram_username=user.telegram_username,
+        enable=user.enable,
+        banned=user.banned,
+    )
 
     db.add(db_user)
     db.commit()
@@ -52,12 +63,14 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
     return db_user
 
 
-def get_users(db: Session,
-              offset: Optional[int] = None,
-              limit: Optional[int] = None,
-              sort: Optional[List[UserSortingOptions]] = None,
-              q: str = None,
-              return_with_count: bool = True) -> Tuple[List[User], int]:
+def get_users(
+    db: Session,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    sort: Optional[List[UserSortingOptions]] = None,
+    q: str = None,
+    return_with_count: bool = True,
+) -> Tuple[List[User], int]:
     query = db.query(User)
 
     if sort:
@@ -65,12 +78,15 @@ def get_users(db: Session,
 
     if q:
         query = query.join(Account, User.id == Account.user_id)
-        query = query.filter(or_(User.first_name.ilike(f"%{q}%"),
-                                 User.last_name.ilike(f"%{q}%"),
-                                 User.username.ilike(f"%{q}%"),
-                                 User.telegram_username.ilike(f"%{q}%"),
-                                 cast(User.telegram_chat_id, String).ilike(f"%{q}%")
-                                 ))
+        query = query.filter(
+            or_(
+                User.first_name.ilike(f"%{q}%"),
+                User.last_name.ilike(f"%{q}%"),
+                User.username.ilike(f"%{q}%"),
+                User.telegram_username.ilike(f"%{q}%"),
+                cast(User.telegram_chat_id, String).ilike(f"%{q}%"),
+            )
+        )
 
     count = query.count()
 

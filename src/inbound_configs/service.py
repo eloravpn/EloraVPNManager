@@ -7,14 +7,25 @@ from src.inbound_configs.schemas import InboundConfigCreate, InboundConfigModify
 from src.inbounds.models import Inbound
 
 
-def create_inbound_config(db: Session, db_inbound: Inbound, inbound_config: InboundConfigCreate):
-    db_inbound_config = InboundConfig(remark=inbound_config.remark, inbound_id=db_inbound.id, port=inbound_config.port,
-                                      domain=inbound_config.domain, host=inbound_config.host,
-                                      sni=inbound_config.sni, finger_print=inbound_config.finger_print,
-                                      address=inbound_config.address, path=inbound_config.path,
-                                      enable=inbound_config.enable, develop=inbound_config.develop,
-                                      security=inbound_config.security, network=inbound_config.network,
-                                      type=inbound_config.type)
+def create_inbound_config(
+    db: Session, db_inbound: Inbound, inbound_config: InboundConfigCreate
+):
+    db_inbound_config = InboundConfig(
+        remark=inbound_config.remark,
+        inbound_id=db_inbound.id,
+        port=inbound_config.port,
+        domain=inbound_config.domain,
+        host=inbound_config.host,
+        sni=inbound_config.sni,
+        finger_print=inbound_config.finger_print,
+        address=inbound_config.address,
+        path=inbound_config.path,
+        enable=inbound_config.enable,
+        develop=inbound_config.develop,
+        security=inbound_config.security,
+        network=inbound_config.network,
+        type=inbound_config.type,
+    )
 
     db.add(db_inbound_config)
     db.commit()
@@ -23,22 +34,31 @@ def create_inbound_config(db: Session, db_inbound: Inbound, inbound_config: Inbo
 
 
 def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
-    new_db_inbound_config = InboundConfig(remark=db_inbound_config.remark + " Clone",
-                                          inbound_id=db_inbound_config.inbound_id,
-                                          port=db_inbound_config.port, domain=db_inbound_config.domain,
-                                          host=db_inbound_config.host, sni=db_inbound_config.sni,
-                                          finger_print=db_inbound_config.finger_print,
-                                          address=db_inbound_config.address, path=db_inbound_config.path,
-                                          enable=db_inbound_config.enable, develop=True,
-                                          security=db_inbound_config.security, network=db_inbound_config.network,
-                                          type=db_inbound_config.type)
+    new_db_inbound_config = InboundConfig(
+        remark=db_inbound_config.remark + " Clone",
+        inbound_id=db_inbound_config.inbound_id,
+        port=db_inbound_config.port,
+        domain=db_inbound_config.domain,
+        host=db_inbound_config.host,
+        sni=db_inbound_config.sni,
+        finger_print=db_inbound_config.finger_print,
+        address=db_inbound_config.address,
+        path=db_inbound_config.path,
+        enable=db_inbound_config.enable,
+        develop=True,
+        security=db_inbound_config.security,
+        network=db_inbound_config.network,
+        type=db_inbound_config.type,
+    )
     db.add(new_db_inbound_config)
     db.commit()
     db.refresh(new_db_inbound_config)
     return new_db_inbound_config
 
 
-def update_inbound_config(db: Session, db_inbound_config: InboundConfig, modify: InboundConfigModify):
+def update_inbound_config(
+    db: Session, db_inbound_config: InboundConfig, modify: InboundConfigModify
+):
     db_inbound_config.inbound_id = modify.inbound_id
     db_inbound_config.remark = modify.remark
     db_inbound_config.port = modify.port

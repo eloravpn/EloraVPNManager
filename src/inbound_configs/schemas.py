@@ -2,7 +2,13 @@ from typing import List
 
 from pydantic import BaseModel, validator
 
-from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint, InboundResponse, InboundNetwork
+from src.inbounds.schemas import (
+    InboundSecurity,
+    InboundType,
+    InboundFingerPrint,
+    InboundResponse,
+    InboundNetwork,
+)
 
 
 class InboundConfigBase(BaseModel):
@@ -38,7 +44,6 @@ class InboundConfigModify(InboundConfigBase):
 class InboundConfigResponse(InboundConfigBase):
     id: int
     inbound: InboundResponse
-
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

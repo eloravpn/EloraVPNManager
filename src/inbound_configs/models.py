@@ -12,7 +12,12 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from src.database import Base
-from src.inbounds.schemas import InboundSecurity, InboundType, InboundFingerPrint, InboundNetwork
+from src.inbounds.schemas import (
+    InboundSecurity,
+    InboundType,
+    InboundFingerPrint,
+    InboundNetwork,
+)
 
 
 class InboundConfig(Base):
@@ -35,7 +40,7 @@ class InboundConfig(Base):
         Enum(InboundFingerPrint),
         unique=False,
         nullable=False,
-        default=InboundFingerPrint.default.value
+        default=InboundFingerPrint.default.value,
     )
 
     security = Column(
@@ -52,9 +57,7 @@ class InboundConfig(Base):
         default=InboundNetwork.ws.value,
     )
 
-    type = Column(Enum(InboundType),
-                  nullable=False,
-                  default=InboundType.default.value)
+    type = Column(Enum(InboundType), nullable=False, default=InboundType.default.value)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

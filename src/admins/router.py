@@ -25,9 +25,10 @@ def authenticate_admin(db: Session, username: str, password: str):
         return False
 
 
-@router.post("/admin/token", tags=['Admin'], response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                           db: Session = Depends(get_db)):
+@router.post("/admin/token", tags=["Admin"], response_model=Token)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     if authenticate_sudo(form_data.username, form_data.password):
         return Token(access_token=create_admin_token(form_data.username, is_sudo=True))
 

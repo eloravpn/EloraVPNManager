@@ -13,8 +13,7 @@ from src.users.schemas import UserCreate
 
 def get_inbound_settings(inbound_id):
     conn = sqlite3.connect(config.XUI_DB_PATH)
-    cursor = conn.execute(
-        f"select id,settings from inbounds where id = '{inbound_id}'")
+    cursor = conn.execute(f"select id,settings from inbounds where id = '{inbound_id}'")
 
     for c in cursor:
         settings = c[1]
@@ -22,8 +21,13 @@ def get_inbound_settings(inbound_id):
     return settings
 
 
-def get_all_client_infos(inbound_id: int, limit: int = 20, offset: int = 0, enabled: bool = True,
-                         order_by: str = 'id'):
+def get_all_client_infos(
+    inbound_id: int,
+    limit: int = 20,
+    offset: int = 0,
+    enabled: bool = True,
+    order_by: str = "id",
+):
     conn = sqlite3.connect(config.XUI_DB_PATH)
     sql = f"select email,up,down,total,expiry_time from client_traffics "
     sql += f"where enable = {enabled} and inbound_id ={inbound_id} "
@@ -36,8 +40,15 @@ def get_all_client_infos(inbound_id: int, limit: int = 20, offset: int = 0, enab
         expire_time = 0
         if c[4] != 0:
             expire_time = c[4]
-        client_info_list.append({'email': c[0], 'up': c[1], 'down': c[2], 'total': c[3],
-                                 'expiry_time': expire_time})
+        client_info_list.append(
+            {
+                "email": c[0],
+                "up": c[1],
+                "down": c[2],
+                "total": c[3],
+                "expiry_time": expire_time,
+            }
+        )
     conn.close()
     return client_info_list
 
@@ -81,24 +92,32 @@ if __name__ == "__main__":
 
     for index, client in enumerate(client_list):
         expire_time = None
-        if client['expiry_time'] > 0:
-            expire_time = datetime.fromtimestamp(client['expiry_time'] / 1000)
-        print("X-UI {} - {}, {}".format(index, client['email'], expire_time))
-        chat_id = get_user_chat_id(email=client['email'])
-        uuid = get_account_uuid(email=client['email'])
+        if client["expiry_time"] > 0:
+            expire_time = datetime.fromtimestamp(client["expiry_time"] / 1000)
+        print("X-UI {} - {}, {}".format(index, client["email"], expire_time))
+        chat_id = get_user_chat_id(email=client["email"])
+        uuid = get_account_uuid(email=client["email"])
         print(f"Telegram ChatID: {chat_id}")
         if chat_id:
             with GetDB() as db:
-                user = src.users.service.get_user_by_telegram_chat_id(db=db, telegram_chat_id=chat_id)
+                user = src.users.service.get_user_by_telegram_chat_id(
+                    db=db, telegram_chat_id=chat_id
+                )
                 if user:
                     print(f"New User ID: {user.id}")
-                    account_model = AccountCreate(user_id=user.id, uuid=uuid, data_limit=client["total"],
-                                                  email=client['email'],
-                                                  enable=True,
-                                                  expired_at=expire_time)
+                    account_model = AccountCreate(
+                        user_id=user.id,
+                        uuid=uuid,
+                        data_limit=client["total"],
+                        email=client["email"],
+                        enable=True,
+                        expired_at=expire_time,
+                    )
                     print(f"Final account model is : {account_model}")
                     try:
-                        src.accounts.service.create_account(db=db, db_user=user, account=account_model)
+                        src.accounts.service.create_account(
+                            db=db, db_user=user, account=account_model
+                        )
                     except IntegrityError as error:
                         print("Duplicated ...")
 

@@ -34,7 +34,6 @@ class HostResponse(Host):
 
 
 class HostCreate(Host):
-
     @validator("name")
     def validate_name(cls, name: str):
         if not name:

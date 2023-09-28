@@ -25,10 +25,9 @@ class Admin(BaseModel):
     is_sudo: bool = False
 
     @classmethod
-    def get_current(cls,
-                    db: Session = Depends(get_db),
-                    token: str = Depends(oauth2_scheme)):
-
+    def get_current(
+        cls, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+    ):
         exc = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -39,8 +38,8 @@ class Admin(BaseModel):
         if not payload:
             raise exc
 
-        if payload['username'] in SUDOERS and payload['is_sudo'] is True:
-            return cls(username=payload['username'], is_sudo=True)
+        if payload["username"] in SUDOERS and payload["is_sudo"] is True:
+            return cls(username=payload["username"], is_sudo=True)
 
         # dbadmin = crud.get_admin(db, payload['username'])
         # if not dbadmin:

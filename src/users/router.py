@@ -11,9 +11,11 @@ router = APIRouter()
 
 
 @router.post("/users/", tags=["User"], response_model=UserResponse)
-def add_user(user: UserCreate,
-             db: Session = Depends(get_db),
-             admin: Admin = Depends(Admin.get_current)):
+def add_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     try:
         db_user = service.create_user(db=db, user=user)
 
@@ -24,9 +26,12 @@ def add_user(user: UserCreate,
 
 
 @router.put("/users/{user_id}", tags=["User"], response_model=UserResponse)
-def modify_user(user_id: int, user: UserModify,
-                db: Session = Depends(get_db),
-                admin: Admin = Depends(Admin.get_current)):
+def modify_user(
+    user_id: int,
+    user: UserModify,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_user = service.get_user(db, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -34,10 +39,12 @@ def modify_user(user_id: int, user: UserModify,
     return service.update_user(db=db, db_user=db_user, modify=user)
 
 
-@router.get("/users/{user_id}", tags=["User"],
-            response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db),
-             admin: Admin = Depends(Admin.get_current)):
+@router.get("/users/{user_id}", tags=["User"], response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_user = service.get_user(db, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -46,8 +53,11 @@ def get_user(user_id: int, db: Session = Depends(get_db),
 
 
 @router.delete("/users/{user_id}", tags=["User"])
-def delete_user(user_id: int, db: Session = Depends(get_db),
-                admin: Admin = Depends(Admin.get_current)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
     db_user = service.get_user(db, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -56,24 +66,25 @@ def delete_user(user_id: int, db: Session = Depends(get_db),
     return {}
 
 
-@router.get("/users/", tags=['User'], response_model=UsersResponse)
+@router.get("/users/", tags=["User"], response_model=UsersResponse)
 def get_users(
-        offset: int = None,
-        limit: int = None,
-        sort: str = None,
-        q: str = None,
-        db: Session = Depends(get_db),
-        admin: Admin = Depends(Admin.get_current)
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
 ):
     if sort is not None:
-        opts = sort.strip(',').split(',')
+        opts = sort.strip(",").split(",")
         sort = []
         for opt in opts:
             try:
                 sort.append(service.UserSortingOptions[opt])
             except KeyError:
-                raise HTTPException(status_code=400,
-                                    detail=f'"{opt}" is not a valid sort option')
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
 
     users, count = service.get_users(db=db, limit=limit, offset=offset, q=q, sort=sort)
 

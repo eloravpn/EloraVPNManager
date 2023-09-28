@@ -55,7 +55,7 @@ class AccountResponse(AccountBase):
     modified_at: datetime
     full_name: str
 
-    @validator('used_traffic_percent')
+    @validator("used_traffic_percent")
     def used_traffic_percent_check(cls, v):
         return round(v, 2)
 

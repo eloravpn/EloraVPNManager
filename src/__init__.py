@@ -38,14 +38,15 @@ from src.users.schemas import UserResponse
 
 
 app = FastAPI(
-    docs_url='/docs' if DOCS else None,
-    redoc_url='/redoc' if DOCS else None,
-    debug=DEBUG
+    docs_url="/docs" if DOCS else None,
+    redoc_url="/redoc" if DOCS else None,
+    debug=DEBUG,
 )
 app.openapi = custom_openapi(app)
 scheduler = BackgroundScheduler(
-    {'apscheduler.job_defaults.max_instances': 1}, timezone='UTC')
-logger = logging.getLogger('uvicorn.default')
+    {"apscheduler.job_defaults.max_instances": 1}, timezone="UTC"
+)
+logger = logging.getLogger("uvicorn.default")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -60,8 +61,7 @@ app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(account_router, prefix="/api", tags=["Account"])
 app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
-app.include_router(inbound_config_router, prefix="/api",
-                   tags=["InboundConfig"])
+app.include_router(inbound_config_router, prefix="/api", tags=["InboundConfig"])
 
 # from src import hosts, admins
 
@@ -74,12 +74,13 @@ def on_startup():
     scheduler.start()
     # Base.metadata.drop_all(bind=engine)
     # Base.metadata.create_all(bind=engine)
-    print('Application started successfully!')
+    print("Application started successfully!")
 
 
 @app.on_event("shutdown")
 def on_shutdown():
     scheduler.shutdown()
+
 
 # @app.exception_handler(RequestValidationError)
 # def validation_exception_handler(request: Request, exc: RequestValidationError):

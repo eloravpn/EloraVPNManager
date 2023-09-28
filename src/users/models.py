@@ -6,20 +6,23 @@ from sqlalchemy import (
     DateTime,
     Integer,
     String,
-    Boolean, BigInteger,
+    Boolean,
+    BigInteger,
 )
 from sqlalchemy.orm import relationship, validates
 
 from src.database import Base
 
-USERNAME_REGEXP = re.compile(r'^(?=\w{3,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$')
+USERNAME_REGEXP = re.compile(r"^(?=\w{3,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$")
 
 
 class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True)
-    accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
+    accounts = relationship(
+        "Account", back_populates="user", cascade="all, delete-orphan"
+    )
     username = Column(String(128), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128))
     first_name = Column(String(128), index=True, nullable=True)
@@ -36,11 +39,12 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    @validates('username')
+    @validates("username")
     def validate_username(self, key, username):
         if not USERNAME_REGEXP.match(username):
             raise ValueError(
-                'Username only can be 3 to 32 characters and contain a-z, 0-9, and underscores in between.')
+                "Username only can be 3 to 32 characters and contain a-z, 0-9, and underscores in between."
+            )
 
         return username
 
@@ -48,5 +52,5 @@ class User(Base):
     def full_name(self):
         full_name = self.first_name
         if self.last_name:
-            full_name += ' {0}'.format(self.last_name)
+            full_name += " {0}".format(self.last_name)
         return full_name

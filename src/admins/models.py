@@ -12,10 +12,9 @@ from sqlalchemy import (
     Integer,
     String,
     Table,
-    UniqueConstraint, Boolean,
+    UniqueConstraint,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
 from src.hosts.schemas import HostType
-
-
