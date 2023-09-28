@@ -42,9 +42,20 @@ export const InboundConfigAPI = {
     });
   },
   getAll: async function () {
+
+    let params = {
+      limit: 20,
+      sort: "-sni",
+      enable: -1, // -1:All, 0:Enabled, 1:Disabled
+      inbound_id: 0,
+      offset: 0,
+      q: "",
+    };
+
     const response = await api.request({
       url: "/inbound-configs/",
       method: "GET",
+      params: params,
     });
 
     return response.data.inbound_configs;

@@ -1,10 +1,30 @@
-from typing import List, Tuple
+from enum import Enum
+from typing import List, Tuple, Optional
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from src.inbound_configs.models import InboundConfig
 from src.inbound_configs.schemas import InboundConfigCreate, InboundConfigModify
 from src.inbounds.models import Inbound
+
+InboundConfigSortingOptions = Enum(
+    "InboundConfigSortingOptions",
+    {
+        "created": InboundConfig.created_at.asc(),
+        "-created": InboundConfig.created_at.desc(),
+        "modified": InboundConfig.modified_at.asc(),
+        "-modified": InboundConfig.modified_at.desc(),
+        "remark": InboundConfig.remark.asc(),
+        "-remark": InboundConfig.remark.desc(),
+        "address": InboundConfig.address.asc(),
+        "-address": InboundConfig.address.desc(),
+        "sni": InboundConfig.sni.asc(),
+        "-sni": InboundConfig.sni.desc(),
+        "host": InboundConfig.host.asc(),
+        "-host": InboundConfig.host.desc(),
+    },
+)
 
 
 def create_inbound_config(
@@ -80,14 +100,49 @@ def update_inbound_config(
     return db_inbound_config
 
 
-def get_inbound_configs(db: Session) -> Tuple[List[InboundConfig], int]:
+def get_inbound_configs(
+    db: Session,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    sort: Optional[List[InboundConfigSortingOptions]] = None,
+    q: str = None,
+    enable: int = -1,
+    inbound_id: int = 0,
+    return_with_count: bool = True,
+) -> Tuple[List[InboundConfig], int]:
     query = db.query(InboundConfig)
 
-    query = query.order_by(InboundConfig.remark.asc())
+    if enable >= 0:
+        query = query.filter(InboundConfig.enable == (True if enable > 0 else False))
+
+    if inbound_id > 0:
+        query = query.filter(InboundConfig.inbound_id == inbound_id)
+
+    if q:
+        query = query.filter(
+            or_(
+                InboundConfig.remark.ilike(f"%{q}%"),
+                InboundConfig.domain.ilike(f"%{q}%"),
+                InboundConfig.address.ilike(f"%{q}%"),
+                InboundConfig.host.ilike(f"%{q}%"),
+                InboundConfig.sni.ilike(f"%{q}%"),
+            )
+        )
+
+    if sort:
+        query = query.order_by(*(opt.value for opt in sort))
+
+    if offset:
+        query = query.offset(offset)
+    if limit:
+        query = query.limit(limit)
 
     count = query.count()
 
-    return query.all(), count
+    if return_with_count:
+        return query.all(), count
+    else:
+        return query.all()
 
 
 def remove_inbound_config(db: Session, db_inbound_config: InboundConfig):
