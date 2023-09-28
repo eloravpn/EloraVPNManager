@@ -6,6 +6,9 @@ import axios from "axios";
 
 export const HostAPI = {
   get: async function (hostId) {
+
+
+
     const response = await api.request({
       url: `/hosts/${hostId}`,
       method: "GET",
@@ -34,9 +37,19 @@ export const HostAPI = {
     });
   },
   getAll: async function () {
+
+    let params = {
+      limit: 20,
+      sort: "-domain",
+      enable: -1, // -1:All, 0:Enabled, 1:Disabled
+      offset: 0,
+      q: "",
+    };
+
     const response = await api.request({
       url: "/hosts/",
       method: "GET",
+      params: params,
     });
 
     return response.data.hosts;

@@ -29,7 +29,6 @@ def add_host(host: HostCreate,
 def modify_host(host_id: int, host: HostModify,
                 db: Session = Depends(get_db),
                 admin: Admin = Depends(Admin.get_current)):
-
     db_host = service.get_host(db, host_id)
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
@@ -63,6 +62,8 @@ def get_host(host_id: int, db: Session = Depends(get_db),
 def get_hosts(offset: int = None,
               limit: int = None,
               sort: str = None,
+              enable: int = -1,
+              q: str = None,
               db: Session = Depends(get_db),
               admin: Admin = Depends(Admin.get_current)
               ):
@@ -79,6 +80,8 @@ def get_hosts(offset: int = None,
     hosts, count = service.get_hosts(db=db,
                                      offset=offset,
                                      limit=limit,
+                                     enable=enable,
+                                     q=q,
                                      sort=sort)
 
     return {"hosts": hosts, "total": count}
