@@ -1,10 +1,30 @@
-from typing import List, Tuple
+from enum import Enum
+from typing import List, Tuple, Optional
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from src.hosts.models import Host
 from src.inbounds.models import Inbound
 from src.inbounds.schemas import InboundCreate, InboundModify
+
+InboundSortingOptions = Enum(
+    "InboundSortingOptions",
+    {
+        "created": Inbound.created_at.asc(),
+        "-created": Inbound.created_at.desc(),
+        "modified": Inbound.modified_at.asc(),
+        "-modified": Inbound.modified_at.desc(),
+        "remark": Inbound.remark.asc(),
+        "-remark": Inbound.remark.desc(),
+        "address": Inbound.address.asc(),
+        "-address": Inbound.address.desc(),
+        "sni": Inbound.sni.asc(),
+        "-sni": Inbound.sni.desc(),
+        "request_host": Inbound.request_host.asc(),
+        "-request_host": Inbound.request_host.desc(),
+    },
+)
 
 
 def create_inbound(db: Session, db_host: Host, inbound: InboundCreate):
@@ -50,12 +70,49 @@ def update_inbound(db: Session, db_inbound: Inbound, modify: InboundModify):
     return db_inbound
 
 
-def get_inbounds(db: Session) -> Tuple[List[Inbound], int]:
+def get_inbounds(
+    db: Session,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    sort: Optional[List[InboundSortingOptions]] = [InboundSortingOptions["remark"]],
+    q: str = None,
+    enable: int = -1,
+    host_id: int = 0,
+    return_with_count: bool = True,
+) -> Tuple[List[Inbound], int]:
     query = db.query(Inbound)
+
+    if enable >= 0:
+        query = query.filter(Inbound.enable == (True if enable > 0 else False))
+
+    if host_id > 0:
+        query = query.filter(Inbound.host_id == host_id)
+
+    if q:
+        query = query.filter(
+            or_(
+                Inbound.remark.ilike(f"%{q}%"),
+                Inbound.domain.ilike(f"%{q}%"),
+                Inbound.address.ilike(f"%{q}%"),
+                Inbound.sni.ilike(f"%{q}%"),
+                Inbound.request_host.ilike(f"%{q}%"),
+            )
+        )
+
+    if sort:
+        query = query.order_by(*(opt.value for opt in sort))
+
+    if offset:
+        query = query.offset(offset)
+    if limit:
+        query = query.limit(limit)
 
     count = query.count()
 
-    return query.all(), count
+    if return_with_count:
+        return query.all(), count
+    else:
+        return query.all()
 
 
 def remove_inbound(db: Session, db_inbound: Inbound):

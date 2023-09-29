@@ -77,8 +77,34 @@ def delete_inbound(
 
 @router.get("/inbounds/", tags=["Inbound"], response_model=InboundsResponse)
 def get_inbounds(
-    db: Session = Depends(get_db), admin: Admin = Depends(Admin.get_current)
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    enable: int = -1,
+    host_id: int = 0,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
 ):
-    inbounds, count = service.get_inbounds(db=db)
+    if sort is not None:
+        opts = sort.strip(",").split(",")
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(service.InboundSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
+
+    inbounds, count = service.get_inbounds(
+        db=db,
+        offset=offset,
+        limit=limit,
+        enable=enable,
+        q=q,
+        sort=sort,
+        host_id=host_id,
+    )
 
     return {"inbounds": inbounds, "total": count}

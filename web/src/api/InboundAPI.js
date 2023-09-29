@@ -36,9 +36,20 @@ export const InboundAPI = {
     });
   },
   getAll: async function () {
+
+    let params = {
+      limit: 20,
+      sort: "remark",
+      enable: -1, // -1:All, 0:Enabled, 1:Disabled
+      host_id: 0,
+      offset: 0,
+      q: "",
+    };
+
     const response = await api.request({
       url: "/inbounds/",
       method: "GET",
+      params: params,
     });
 
     return response.data.inbounds;
