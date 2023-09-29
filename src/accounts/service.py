@@ -118,6 +118,7 @@ def get_accounts(
     filter_enable: bool = False,
     enable: bool = True,
     test_account: bool = True,
+    user_id: int = 0,
     return_with_count: bool = True,
     q: str = None,
 ) -> Tuple[List[Account], int]:
@@ -146,6 +147,9 @@ def get_accounts(
                 cast(User.telegram_chat_id, String).ilike(f"%{q}%"),
             )
         )
+
+    if user_id > 0:
+        query = query.filter(Account.user_id == user_id)
 
     count = query.count()
 

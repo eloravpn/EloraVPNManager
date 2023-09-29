@@ -70,6 +70,7 @@ export const AccountAPI = {
       limit: rows ? rows : 20,
       sort: sort ? sort : "-expire",
       enable: enable,
+      user_id: 0,
       offset: offset ? offset : 0,
       q: q ? q : "",
     };
