@@ -5,7 +5,10 @@ A central solution to manage accounts in a Cluster enviroment of VPN Servers.
 By this application you can manage multi x-ui host and multi inbounds.  
 all accounts that created in panel, automatically created and managed in all hosts and inbounds.  
 you have a telgram bot for users to view thier accounts sub scription url and used traffic.  
-a simple order workfllow for new customers are avialable in telgram bot.  
+a simple order workfllow for new customers are avialable in telgram bot.
+
+### Contact US in Telegram
+[Elora VPN](https://t.me/eloravpn)
 
 
 
