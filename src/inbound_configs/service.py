@@ -104,7 +104,9 @@ def get_inbound_configs(
     db: Session,
     offset: Optional[int] = None,
     limit: Optional[int] = None,
-    sort: Optional[List[InboundConfigSortingOptions]] = None,
+    sort: Optional[List[InboundConfigSortingOptions]] = [
+        InboundConfigSortingOptions["remark"]
+    ],
     q: str = None,
     enable: int = -1,
     inbound_id: int = 0,
