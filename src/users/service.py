@@ -69,12 +69,16 @@ def get_users(
     limit: Optional[int] = None,
     sort: Optional[List[UserSortingOptions]] = None,
     q: str = None,
+    enable: int = -1,
     return_with_count: bool = True,
 ) -> Tuple[List[User], int]:
     query = db.query(User)
 
     if sort:
         query = query.order_by(*(opt.value for opt in sort))
+
+    if enable >= 0:
+        query = query.filter(User.enable == (True if enable > 0 else False))
 
     if q:
         query = query.join(Account, User.id == Account.user_id)

@@ -71,6 +71,7 @@ def get_users(
     offset: int = None,
     limit: int = None,
     sort: str = None,
+    enable: int = -1,
     q: str = None,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
@@ -86,6 +87,8 @@ def get_users(
                     status_code=400, detail=f'"{opt}" is not a valid sort option'
                 )
 
-    users, count = service.get_users(db=db, limit=limit, offset=offset, q=q, sort=sort)
+    users, count = service.get_users(
+        db=db, limit=limit, offset=offset, q=q, sort=sort, enable=enable
+    )
 
     return {"users": users, "total": count}
