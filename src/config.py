@@ -63,7 +63,14 @@ XUI_DB_PATH = config("XUI_DB_URL", default="./x-ui.db")
 OLD_BOT_DB_PATH = config("OLD_BOT_DB_PATH", default="./v2raybot.sqlite3")
 
 ENABLE_SYNC_ACCOUNTS = config("ENABLE_SYNC_ACCOUNTS", cast=bool, default=False)
+ENABLE_NOTIFICATION_JOBS = config("ENABLE_NOTIFICATION_JOBS", cast=bool, default=False)
 REVIEW_ACCOUNTS_INTERVAL = config("REVIEW_ACCOUNTS_INTERVAL", cast=int, default=60)
+USED_TRAFFIC_NOTIFICATION_INTERVAL = config(
+    "USED_TRAFFIC_NOTIFICATION_INTERVAL", cast=int, default=3600
+)
+EXPIRE_TIME_NOTIFICATION_INTERVAL = config(
+    "EXPIRE_TIME_NOTIFICATION_INTERVAL", cast=int, default=10800
+)
 SYNC_ACCOUNTS_INTERVAL = config("SYNC_ACCOUNTS_INTERVAL", cast=int, default=60)
 SYNC_ACCOUNTS_TRAFFIC_INTERVAL = config(
     "SYNC_ACCOUNTS_TRAFFIC_INTERVAL", cast=int, default=3600
