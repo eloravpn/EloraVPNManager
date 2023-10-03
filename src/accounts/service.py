@@ -12,6 +12,7 @@ from src.accounts.schemas import (
     AccountModify,
     AccountUsedTrafficResponse,
 )
+from src.notification.models import Notification
 from src.users.models import User
 
 AccountSortingOptions = Enum(
@@ -88,9 +89,12 @@ def update_account_used_traffic(db: Session, db_account: Account, used_traffic: 
 
 
 def reset_traffic(db: Session, db_account: Account):
+    db.query(Notification).filter(Notification.account_id == db_account.id).delete()
+
     db.query(AccountUsedTraffic).filter(
         AccountUsedTraffic.account_id == db_account.id
     ).delete()
+
     db_account.used_traffic = 0
     db_account.modified_at = datetime.datetime.utcnow()
 

@@ -26,6 +26,9 @@ class Account(Base):
     used_traffic_history = relationship(
         "AccountUsedTraffic", back_populates="account", cascade="all, delete-orphan"
     )
+    notification = relationship(
+        "Notification", back_populates="account", cascade="all, delete-orphan"
+    )
     uuid = Column(String(128), index=True, unique=True, nullable=False)
     email = Column(String(128), index=True, unique=True, nullable=False)
     enable = Column(Boolean, default=True)
