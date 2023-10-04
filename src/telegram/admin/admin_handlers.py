@@ -1,3 +1,5 @@
+import logging
+
 from telebot import types
 
 from src import config
@@ -14,7 +16,7 @@ from src.telegram import bot
 def approve_notification(call: types.CallbackQuery):
     telegram_user = call.from_user
 
-    notification_id = call.data.split(":")[1]
+    notification_id = int(call.data.split(":")[1])
     with GetDB() as db:
         db_notification = get_notification(db=db, notification_id=notification_id)
         db_account = get_account(db=db, account_id=db_notification.account_id)
@@ -37,10 +39,10 @@ def approve_notification(call: types.CallbackQuery):
                 text=f"Notification with id <code>{db_notification.id}</code> Approved and Sent to {db_account.user.full_name}!",
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
                 parse_mode="html",
             )
-        except Exception:
+        except Exception as error:
+            logging.error(error)
             update_status(
                 db=db,
                 db_notification=db_notification,
