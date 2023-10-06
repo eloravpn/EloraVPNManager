@@ -108,7 +108,7 @@ def delete_inbound(
 
 
 @router.get(
-    "/inbound-configs", tags=["InboundConfig"], response_model=InboundConfigsResponse
+    "/inbound-configs/", tags=["InboundConfig"], response_model=InboundConfigsResponse
 )
 def get_inbound_configs(
     offset: int = None,

@@ -66,7 +66,7 @@ def delete_user(
     return {}
 
 
-@router.get("/users", tags=["User"], response_model=UsersResponse)
+@router.get("/users/", tags=["User"], response_model=UsersResponse)
 def get_users(
     offset: int = None,
     limit: int = None,
