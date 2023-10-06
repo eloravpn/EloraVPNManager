@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, TYPE_CHECKING, Optional
 
 from passlib.context import CryptContext
@@ -50,6 +51,9 @@ class UserModify(UserBase):
 class UserResponse(UserBase):
     id: int
     accounts: List["AccountResponse"] = {}
+    created_at: datetime
+    modified_at: datetime
+    full_name: str
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

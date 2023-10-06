@@ -134,12 +134,12 @@ def get_inbound_configs(
     if sort:
         query = query.order_by(*(opt.value for opt in sort))
 
+    count = query.count()
+
     if offset:
         query = query.offset(offset)
     if limit:
         query = query.limit(limit)
-
-    count = query.count()
 
     if return_with_count:
         return query.all(), count

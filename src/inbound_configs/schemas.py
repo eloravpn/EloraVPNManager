@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, validator
@@ -44,6 +45,8 @@ class InboundConfigModify(InboundConfigBase):
 class InboundConfigResponse(InboundConfigBase):
     id: int
     inbound: InboundResponse
+    created_at: datetime
+    modified_at: datetime
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
