@@ -7,6 +7,7 @@ from src.accounts.service import (
     update_account_used_traffic,
     update_account_status,
     create_account_used_traffic,
+    remove_account,
 )
 from src.database import GetDB
 from src.hosts.schemas import HostResponse
@@ -159,10 +160,11 @@ def get_account_email_prefix(host_id: int, inbound_key: int, email: str):
     return "%s_%s_%s" % (host_id, inbound_key, email)
 
 
-def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False):
+def delete_client_in_all_inbounds(db, db_account: Account):
     inbounds, count = get_inbounds(db=db)
     for inbound in inbounds:
         logger.info(f"Inbound Remark: {inbound.remark}")
+        logger.info(f"Inbound Id: {inbound.id}")
         logger.info(f"Inbound host ID: {inbound.host_id}")
 
         if not inbound.enable:
@@ -170,6 +172,47 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
             continue
 
         host = get_host(db, inbound.host_id)
+
+        xui = XUI(host=HostResponse.from_orm(host))
+
+        logger.info("Host name: " + host.name)
+
+        account_unique_email = get_account_email_prefix(
+            host.id, inbound.key, db_account.email
+        )
+
+        logger.info(
+            f"Account unique Email for this inbound is {account_unique_email} and uuid is {db_account.uuid}"
+        )
+
+        client_stat = xui.api.get_client_stat(email=account_unique_email)
+
+        if client_stat is not None:
+            deleted = xui.api.delete_client(
+                inbound_id=inbound.key, uuid=db_account.uuid
+            )
+            if not deleted:
+                logger.error("Error in delete account in this inbound!")
+                raise Exception
+            else:
+                logger.info("Client Successfully deleted in this inbound!")
+        else:
+            logger.info(f"Client does not exist in this inbound yet")
+
+
+def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False):
+    inbounds, count = get_inbounds(db=db)
+    for inbound in inbounds:
+        logger.info(f"Inbound Remark: {inbound.remark}")
+        logger.info(f"Inbound Id: {inbound.id}")
+        logger.info(f"Inbound host ID: {inbound.host_id}")
+
+        if not inbound.enable:
+            logger.info("Skip this inbound because it is disabled.")
+            continue
+
+        host = get_host(db, inbound.host_id)
+
         xui = XUI(host=HostResponse.from_orm(host))
 
         logger.info("Host name: " + host.name)
@@ -396,35 +439,54 @@ def remove_disabled_accounts(last_days: int):
     last_day_later = today - timedelta(days=last_days)
 
     logger.info(
-        f"Remove accounts that disabled before last {last_days} days: {last_day_later}"
+        f"Remove accounts that disabled before last {last_days} days/ {last_day_later}"
     )
 
     with GetDB() as db:
-        for account in get_accounts(
+        for db_account in get_accounts(
             db=db, return_with_count=False, filter_enable=True, enable=False
         ):
-            if account.modified_at and account.modified_at < last_day_later:
-                print(
-                    f"Try to delete {account.user.full_name} with modified date {account.modified_at} and email {account.email}"
+            if db_account.modified_at and db_account.modified_at < last_day_later:
+                logger.info(
+                    f"Try to delete account for {db_account.user.full_name} with modified date {db_account.modified_at}"
+                    f" and email {db_account.email} and status {db_account.enable}"
                 )
+                delete_account(db=db, db_account=db_account)
 
 
-def remove_test_accounts(last_days: int):
+def delete_account(db, db_account: Account):
+    try:
+        delete_client_in_all_inbounds(db=db, db_account=db_account)
+
+        remove_account(db=db, db_account=db_account)
+
+    except Exception:
+        logger.error("Error in delete this account")
+
+
+def remove_unused_test_accounts(last_days: int):
     today = datetime.now()
     last_day_later = today - timedelta(days=last_days)
 
     logger.info(
-        f"Remove accounts that disabled before last {last_days} days: {last_day_later}"
+        f"Remove Test accounts that Not used and created before last {last_days} days/ {last_day_later}"
     )
 
     with GetDB() as db:
-        for account in get_accounts(
-            db=db, return_with_count=False, filter_enable=True, test_account=False
+        for db_account in get_accounts(
+            db=db, return_with_count=False, filter_enable=True, test_account=True
         ):
-            if account.modified_at and account.modified_at < last_day_later:
-                print(
-                    f"Try to delete Test accounts {account.user.full_name} with modified date {account.modified_at}"
+            if (
+                db_account.modified_at
+                and db_account.modified_at < last_day_later
+                and db_account.used_traffic == 0
+                and db_account.email.startswith(config.TEST_ACCOUNT_EMAIL_PREFIX)
+            ):
+                logger.info(
+                    f"Try to delete Test account for {db_account.user.full_name} with modified date {db_account.modified_at}"
+                    f" and email {db_account.email} and status {db_account.enable}"
                 )
+                delete_account(db=db, db_account=db_account)
 
 
 # TODO: remove this func for prod
@@ -476,7 +538,7 @@ def run_review_account_jobs():
 
 def run_remove_disabled_accounts_jobs():
     remove_disabled_accounts(config.REMOVE_DISABLED_ACCOUNTS_LAST_DAYS)
-    pass
+    remove_unused_test_accounts(config.REMOVE_UNUSED_TEST_ACCOUNTS_LAST_DAYS)
 
 
 if config.ENABLE_SYNC_ACCOUNTS:

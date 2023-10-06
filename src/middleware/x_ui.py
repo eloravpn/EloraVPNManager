@@ -75,6 +75,25 @@ class MHSANAEI:
         else:
             return False
 
+    def delete_client(self, inbound_id: int, uuid: str):
+        headers = {"Content-type": "application/json", "Accept": "text/plain"}
+
+        url = f"{self._base_api_url}/inbounds/{inbound_id}/delClient/{uuid}"
+
+        logger.debug(f"Final url for delete client is: {url}")
+
+        response = requests.post(
+            url, cookies=self._login_cookies, verify=False, headers=headers
+        )
+        data = response.json()
+        logger.info(f"Response code: {response.status_code}")
+        logger.info(f"Response text: {response.text}")
+
+        if response.status_code == 200 and data["success"] == True:
+            return True
+        else:
+            return False
+
     def add_client(
         self,
         inbound_id: int,
