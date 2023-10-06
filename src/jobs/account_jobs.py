@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src import scheduler, logger, config
 from src.accounts.models import Account
@@ -391,6 +391,42 @@ def sync_accounts_status():
                 logger.info(f"Skip Account with email {account.email}")
 
 
+def remove_disabled_accounts(last_days: int):
+    today = datetime.now()
+    last_day_later = today - timedelta(days=last_days)
+
+    logger.info(
+        f"Remove accounts that disabled before last {last_days} days: {last_day_later}"
+    )
+
+    with GetDB() as db:
+        for account in get_accounts(
+            db=db, return_with_count=False, filter_enable=True, enable=False
+        ):
+            if account.modified_at and account.modified_at < last_day_later:
+                print(
+                    f"Try to delete {account.user.full_name} with modified date {account.modified_at} and email {account.email}"
+                )
+
+
+def remove_test_accounts(last_days: int):
+    today = datetime.now()
+    last_day_later = today - timedelta(days=last_days)
+
+    logger.info(
+        f"Remove accounts that disabled before last {last_days} days: {last_day_later}"
+    )
+
+    with GetDB() as db:
+        for account in get_accounts(
+            db=db, return_with_count=False, filter_enable=True, test_account=False
+        ):
+            if account.modified_at and account.modified_at < last_day_later:
+                print(
+                    f"Try to delete Test accounts {account.user.full_name} with modified date {account.modified_at}"
+                )
+
+
 # TODO: remove this func for prod
 # def temp_review_accounts():
 #     print('Start Review accounts ' + str(datetime.now()))
@@ -438,7 +474,10 @@ def run_review_account_jobs():
     sync_accounts_status()
 
 
-# scheduler.add_job(run_account_jobs)
+def run_remove_disabled_accounts_jobs():
+    remove_disabled_accounts(config.REMOVE_DISABLED_ACCOUNTS_LAST_DAYS)
+    pass
+
 
 if config.ENABLE_SYNC_ACCOUNTS:
     scheduler.add_job(
@@ -461,4 +500,14 @@ if config.ENABLE_SYNC_ACCOUNTS:
         seconds=config.SYNC_ACCOUNTS_TRAFFIC_INTERVAL,
     )
 else:
-    logger.warn("Sync accounts are disabled!")
+    logger.warn("Sync accounts JOBS are disabled!")
+
+if config.ENABLE_REMOVE_DISABLED_ACCOUNTS:
+    scheduler.add_job(
+        func=run_remove_disabled_accounts_jobs,
+        max_instances=1,
+        trigger="interval",
+        seconds=config.REMOVE_DISABLED_ACCOUNTS_JOB_INTERVAL,
+    )
+else:
+    logger.warn("Remove disabled account JOBS are disabled!")
