@@ -23,9 +23,11 @@ a simple order workfllow for new customers are avialable in telgram bot.
 
 # Screen shots
 ## Web panel
-![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/b738eba4-1569-40bc-b492-af9cd7cbf4c0)
+![2023-10-06_15-49](https://github.com/eloravpn/EloraVPNManagerPanel/assets/125687916/f28fa7d9-d4d6-43d3-8f25-5a0c8a72153d)
 
-![image](https://github.com/eloravpn/EloraVPNManager/assets/125687916/5a2e927e-4ff2-4f5b-8c10-e2ce31a2e106)
+![2023-10-06_15-50_1](https://github.com/eloravpn/EloraVPNManagerPanel/assets/125687916/2272cbaf-0793-40c8-9c29-44f4bea55065)
+
+![2023-10-06_15-50](https://github.com/eloravpn/EloraVPNManagerPanel/assets/125687916/98caa4b5-f42c-46bf-b470-075eb2298f00)
 
 
 # Telegram Bot
@@ -37,40 +39,38 @@ a simple order workfllow for new customers are avialable in telgram bot.
 ### How to install
 #### Requirements
 ``python3`` and ``pip3`` installed on your system.
-Also to start web panel you need `node v20.4.0+` and `yarn`
+
+#### Clone the repository
+
+`git clone https://github.com/eloravpn/EloraVPNManager.git && cd EloraVPNManager`
 
 #### Configuration
 You can create a `.env` file and override all configurations in `src/config.py`.
 also you can use `.env.example` file as an exmaple.
+
+##### Database
+Set users name, password and DB name on bellow proprt in `.env` file:
+```
+SQLALCHEMY_DATABASE_URL="postgresql+psycopg2://postgres:123456@localhost:5432/eloravpn"
+```
 
 ##### Admin username and password
 Default sudoer username and password is `admin`.
 
 The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
 
-
-> [!NOTE]
 > *We  strongly recomended to use postgresql as your database*
-#### Install python dependencies and start backend
 
-`git clone https://github.com/eloravpn/EloraVPNManager.git && cd EloraVPNManager`
-
-> [!NOTE]
 > *Note: if you want to use `sqlite` as your database, you can comment `psycopg2==2.9.6` line in `requirements.txt`*
 
-`pip install -r requirements.txt && alembic upgrade head && python main.py`
+> For Ubuntu 20 and 22: install `libpq-dev` by `apt install libpq-dev`
 
-#### Install react dependencies and start front-end
+`pip3 install -r requirements.txt && alembic upgrade head && python3  main.py`
 
-Change the api port and addres in `web/.env` by `REACT_APP_API_BASE_URL`
+#### Install Web Pannel
 
-##### Dev mode
+Follow the Readme in [Elora VPN Manager Panel]([https://github.com/MHSanaei/3x-ui](https://github.com/eloravpn/EloraVPNManagerPanel))
 
-`cd web && yarn install && yarn start`
-
-##### Production mode
-
-`cd web && yarn install && yarn build && serve -s build`
 
 
 
