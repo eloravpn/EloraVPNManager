@@ -237,6 +237,12 @@ def get_all_accounts_used_traffic(db: Session, delta: int = 3) -> AccountUsedTra
 
 
 def remove_account(db: Session, db_account: Account):
+    db.query(Notification).filter(Notification.account_id == db_account.id).delete()
+
+    db.query(AccountUsedTraffic).filter(
+        AccountUsedTraffic.account_id == db_account.id
+    ).delete()
+
     db.delete(db_account)
     db.commit()
     return db_account
