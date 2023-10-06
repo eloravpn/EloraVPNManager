@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -25,6 +26,8 @@ class Host(BaseModel):
 
 class HostResponse(Host):
     id: int
+    created_at: datetime
+    modified_at: datetime
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

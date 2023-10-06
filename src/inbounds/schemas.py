@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -67,6 +68,8 @@ class InboundModify(InboundBase):
 class InboundResponse(InboundBase):
     id: int
     host: HostResponse
+    created_at: datetime
+    modified_at: datetime
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)
