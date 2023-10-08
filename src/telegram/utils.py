@@ -13,7 +13,7 @@ from src.accounts.schemas import AccountCreate
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.telegram import bot
-from src.users.schemas import UserCreate, UserResponse
+from src.users.schemas import UserCreate, UserResponse, UserModify
 
 
 # from src.users.service import create_user, get_user_by_telegram_chat_id
@@ -46,7 +46,7 @@ def add_or_get_user(telegram_user) -> UserResponse:
             )
 
             if not db_user:
-                logger.info("Create telegram_user for:" + str(telegram_user))
+                logger.info("Create telegram user for:" + str(telegram_user))
 
                 user = UserCreate(
                     username=username,
@@ -58,6 +58,19 @@ def add_or_get_user(telegram_user) -> UserResponse:
                     enable=True,
                 )
                 db_user = user_service.create_user(db=db, user=user)
+            else:
+                db_user = user_service.update_user_info(
+                    db=db,
+                    db_user=db_user,
+                    username=db_user.username,
+                    first_name=telegram_user.first_name,
+                    last_name=telegram_user.last_name,
+                    telegram_username=telegram_user.username,
+                )
+
+                logger.info(
+                    f"Telegram user info updated for 👤 {db_user.full_name} ({db_user.telegram_username}/{db_user.telegram_chat_id})"
+                )
 
             return UserResponse.from_orm(db_user)
     except Exception as err:
