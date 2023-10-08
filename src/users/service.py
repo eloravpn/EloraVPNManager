@@ -46,7 +46,7 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 
-def update_user(db: Session, db_user: Inbound, modify: UserModify):
+def update_user(db: Session, db_user: User, modify: UserModify):
     db_user.username = modify.username
     db_user.first_name = modify.first_name
     db_user.last_name = modify.last_name
@@ -56,6 +56,25 @@ def update_user(db: Session, db_user: Inbound, modify: UserModify):
     db_user.phone_number = modify.phone_number
     db_user.enable = modify.enable
     db_user.banned = modify.banned
+
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
+
+
+def update_user_info(
+    db: Session,
+    db_user: User,
+    username=str,
+    first_name=str,
+    last_name=str,
+    telegram_username=str,
+):
+    db_user.username = username
+    db_user.first_name = first_name
+    db_user.last_name = last_name
+    db_user.telegram_username = telegram_username
 
     db.commit()
     db.refresh(db_user)

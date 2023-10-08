@@ -2,7 +2,7 @@ import datetime
 import random
 
 import qrcode as qrcode
-from telebot import types
+from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
 
 from src import logger, config
@@ -11,13 +11,45 @@ from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
 
 
+class IsSubscribedUser(custom_filters.SimpleCustomFilter):
+    # Class will check whether the user is admin or creator in group or not
+    key = "is_subscribed_user"
+
+    @staticmethod
+    def check(message: types.Message):
+        try:
+            telegram_user = message.from_user
+            utils.add_or_get_user(telegram_user=telegram_user)
+
+            if not config.TELEGRAM_CHANNEL:
+                return True
+            else:
+                result = bot.get_chat_member(
+                    config.TELEGRAM_CHANNEL, user_id=message.from_user.id
+                )
+                if result.status not in ["administrator", "creator", "member"]:
+                    bot.send_message(
+                        chat_id=message.from_user.id,
+                        text=messages.PLEASE_SUBSCRIBE_MESSAGE,
+                        disable_web_page_preview=False,
+                        reply_markup=BotUserKeyboard.channel_menu(),
+                        parse_mode="markdown",
+                    )
+                    return False
+                else:
+                    return True
+        except Exception as error:
+            logger.error(error)
+
+        return False
+
+
+bot.add_custom_filter(IsSubscribedUser())
+
+
 # Handle '/start' and '/help'
-@bot.message_handler(commands=["help", "start"])
+@bot.message_handler(commands=["help", "start"], is_subscribed_user=True)
 def send_welcome(message: types.Message):
-    telegram_user = message.from_user
-
-    user = utils.add_or_get_user(telegram_user=telegram_user)
-
     bot.send_message(
         chat_id=message.from_user.id,
         text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
@@ -33,7 +65,7 @@ def send_welcome(message: types.Message):
 #     bot.reply_to(message, message.text)
 
 
-@bot.message_handler(regexp=captions.HELP)
+@bot.message_handler(regexp=captions.HELP, is_subscribed_user=True)
 def help_command(message):
     bot.reply_to(
         message,
@@ -43,17 +75,13 @@ def help_command(message):
     )
 
 
-@bot.message_handler(regexp=captions.PRICE_LIST)
+@bot.message_handler(regexp=captions.PRICE_LIST, is_subscribed_user=True)
 def price_list(message):
     bot.reply_to(message, messages.PRICE_LIST, parse_mode="html")
 
 
-@bot.message_handler(regexp=captions.SUPPORT)
+@bot.message_handler(regexp=captions.SUPPORT, is_subscribed_user=True)
 def support(message):
-    telegram_user = message.from_user
-
-    user = utils.add_or_get_user(telegram_user=telegram_user)
-
     bot.reply_to(
         message,
         text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
@@ -61,7 +89,7 @@ def support(message):
     )
 
 
-@bot.message_handler(regexp=captions.MY_SERVICES)
+@bot.message_handler(regexp=captions.MY_SERVICES, is_subscribed_user=True)
 def my_services(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
@@ -79,7 +107,7 @@ def my_services(message):
         )
 
 
-@bot.message_handler(regexp=captions.GET_TEST_SERVICE)
+@bot.message_handler(regexp=captions.GET_TEST_SERVICE, is_subscribed_user=True)
 def get_test_service(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
@@ -130,11 +158,8 @@ def get_test_service(message):
         )
 
 
-@bot.message_handler(regexp=captions.BUY_NEW_SERVICE)
+@bot.message_handler(regexp=captions.BUY_NEW_SERVICE, is_subscribed_user=True)
 def buy_service(message):
-    telegram_user = message.from_user
-    user = utils.add_or_get_user(telegram_user=telegram_user)
-
     available_services = config.AVAILABLE_SERVICES
 
     if not available_services:
@@ -149,12 +174,10 @@ def buy_service(message):
         )
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("main_menu:"))
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("main_menu:"), is_subscribed_user=True
+)
 def main_menu(call: types.CallbackQuery):
-    telegram_user = call.from_user
-
-    user = utils.add_or_get_user(telegram_user=telegram_user)
-
     bot.send_message(
         chat_id=call.from_user.id,
         text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
@@ -164,10 +187,10 @@ def main_menu(call: types.CallbackQuery):
     )
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("online_payment:"))
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("online_payment:"), is_subscribed_user=True
+)
 def buy_service_step_1(call: types.CallbackQuery):
-    telegram_user = call.from_user
-
     bot.answer_callback_query(
         callback_query_id=call.id,
         show_alert=True,
@@ -176,11 +199,10 @@ def buy_service_step_1(call: types.CallbackQuery):
 
 
 @bot.callback_query_handler(
-    func=lambda call: call.data.startswith("buy_service_step_1:")
+    func=lambda call: call.data.startswith("buy_service_step_1:"),
+    is_subscribed_user=True,
 )
 def buy_service_step_1(call: types.CallbackQuery):
-    telegram_user = call.from_user
-
     month = call.data.split(":")[1]
     name = call.data.split(":")[2]
     traffic = call.data.split(":")[3]
@@ -196,7 +218,8 @@ def buy_service_step_1(call: types.CallbackQuery):
 
 
 @bot.callback_query_handler(
-    func=lambda call: call.data.startswith("buy_service_step_2:")
+    func=lambda call: call.data.startswith("buy_service_step_2:"),
+    is_subscribed_user=True,
 )
 def account_qrcode(call: types.CallbackQuery):
     telegram_user = call.from_user
@@ -210,7 +233,13 @@ def account_qrcode(call: types.CallbackQuery):
 
     bot.send_message(
         text=messages.NEW_ORDER_ADMIN_ALERT.format(
-            order_id, telegram_user.id, telegram_user.full_name, month, traffic, price
+            order_id,
+            telegram_user.id,
+            telegram_user.id,
+            telegram_user.full_name,
+            month,
+            traffic,
+            price,
         ),
         chat_id=config.TELEGRAM_ADMIN_ID,
         parse_mode="html",
@@ -227,9 +256,10 @@ def account_qrcode(call: types.CallbackQuery):
     )
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("qrcode:"))
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("qrcode:"), is_subscribed_user=True
+)
 def account_qrcode(call: types.CallbackQuery):
-    telegram_user = call.from_user
     account_id = call.data.split(":")[1]
     account = utils.get_account(account_id)
 
@@ -257,15 +287,15 @@ def account_qrcode(call: types.CallbackQuery):
     )
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("account_detail:"))
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("account_detail:"), is_subscribed_user=True
+)
 def account_detail(call: types.CallbackQuery):
     telegram_user = call.from_user
 
     account_id = call.data.split(":")[1]
 
     account = utils.get_account(account_id)
-
-    user = utils.add_or_get_user(telegram_user=telegram_user)
 
     percent_traffic_usage = (
         round((account.used_traffic / account.data_limit) * 100, 2)
@@ -300,7 +330,9 @@ def account_detail(call: types.CallbackQuery):
     bot.answer_callback_query(callback_query_id=call.id)
 
 
-@bot.callback_query_handler(func=lambda call: call.data == "user_info")
+@bot.callback_query_handler(
+    func=lambda call: call.data == "user_info", is_subscribed_user=True
+)
 def restart_command(call: types.CallbackQuery):
     telegram_user = call.from_user
 
