@@ -100,7 +100,7 @@ def get_users(
         query = query.filter(User.enable == (True if enable > 0 else False))
 
     if q:
-        query = query.join(Account, User.id == Account.user_id)
+        query = query.join(Account, User.id == Account.user_id, isouter=True)
         query = query.filter(
             or_(
                 User.first_name.ilike(f"%{q}%"),
