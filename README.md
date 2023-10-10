@@ -69,7 +69,7 @@ The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
 
 #### Install Web Pannel
 
-Follow the Readme in [Elora VPN Manager Panel]([https://github.com/MHSanaei/3x-ui](https://github.com/eloravpn/EloraVPNManagerPanel))
+Follow the Readme in [Elora VPN Manager Panel](https://github.com/eloravpn/EloraVPNManagerPanel)
 
 
 
