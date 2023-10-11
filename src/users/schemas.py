@@ -50,6 +50,7 @@ class UserModify(UserBase):
 
 class UserResponse(UserBase):
     id: int
+    balance: Optional[int] = 0
     accounts: List["AccountResponse"] = {}
     created_at: datetime
     modified_at: datetime
