@@ -341,7 +341,7 @@ def create_payment(
 ):
     db_payment = Payment(
         user_id=db_user.id,
-        order_id=0 if db_order is None else db_order.id,
+        order_id=None if db_order is None else db_order.id,
         status=payment.status,
         method=payment.method,
         total=payment.total,

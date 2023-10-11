@@ -34,8 +34,8 @@ class OrderStatus(str, Enum):
 class TransactionBase(BaseModel):
     description: str
     user_id: int
-    payment_id: int
-    order_id: int
+    payment_id: Optional[int] = None
+    order_id: Optional[int] = None
     amount: int
     type: TransactionType = TransactionType.payment
 
@@ -67,7 +67,7 @@ class TransactionsResponse(BaseModel):
 
 class PaymentBase(BaseModel):
     user_id: int
-    order_id: int
+    order_id: Optional[int] = None
     total: int
 
     method: PaymentMethod = PaymentMethod.money_order
