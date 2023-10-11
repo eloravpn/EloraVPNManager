@@ -132,7 +132,9 @@ def get_test_service(message):
 
         bot.reply_to(
             message,
-            messages.GET_TEST_SERVICE_ُSUCCESS,
+            messages.GET_TEST_SERVICE_SUCCESS.format(
+                admin_id=config.TELEGRAM_ADMIN_USER_NAME
+            ),
             # reply_markup="Test Service",
             parse_mode="html",
             disable_web_page_preview=True,

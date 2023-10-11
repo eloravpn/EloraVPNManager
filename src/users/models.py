@@ -25,7 +25,7 @@ class User(Base):
     )
     orders = relationship("Order", back_populates="user")
     payments = relationship("Payment", back_populates="user")
-    transaction = relationship("Transaction", back_populates="user")
+    transactions = relationship("Transaction", back_populates="user")
     username = Column(String(128), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128))
     first_name = Column(String(128), index=True, nullable=True)
@@ -35,6 +35,7 @@ class User(Base):
     telegram_username = Column(String(128), index=True, unique=True, nullable=True)
     phone_number = Column(String(128), index=True, unique=True, nullable=True)
     email_address = Column(String(128), index=True, unique=True, nullable=True)
+    balance = Column(BigInteger, default=0)
 
     enable = Column(Boolean, default=True)
     banned = Column(Boolean, default=False)

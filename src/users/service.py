@@ -63,6 +63,15 @@ def update_user(db: Session, db_user: User, modify: UserModify):
     return db_user
 
 
+def update_user_balance(db: Session, db_user: User, new_balance: int = 0):
+    db_user.balance = new_balance
+
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
+
+
 def update_user_info(
     db: Session,
     db_user: User,
