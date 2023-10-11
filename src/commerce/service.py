@@ -233,9 +233,13 @@ def get_services(
     limit: Optional[int] = None,
     sort: Optional[List[ServiceSortingOptions]] = [ServiceSortingOptions["-modified"]],
     return_with_count: bool = True,
+    enable: int = -1,
     q: str = None,
-) -> Tuple[List[Transaction], int]:
+) -> Tuple[List[Service], int]:
     query = db.query(Service)
+
+    if enable >= 0:
+        query = query.filter(Service.enable == (True if enable > 0 else False))
 
     if q:
         query = query.filter(
@@ -310,7 +314,7 @@ def get_orders(
     account_id: int = 0,
     status: OrderStatus = None,
     q: str = None,
-) -> Tuple[List[Transaction], int]:
+) -> Tuple[List[Order], int]:
     query = db.query(Order)
 
     if user_id > 0:
@@ -387,7 +391,7 @@ def get_payments(
     method: PaymentMethod = None,
     status: PaymentStatus = None,
     q: str = None,
-) -> Tuple[List[Transaction], int]:
+) -> Tuple[List[Payment], int]:
     query = db.query(Payment)
 
     if user_id > 0:
