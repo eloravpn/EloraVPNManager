@@ -8,7 +8,7 @@ import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src.admins.schemas import Admin
-from src.commerce.models import Order
+from src.commerce.models import Order, Payment
 from src.commerce.schemas import (
     OrderResponse,
     OrderCreate,
@@ -23,13 +23,20 @@ from src.commerce.schemas import (
     PaymentCreate,
     PaymentModify,
     PaymentsResponse,
-    PaymentStatus, PaymentMethod,
+    PaymentStatus,
+    PaymentMethod,
+    TransactionResponse,
+    TransactionCreate,
+    TransactionModify,
+    TransactionsResponse,
+    TransactionType,
 )
 from src.database import get_db
 
 order_router = APIRouter()
 service_router = APIRouter()
 payment_router = APIRouter()
+transaction_router = APIRouter()
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -365,3 +372,144 @@ def get_payments(
     )
 
     return {"payments": payments, "total": count}
+
+
+# Transaction Routes
+
+
+@transaction_router.post(
+    "/transactions/", tags=["Transaction"], response_model=TransactionResponse
+)
+def add_transaction(
+    transaction: TransactionCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_user = user_service.get_user(db, transaction.user_id)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_order: Order = None
+    db_payment: Payment = None
+
+    if transaction.order_id > 0:
+        db_order = commerce_service.get_order(db=db, order_id=db_order.id)
+
+        if not db_order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+    if transaction.payment_id > 0:
+        db_payment = commerce_service.get_payment(db, payment_id=transaction.payment_id)
+
+        if not db_payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+
+    try:
+        db_transaction = commerce_service.create_transaction(
+            db=db,
+            db_user=db_user,
+            db_order=db_order if db_order else None,
+            db_payment=db_payment if db_payment else None,
+            transaction=transaction,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Transaction already exists")
+
+    return db_transaction
+
+
+# TODO
+# @transaction_router.put(
+#     "/transactions/{transaction_id}",
+#     tags=["Transaction"],
+#     response_model=TransactionResponse,
+# )
+# def modify_transaction(
+#     transaction_id: int,
+#     transaction: TransactionModify,
+#     db: Session = Depends(get_db),
+#     admin: Admin = Depends(Admin.get_current),
+# ):
+#     db_transaction = commerce_service.get_transaction(db, transaction_id=transaction_id)
+#     if not db_transaction:
+#         raise HTTPException(status_code=404, detail="Transaction not found")
+#
+#     return commerce_service.update_transaction(
+#         db=db, db_transaction=db_transaction, modify=transaction
+#     )
+
+
+@transaction_router.get(
+    "/transactions/{transaction_id}",
+    tags=["Transaction"],
+    response_model=TransactionResponse,
+)
+def get_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_transaction = commerce_service.get_transaction(db, transaction_id)
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    return db_transaction
+
+
+@transaction_router.delete("/transactions/{transaction_id}", tags=["Transaction"])
+def delete_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_transaction = commerce_service.get_transaction(db, transaction_id)
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    db_user = user_service.get_user(db, db_transaction.user_id)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    commerce_service.remove_transaction(
+        db=db, db_user=db_user, db_transaction=db_transaction
+    )
+    return {}
+
+
+@transaction_router.get(
+    "/transactions/", tags=["Transaction"], response_model=TransactionsResponse
+)
+def get_transactions(
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    type_: TransactionType = None,
+    user_id: int = 0,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    if sort is not None:
+        opts = sort.strip(",").split(",")
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(commerce_service.TransactionSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
+
+    transactions, count = commerce_service.get_transactions(
+        db=db,
+        offset=offset,
+        limit=limit,
+        sort=sort,
+        type_=type_,
+        user_id=user_id,
+        q=q,
+    )
+
+    return {"transactions": transactions, "total": count}
