@@ -107,10 +107,10 @@ class OrderBase(BaseModel):
     user_id: int
     account_id: Optional[int] = None
     service_id: Optional[int] = None
-    duration: int = 1
-    data_limit: int = 0
-    total: int = 0
-    total_discount_amount: int = 0
+    duration: Optional[int] = None
+    data_limit: Optional[int] = None
+    total: Optional[int] = None
+    total_discount_amount: Optional[int] = None
 
     status: OrderStatus = OrderStatus.open
 

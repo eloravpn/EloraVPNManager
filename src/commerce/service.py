@@ -12,6 +12,11 @@ from src.accounts.schemas import (
     AccountModify,
     AccountUsedTrafficResponse,
 )
+from src.commerce.exceptions import (
+    MaxOpenOrderError,
+    MaxPendingOrderError,
+    NoEnoughBalanceError,
+)
 from src.commerce.models import Transaction, Order, Payment, Service
 from src.commerce.schemas import (
     TransactionCreate,
@@ -266,16 +271,30 @@ def create_order(
     db_account: Optional[Account] = None,
     db_service: Optional[Service] = None,
 ):
-    db_order = Order(
-        user_id=db_user.id,
-        account_id=None if db_account is None else db_account.id,
-        service_id=None if db_service is None else db_service.id,
-        status=order.status,
-        duration=order.duration,
-        data_limit=order.data_limit,
-        total=order.total,
-        total_discount_amount=order.total_discount_amount,
-    )
+    if db_service:
+        db_order = Order(
+            user_id=db_user.id,
+            account_id=None if db_account is None else db_account.id,
+            service_id=None if db_service is None else db_service.id,
+            status=order.status,
+            duration=db_service.duration,
+            data_limit=db_service.data_limit,
+            total=db_service.price,
+            total_discount_amount=db_service.discount,
+        )
+    else:
+        db_order = Order(
+            user_id=db_user.id,
+            account_id=None if db_account is None else db_account.id,
+            service_id=None if db_service is None else db_service.id,
+            status=order.status,
+            duration=order.duration,
+            data_limit=order.data_limit,
+            total=order.total,
+            total_discount_amount=order.total_discount_amount,
+        )
+
+    _validate_order(db=db, db_user=db_user, db_order=db_order)
 
     db.add(db_order)
     db.commit()
@@ -285,6 +304,10 @@ def create_order(
 
 
 def update_order(db: Session, db_order: Order, modify: OrderModify):
+    db_user = user_service.get_user(db, db_order.user_id)
+
+    _validate_order(db=db, db_user=db_user, db_order=db_order)
+
     db_order.status = modify.status
     db_order.duration = modify.duration
     db_order.data_limit = modify.data_limit
@@ -337,6 +360,27 @@ def get_orders(
 
 def get_order(db: Session, order_id: int):
     return db.query(Order).filter(Order.id == order_id).first()
+
+
+def _validate_order(db: Session, db_user: User, db_order: Order):
+    if db_order.status in [OrderStatus.open, OrderStatus.pending]:
+        open_orders, count_open = get_orders(
+            db=db, user_id=db_user.id, status=OrderStatus.open
+        )
+        pending_orders, count_pending = get_orders(
+            db=db, user_id=db_user.id, status=OrderStatus.pending
+        )
+        if count_open > 0:
+            raise MaxOpenOrderError(open_orders)
+
+        if count_pending > 0:
+            raise MaxPendingOrderError(count_pending)
+
+    if db_order.status == OrderStatus.paid:
+        total = db_order.total - db_order.total_discount_amount
+
+        if db_user.balance < total:
+            raise NoEnoughBalanceError(total=total, balance=db_user.balance)
 
 
 # Payment CRUDs
