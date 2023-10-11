@@ -24,6 +24,7 @@ from src.commerce.schemas import (
     PaymentMethod,
     PaymentStatus,
     OrderStatus,
+    TransactionType,
 )
 from src.users.models import User
 
@@ -96,14 +97,14 @@ def create_transaction(
 ):
     db_transaction = Transaction(
         user_id=db_user.id,
-        order_id=0 if db_order is None else db_order.id,
-        payment_id=0 if db_payment is None else db_payment.id,
+        order_id=None if db_order is None else db_order.id,
+        payment_id=None if db_payment is None else db_payment.id,
         description=transaction.description,
         amount=transaction.amount,
         type=transaction.type,
     )
 
-    balance = db_user.balance
+    balance = db_user.balance if db_user.balance else 0
 
     db.add(db_transaction)
     db.commit()
@@ -130,7 +131,7 @@ def create_transaction(
 
 
 def remove_transaction(db: Session, db_user: User, db_transaction: Transaction):
-    balance = db_user.balance
+    balance = db_user.balance if db_user.balance else 0
 
     db.delete(db_transaction)
     db.commit()
@@ -152,6 +153,7 @@ def get_transactions(
     user_id: int = 0,
     order_id: int = 0,
     payment_id: int = 0,
+    type_: TransactionType = None,
     return_with_count: bool = True,
     q: str = None,
 ) -> Tuple[List[Transaction], int]:
@@ -166,6 +168,9 @@ def get_transactions(
     if payment_id > 0:
         query = query.filter(Transaction.payment_id == payment_id)
 
+    if type_:
+        query = query.filter(Transaction.type == type_)
+
     if q:
         query = query.filter(
             or_(
@@ -176,7 +181,7 @@ def get_transactions(
             )
         )
 
-    _get_query_result(limit, offset, query, return_with_count, sort)
+    return _get_query_result(limit, offset, query, return_with_count, sort)
 
 
 def get_transaction(db: Session, transaction_id: int):
