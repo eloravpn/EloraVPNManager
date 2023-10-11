@@ -15,7 +15,7 @@ from src.hosts.router import router as host_router
 from src.inbound_configs.router import router as inbound_config_router
 from src.inbounds.router import router as inbound_router
 from src.users.router import router as user_router
-from src.commerce.router import order_router, service_router
+from src.commerce.router import order_router, service_router, payment_router
 from src.users.schemas import UserResponse
 
 # logging_config = dict(
@@ -65,6 +65,7 @@ app.include_router(inbound_router, prefix="/api", tags=["Inbound"])
 app.include_router(inbound_config_router, prefix="/api", tags=["InboundConfig"])
 app.include_router(order_router, prefix="/api", tags=["Order"])
 app.include_router(service_router, prefix="/api", tags=["Service"])
+app.include_router(payment_router, prefix="/api", tags=["Payment"])
 
 # from src import hosts, admins
 

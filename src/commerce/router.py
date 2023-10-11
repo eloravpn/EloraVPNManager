@@ -8,6 +8,7 @@ import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src.admins.schemas import Admin
+from src.commerce.models import Order
 from src.commerce.schemas import (
     OrderResponse,
     OrderCreate,
@@ -18,11 +19,17 @@ from src.commerce.schemas import (
     ServiceResponse,
     ServiceCreate,
     ServiceModify,
+    PaymentResponse,
+    PaymentCreate,
+    PaymentModify,
+    PaymentsResponse,
+    PaymentStatus, PaymentMethod,
 )
 from src.database import get_db
 
 order_router = APIRouter()
 service_router = APIRouter()
+payment_router = APIRouter()
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -241,3 +248,120 @@ def get_services(
     )
 
     return {"services": services, "total": count}
+
+
+# Payment Routes
+
+
+@payment_router.post("/payments/", tags=["Payment"], response_model=PaymentResponse)
+def add_payment(
+    payment: PaymentCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_user = user_service.get_user(db, payment.user_id)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_order: Order = None
+
+    if payment.order_id > 0:
+        db_order = commerce_service.get_order(db=db, order_id=db_order.id)
+
+        if not db_order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+    try:
+        db_payment = commerce_service.create_payment(
+            db=db,
+            db_user=db_user,
+            db_order=db_order if db_order else None,
+            payment=payment,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Payment already exists")
+
+    return db_payment
+
+
+@payment_router.put(
+    "/payments/{payment_id}", tags=["Payment"], response_model=PaymentResponse
+)
+def modify_payment(
+    payment_id: int,
+    payment: PaymentModify,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_payment = commerce_service.get_payment(db, payment_id=payment_id)
+    if not db_payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    return commerce_service.update_payment(db=db, db_payment=db_payment, modify=payment)
+
+
+@payment_router.get(
+    "/payments/{payment_id}", tags=["Payment"], response_model=PaymentResponse
+)
+def get_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_payment = commerce_service.get_payment(db, payment_id)
+    if not db_payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    return db_payment
+
+
+@payment_router.delete("/payments/{payment_id}", tags=["Payment"])
+def delete_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_payment = commerce_service.get_payment(db, payment_id)
+    if not db_payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    commerce_service.remove_payment(db=db, db_payment=db_payment)
+    return {}
+
+
+@payment_router.get("/payments/", tags=["Payment"], response_model=PaymentsResponse)
+def get_payments(
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    status: PaymentStatus = None,
+    method: PaymentMethod = None,
+    user_id: int = 0,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    if sort is not None:
+        opts = sort.strip(",").split(",")
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(commerce_service.PaymentSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
+
+    payments, count = commerce_service.get_payments(
+        db=db,
+        offset=offset,
+        limit=limit,
+        sort=sort,
+        status=status,
+        method=method,
+        user_id=user_id,
+        q=q,
+    )
+
+    return {"payments": payments, "total": count}
