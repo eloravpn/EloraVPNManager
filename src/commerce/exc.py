@@ -1,4 +1,7 @@
-class MaxOpenOrderError(Exception):
+from src.exc import EloraApplicationError
+
+
+class MaxOpenOrderError(EloraApplicationError, Exception):
     """Exception raised for users that have too many open orders
 
     Attributes:
@@ -8,11 +11,11 @@ class MaxOpenOrderError(Exception):
 
     def __init__(self, total: int = 1):
         self.total = total
-        self.message = f"There are {total} open orders right now"
+        self._message = f"There are {total} open orders right now"
         super().__init__(self.message)
 
 
-class MaxPendingOrderError(Exception):
+class MaxPendingOrderError(EloraApplicationError, Exception):
     """Exception raised for users that have too many open orders
 
     Attributes:
@@ -21,12 +24,11 @@ class MaxPendingOrderError(Exception):
     """
 
     def __init__(self, total: int = 1):
-        self.total = total
-        self.message = f"There are {total} pending orders right now"
-        super().__init__(self.message)
+        self._message = f"There are {total} pending orders right now"
+        super().__init__(self._message)
 
 
-class NoEnoughBalanceError(Exception):
+class NoEnoughBalanceError(EloraApplicationError, Exception):
     """Exception raised when user don't have enough balance to place paid order
 
     Attributes:
@@ -34,8 +36,6 @@ class NoEnoughBalanceError(Exception):
         message -- explanation of the error
     """
 
-    def __init__(self, total: int = 0, balance: int = 0):
-        self.total = total
-        self.balance = balance
+    def __init__(self, total: int = 0):
         self.message = f"Total orders is {total}"
-        super().__init__(self.message)
+        super().__init__(self._message)

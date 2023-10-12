@@ -12,7 +12,7 @@ from src.accounts.schemas import (
     AccountModify,
     AccountUsedTrafficResponse,
 )
-from src.commerce.exceptions import (
+from src.commerce.exc import (
     MaxOpenOrderError,
     MaxPendingOrderError,
     NoEnoughBalanceError,
@@ -38,10 +38,10 @@ import src.users.service as user_service
 TransactionSortingOptions = Enum(
     "TransactionSortingOptions",
     {
-        "created": Account.created_at.asc(),
-        "-created": Account.created_at.desc(),
-        "modified": Account.modified_at.asc(),
-        "-modified": Account.modified_at.desc(),
+        "created": Transaction.created_at.asc(),
+        "-created": Transaction.created_at.desc(),
+        "modified": Transaction.modified_at.asc(),
+        "-modified": Transaction.modified_at.desc(),
     },
 )
 
@@ -371,7 +371,7 @@ def _validate_order(db: Session, db_user: User, db_order: Order):
             db=db, user_id=db_user.id, status=OrderStatus.pending
         )
         if count_open > 0:
-            raise MaxOpenOrderError(open_orders)
+            raise MaxOpenOrderError(count_open)
 
         if count_pending > 0:
             raise MaxPendingOrderError(count_pending)
@@ -380,7 +380,7 @@ def _validate_order(db: Session, db_user: User, db_order: Order):
         total = db_order.total - db_order.total_discount_amount
 
         if db_user.balance < total:
-            raise NoEnoughBalanceError(total=total, balance=db_user.balance)
+            raise NoEnoughBalanceError(total=total)
 
 
 # Payment CRUDs
