@@ -1,13 +1,14 @@
 import logging
-from sqlite3 import IntegrityError
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src.admins.schemas import Admin
+from src.commerce.exc import MaxPendingOrderError
 from src.commerce.models import Order, Payment
 from src.commerce.schemas import (
     OrderResponse,
@@ -32,6 +33,7 @@ from src.commerce.schemas import (
     TransactionType,
 )
 from src.database import get_db
+from src.exc import EloraApplicationError
 
 order_router = APIRouter()
 service_router = APIRouter()
@@ -79,6 +81,8 @@ def add_order(
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Order already exists")
+    except EloraApplicationError as error:
+        raise HTTPException(status_code=409, detail=error.message())
 
     return db_order
 
@@ -274,7 +278,7 @@ def add_payment(
     db_order: Order = None
 
     if payment.order_id > 0:
-        db_order = commerce_service.get_order(db=db, order_id=db_order.id)
+        db_order = commerce_service.get_order(db=db, order_id=payment.order_id)
 
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")

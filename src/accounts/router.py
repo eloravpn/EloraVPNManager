@@ -1,9 +1,9 @@
 import logging
-from sqlite3 import IntegrityError
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.openapi.models import Response
 from pyasn1.type.univ import Integer
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import src.accounts.service as service
