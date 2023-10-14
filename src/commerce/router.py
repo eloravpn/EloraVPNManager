@@ -398,7 +398,7 @@ def add_transaction(
     db_payment: Payment = None
 
     if transaction.order_id > 0:
-        db_order = commerce_service.get_order(db=db, order_id=db_order.id)
+        db_order = commerce_service.get_order(db=db, order_id=transaction.order_id)
 
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")
