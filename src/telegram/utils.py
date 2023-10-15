@@ -9,8 +9,8 @@ from telebot.apihelper import ApiTelegramException
 import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
-from src import logger, AccountResponse, config
-from src.accounts.schemas import AccountCreate
+from src import logger, config
+from src.accounts.schemas import AccountCreate, AccountResponse
 from src.commerce.models import Service, Order
 from src.commerce.schemas import OrderCreate, OrderStatus
 from src.config import TELEGRAM_ADMIN_ID

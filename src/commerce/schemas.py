@@ -4,6 +4,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from src.accounts.schemas import AccountResponse
+from src.users.schemas import UserResponse
+
 
 class TransactionType(str, Enum):
     payment = "PAYMENT"
@@ -48,23 +51,6 @@ class TransactionModify(TransactionBase):
     pass
 
 
-class TransactionResponse(TransactionBase):
-    id: int
-    created_at: datetime
-    modified_at: datetime
-
-    def dict(cls, *args, **kwargs):
-        return super().dict(*args, **kwargs)
-
-    class Config:
-        orm_mode = True
-
-
-class TransactionsResponse(BaseModel):
-    transactions: List[TransactionResponse]
-    total: int
-
-
 class PaymentBase(BaseModel):
     user_id: int
     order_id: Optional[int] = None
@@ -84,60 +70,6 @@ class PaymentModify(PaymentBase):
 
 class PaymentBase(PaymentBase):
     pass
-
-
-class PaymentResponse(PaymentBase):
-    id: int
-    created_at: datetime
-    modified_at: datetime
-
-    def dict(cls, *args, **kwargs):
-        return super().dict(*args, **kwargs)
-
-    class Config:
-        orm_mode = True
-
-
-class PaymentsResponse(BaseModel):
-    payments: List[PaymentResponse]
-    total: int
-
-
-class OrderBase(BaseModel):
-    user_id: int
-    account_id: Optional[int] = None
-    service_id: Optional[int] = None
-    duration: Optional[int] = None
-    data_limit: Optional[int] = None
-    total: Optional[int] = None
-    total_discount_amount: Optional[int] = None
-
-    status: OrderStatus = OrderStatus.open
-
-
-class OrderCreate(OrderBase):
-    pass
-
-
-class OrderModify(OrderBase):
-    pass
-
-
-class OrderResponse(OrderBase):
-    id: int
-    created_at: datetime
-    modified_at: datetime
-
-    def dict(cls, *args, **kwargs):
-        return super().dict(*args, **kwargs)
-
-    class Config:
-        orm_mode = True
-
-
-class OrdersResponse(BaseModel):
-    orders: List[OrderResponse]
-    total: int
 
 
 class ServiceBase(BaseModel):
@@ -172,3 +104,87 @@ class ServiceResponse(ServiceBase):
 class ServicesResponse(BaseModel):
     services: List[ServiceResponse]
     total: int
+
+
+class OrderBase(BaseModel):
+    user_id: int
+    account_id: Optional[int] = None
+    service_id: Optional[int] = None
+    duration: Optional[int] = None
+    data_limit: Optional[int] = None
+    total: Optional[int] = None
+    total_discount_amount: Optional[int] = None
+
+    status: OrderStatus = OrderStatus.open
+
+
+class OrderCreate(OrderBase):
+    pass
+
+
+class OrderModify(OrderBase):
+    pass
+
+
+class OrderResponse(OrderBase):
+    id: int
+    user: UserResponse
+    account: Optional[AccountResponse]
+    service: Optional[ServiceResponse]
+    created_at: datetime
+    modified_at: datetime
+
+    def dict(cls, *args, **kwargs):
+        return super().dict(*args, **kwargs)
+
+    class Config:
+        orm_mode = True
+
+
+class TransactionResponse(TransactionBase):
+    id: int
+    user: UserResponse
+    order: Optional[OrderResponse]
+    service: Optional[ServiceResponse]
+    created_at: datetime
+    modified_at: datetime
+
+    def dict(cls, *args, **kwargs):
+        return super().dict(*args, **kwargs)
+
+    class Config:
+        orm_mode = True
+
+
+class PaymentResponse(PaymentBase):
+    id: int
+    user: UserResponse
+    order: Optional[OrderResponse]
+    created_at: datetime
+    modified_at: datetime
+
+    def dict(cls, *args, **kwargs):
+        return super().dict(*args, **kwargs)
+
+    class Config:
+        orm_mode = True
+
+
+class TransactionsResponse(BaseModel):
+    transactions: List[TransactionResponse]
+    total: int
+
+
+class OrdersResponse(BaseModel):
+    orders: List[OrderResponse]
+    total: int
+
+
+class PaymentsResponse(BaseModel):
+    payments: List[PaymentResponse]
+    total: int
+
+
+TransactionResponse.update_forward_refs()
+PaymentResponse.update_forward_refs()
+OrdersResponse.update_forward_refs()

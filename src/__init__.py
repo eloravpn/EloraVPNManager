@@ -7,7 +7,6 @@ from fastapi_responses import custom_openapi
 
 from src.subscription.router import router as subscription_router
 from src.accounts.router import router as account_router
-from src.accounts.schemas import AccountResponse
 from src.admins.router import router as admin_router
 from src.config import DOCS, DEBUG
 from src.database import Base, engine
