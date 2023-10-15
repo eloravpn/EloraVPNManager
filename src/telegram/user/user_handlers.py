@@ -6,6 +6,11 @@ from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
 
 from src import logger, config
+from src.commerce.exc import (
+    MaxOpenOrderError,
+    MaxPendingOrderError,
+    NoEnoughBalanceError,
+)
 from src.telegram import bot, utils
 from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
@@ -78,6 +83,18 @@ def help_command(message):
 @bot.message_handler(regexp=captions.PRICE_LIST, is_subscribed_user=True)
 def price_list(message):
     bot.reply_to(message, messages.PRICE_LIST, parse_mode="html")
+
+
+@bot.message_handler(regexp=captions.MY_PROFILE, is_subscribed_user=True)
+def my_profile(message):
+    telegram_user = message.from_user
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
+    bot.reply_to(
+        message,
+        messages.MY_PROFILE.format(full_name=user.full_name, balance=user.balance),
+        parse_mode="html",
+    )
 
 
 @bot.message_handler(regexp=captions.SUPPORT, is_subscribed_user=True)
@@ -162,7 +179,10 @@ def get_test_service(message):
 
 @bot.message_handler(regexp=captions.BUY_NEW_SERVICE, is_subscribed_user=True)
 def buy_service(message):
-    available_services = config.AVAILABLE_SERVICES
+    telegram_user = message.from_user
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
+    available_services = utils.get_available_service()
 
     if not available_services:
         bot.reply_to(message, messages.BUY_NEW_SERVICE_HELP)
@@ -205,16 +225,17 @@ def buy_service_step_1(call: types.CallbackQuery):
     is_subscribed_user=True,
 )
 def buy_service_step_1(call: types.CallbackQuery):
-    month = call.data.split(":")[1]
-    name = call.data.split(":")[2]
-    traffic = call.data.split(":")[3]
-    price = call.data.split(":")[4]
+    telegram_user = call.from_user
+
+    service_id = call.data.split(":")[1]
+
+    service = utils.get_service(service_id=int(service_id))
 
     bot.edit_message_text(
-        text=messages.BUY_NEW_SERVICE_CONFIRMATION.format(month, traffic, price),
+        text=messages.BUY_NEW_SERVICE_CONFIRMATION.format(service.name, service.price),
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        reply_markup=BotUserKeyboard.buy_service_step_1(call.data),
+        reply_markup=BotUserKeyboard.buy_service_step_1(service_id),
         parse_mode="html",
     )
 
@@ -223,39 +244,70 @@ def buy_service_step_1(call: types.CallbackQuery):
     func=lambda call: call.data.startswith("buy_service_step_2:"),
     is_subscribed_user=True,
 )
-def account_qrcode(call: types.CallbackQuery):
+def buy_service_step_2(call: types.CallbackQuery):
     telegram_user = call.from_user
 
-    order_id = random.randint(10000, 90000)
+    service_id = call.data.split(":")[1]
 
-    month = call.data.split(":")[1]
-    name = call.data.split(":")[2]
-    traffic = call.data.split(":")[3]
-    price = call.data.split(":")[4]
+    service = utils.get_service(service_id=int(service_id))
 
-    bot.send_message(
-        text=messages.NEW_ORDER_ADMIN_ALERT.format(
-            order_id,
-            telegram_user.id,
-            telegram_user.id,
-            telegram_user.full_name,
-            month,
-            traffic,
-            price,
-        ),
-        chat_id=config.TELEGRAM_ADMIN_ID,
-        parse_mode="html",
-    )
+    user = utils.add_or_get_user(telegram_user=telegram_user)
 
-    bot.edit_message_text(
-        text=messages.BUY_NEW_SERVICE_FINAL.format(
-            order_id, config.TELEGRAM_ADMIN_USER_NAME
-        ),
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
-        parse_mode="html",
-    )
+    try:
+        order = utils.place_paid_order(
+            chat_id=telegram_user.id, account_id=0, service_id=int(service_id)
+        )
+
+        bot.edit_message_text(
+            text=messages.BUY_NEW_SERVICE_FINAL.format(
+                order.id, config.TELEGRAM_ADMIN_USER_NAME
+            ),
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
+            parse_mode="html",
+        )
+
+        # bot.send_message(
+        #     text=messages.NEW_ORDER_ADMIN_ALERT.format(
+        #         order.id, telegram_user.id, telegram_user.full_name, service.name
+        #     ),
+        #     chat_id=config.TELEGRAM_ADMIN_ID,
+        #     parse_mode="html",
+        # )
+
+    except MaxOpenOrderError as error:
+        bot.edit_message_text(
+            message_id=call.message.message_id,
+            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
+                total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
+            ),
+            chat_id=config.TELEGRAM_ADMIN_ID,
+            parse_mode="html",
+        )
+
+    except MaxPendingOrderError as error:
+        bot.edit_message_text(
+            message_id=call.message.message_id,
+            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
+                total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
+            ),
+            chat_id=config.TELEGRAM_ADMIN_ID,
+            parse_mode="html",
+        )
+
+    except NoEnoughBalanceError as error:
+        bot.edit_message_text(
+            message_id=call.message.message_id,
+            text=messages.NEW_ORDER_NO_ENOUGH_BALANCE.format(
+                balance=user.balance, admin_id=config.TELEGRAM_ADMIN_USER_NAME
+            ),
+            chat_id=config.TELEGRAM_ADMIN_ID,
+            parse_mode="html",
+        )
+    # except Int
+
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(

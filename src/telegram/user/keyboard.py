@@ -90,23 +90,16 @@ class BotUserKeyboard:
     def available_services(available_services):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
 
-        name_icon_map = {"basic": "🥉", "standard": "🥈", "pro": "🥇"}
-        name_fa_map = {"basic": "پایه", "standard": "استاندارد", "pro": "پرو"}
-
         for available_service in available_services:
-            available_service = available_service.replace("\n", "")
-            available_service = available_service.replace("\r", "")
-            month = available_service.split(":")[0]
-            name = available_service.split(":")[1]
+            name = available_service.name
 
-            traffic = available_service.split(":")[2]
-            price = available_service.split(":")[3]
+            traffic = available_service.data_limit
+            price = available_service.price
+
             keyboard.add(
                 types.InlineKeyboardButton(
-                    text=captions.SERVICE_LIST_ITEM.format(
-                        month, name_fa_map[name], traffic, name_icon_map[name]
-                    ),
-                    callback_data=f"buy_service_step_1:{month}:{name}:{traffic}:{price}",
+                    text=name,
+                    callback_data=f"buy_service_step_1:{available_service.id}",
                 )
             )
 
@@ -128,19 +121,14 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
-    def buy_service_step_1(data: str):
+    def buy_service_step_1(service_id: int):
         keyboard = types.InlineKeyboardMarkup()
-
-        month = data.split(":")[1]
-        name = data.split(":")[2]
-        traffic = data.split(":")[3]
-        price = data.split(":")[4]
 
         keyboard.add(
             types.InlineKeyboardButton(text="❌ انصراف", callback_data=f"main_menu:"),
             types.InlineKeyboardButton(
                 text="✅ بله",
-                callback_data=f"buy_service_step_2:{month}:{name}:{traffic}:{price}",
+                callback_data=f"buy_service_step_2:{service_id}",
             ),
         )
 

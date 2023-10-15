@@ -1,26 +1,23 @@
-import datetime
+from enum import Enum
 from enum import Enum
 from typing import List, Tuple, Optional
 
-from sqlalchemy import and_, func, or_, String, cast, null
+from sqlalchemy import or_, String, cast
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from src import config
-from src.accounts.models import Account, AccountUsedTraffic
-from src.accounts.schemas import (
-    AccountCreate,
-    AccountModify,
-    AccountUsedTrafficResponse,
-)
+import src.users.service as user_service
+from src import messages
+from src.accounts.models import Account
 from src.commerce.exc import (
     MaxOpenOrderError,
     MaxPendingOrderError,
     NoEnoughBalanceError,
+    PaymentPaidStatusError,
 )
 from src.commerce.models import Transaction, Order, Payment, Service
 from src.commerce.schemas import (
     TransactionCreate,
-    TransactionModify,
     ServiceCreate,
     OrderCreate,
     OrderModify,
@@ -31,9 +28,8 @@ from src.commerce.schemas import (
     OrderStatus,
     TransactionType,
 )
+from src.messages import PAYMENT_METHODS
 from src.users.models import User
-
-import src.users.service as user_service
 
 TransactionSortingOptions = Enum(
     "TransactionSortingOptions",
@@ -401,18 +397,37 @@ def create_payment(
     )
 
     db.add(db_payment)
-    db.commit()
-    db.refresh(db_payment)
+
+    if db_payment.status == PaymentStatus.paid:
+        try:
+            process_payment(db=db, db_payment=db_payment, db_user=db_user)
+        except Exception:
+            db.rollback()
+            raise IntegrityError
+    else:
+        db.commit()
+        db.refresh(db_payment)
 
     return db_payment
 
 
 def update_payment(db: Session, db_payment: Payment, modify: PaymentModify):
+    db_user = user_service.get_user(db=db, user_id=db_payment.user_id)
+
+    _validate_payment(db_payment=db_payment)
+
     db_payment.status = modify.status
     db_payment.total = modify.total
 
-    db.commit()
-    db.refresh(db_payment)
+    if db_payment.status == PaymentStatus.paid:
+        try:
+            process_payment(db=db, db_payment=db_payment, db_user=db_user)
+        except Exception:
+            db.rollback()
+            raise IntegrityError
+    else:
+        db.commit()
+        db.refresh(db_payment)
 
     return db_payment
 
@@ -461,6 +476,27 @@ def get_payments(
 
 def get_payment(db: Session, payment_id: int):
     return db.query(Payment).filter(Payment.id == payment_id).first()
+
+
+def process_payment(db: Session, db_payment: Payment, db_user: User):
+    if db_payment.status == PaymentStatus.paid:
+        transaction = TransactionCreate(
+            user_id=db_user.id,
+            description=messages.TRANSACTION_INCREASE_BALANCE.format(
+                method=PAYMENT_METHODS[db_payment.method.value], total=db_payment.total
+            ),
+            amount=db_payment.total,
+            type=TransactionType.payment,
+        )
+
+        create_transaction(
+            db, db_payment=db_payment, db_user=db_user, transaction=transaction
+        )
+
+
+def _validate_payment(db_payment: Payment, payment: PaymentModify):
+    if db_payment.status == PaymentStatus.paid:
+        raise PaymentPaidStatusError
 
 
 def _get_query_result(limit, offset, query, return_with_count, sort):
