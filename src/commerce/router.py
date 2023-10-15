@@ -309,7 +309,16 @@ def modify_payment(
     if not db_payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
-    return commerce_service.update_payment(db=db, db_payment=db_payment, modify=payment)
+    try:
+        db_payment = commerce_service.update_payment(
+            db=db, db_payment=db_payment, modify=payment
+        )
+    except EloraApplicationError as error:
+        raise HTTPException(status_code=409, detail=error.message())
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Error on update payment")
+
+    return db_payment
 
 
 @payment_router.get(

@@ -7,13 +7,17 @@ from persiantools.jdatetime import JalaliDateTime
 from telebot.apihelper import ApiTelegramException
 
 import src.accounts.service as account_service
+import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src import logger, AccountResponse, config
 from src.accounts.schemas import AccountCreate
+from src.commerce.models import Service, Order
+from src.commerce.schemas import OrderCreate, OrderStatus
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.telegram import bot
-from src.users.schemas import UserCreate, UserResponse, UserModify
+from src.users.models import User
+from src.users.schemas import UserCreate, UserResponse
 
 
 # from src.users.service import create_user, get_user_by_telegram_chat_id
@@ -33,6 +37,50 @@ def send_message_to_admin(
             )
         except ApiTelegramException as e:
             logger.error(e)
+
+
+def get_available_service():
+    try:
+        with GetDB() as db:
+            return commerce_service.get_services(
+                db=db, limit=20, return_with_count=False, enable=1
+            )
+    except Exception as err:
+        logger.error(err)
+        return None
+
+
+def get_service(service_id: int) -> Service:
+    try:
+        with GetDB() as db:
+            return commerce_service.get_service(db=db, service_id=service_id)
+    except Exception as err:
+        logger.error(err)
+        return None
+
+
+def place_paid_order(chat_id: int, account_id: int, service_id: int) -> Order:
+    with GetDB() as db:
+        db_account = None
+
+        db_user = user_service.get_user_by_telegram_chat_id(
+            db=db, telegram_chat_id=chat_id
+        )
+
+        db_service = commerce_service.get_service(db=db, service_id=service_id)
+
+        if account_id > 0:
+            db_account = account_service.get_account(db, account_id=account_id)
+
+        order = OrderCreate(user_id=db_user.id, status=OrderStatus.paid)
+
+        return commerce_service.create_order(
+            db=db,
+            db_user=db_user,
+            db_account=db_account,
+            db_service=db_service,
+            order=order,
+        )
 
 
 def add_or_get_user(telegram_user) -> UserResponse:
@@ -94,6 +142,13 @@ def get_my_accounts(user_id: int):
 def get_account(account_id: int):
     with GetDB() as db:
         account = account_service.get_account(db=db, account_id=account_id)
+
+        return account
+
+
+def get_user(user_id=0) -> User:
+    with GetDB() as db:
+        account = user_service.get_user(db=db, user_id=user_id)
 
         return account
 

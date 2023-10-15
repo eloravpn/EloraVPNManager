@@ -39,3 +39,15 @@ class NoEnoughBalanceError(EloraApplicationError, Exception):
     def __init__(self, total: int = 0):
         self.message = f"Total orders is {total}"
         super().__init__(self._message)
+
+
+class PaymentPaidStatusError(EloraApplicationError, Exception):
+    """Exception raised when a PAID payment modified
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self):
+        self.message = f"Could not Modify PAID payment"
+        super().__init__(self._message)
