@@ -19,7 +19,7 @@ def add_user(
     try:
         db_user = service.create_user(db=db, user=user)
 
-    except IntegrityError:
+    except IntegrityError as error:
         raise HTTPException(status_code=409, detail="User already exists")
 
     return db_user
