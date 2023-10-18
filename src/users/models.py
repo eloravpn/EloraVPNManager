@@ -62,3 +62,7 @@ class User(Base):
         if self.last_name:
             full_name += " {0}".format(self.last_name)
         return full_name
+
+    @property
+    def telegram_profile_full(self):
+        return f"👤 {self.full_name}:(<code>{self.telegram_username}</code>)[<code>{self.telegram_chat_id}</code>]"

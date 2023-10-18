@@ -312,7 +312,7 @@ def create_order(
 def update_order(db: Session, db_order: Order, modify: OrderModify):
     db_user = user_service.get_user(db, db_order.user_id)
 
-    _validate_order(db=db, db_user=db_user, db_order=db_order)
+    _validate_order(db=db, db_user=db_user, db_order=db_order, modify=modify)
 
     db_order.status = modify.status
     db_order.duration = modify.duration
@@ -386,7 +386,9 @@ def _process_order(db: Session, db_order: Order, db_user: User):
         )
 
 
-def _validate_order(db: Session, db_user: User, db_order: Order):
+def _validate_order(
+    db: Session, db_user: User, db_order: Order, modify: Optional[OrderModify] = None
+):
     if db_order.status in [OrderStatus.open, OrderStatus.pending]:
         open_orders, count_open = get_orders(
             db=db, user_id=db_user.id, status=OrderStatus.open
@@ -394,10 +396,14 @@ def _validate_order(db: Session, db_user: User, db_order: Order):
         pending_orders, count_pending = get_orders(
             db=db, user_id=db_user.id, status=OrderStatus.pending
         )
-        if count_open > 0:
+        if (count_open > 0 and modify is None) or (
+            modify and modify.status is OrderStatus.open and count_open > 0
+        ):
             raise MaxOpenOrderError(count_open)
 
-        if count_pending > 0:
+        if (count_pending > 0 and modify is None) or (
+            modify and modify.status is OrderStatus.pending and count_pending > 0
+        ):
             raise MaxPendingOrderError(count_pending)
 
     if db_order.status == OrderStatus.paid:
