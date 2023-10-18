@@ -1,5 +1,4 @@
 from enum import Enum
-from enum import Enum
 from typing import List, Tuple, Optional
 
 from sqlalchemy import or_, String, cast
@@ -29,6 +28,8 @@ from src.commerce.schemas import (
     TransactionType,
 )
 from src.messages import PAYMENT_METHODS
+from src.notification.schemas import NotificationType, NotificationCreate
+from src.notification.service import create_notification
 from src.users.models import User
 
 TransactionSortingOptions = Enum(
@@ -113,6 +114,13 @@ def create_transaction(
 
     user_service.update_user_balance(
         db=db, db_user=db_user, new_balance=balance + db_transaction.amount
+    )
+
+    _send_notification(
+        db=db,
+        db_user=db_user,
+        type_=NotificationType.transaction,
+        message=f"Add to balance {f'{db_transaction.amount:,}'} Toman",
     )
 
     return db_transaction
@@ -271,7 +279,7 @@ def create_order(
         db_order = Order(
             user_id=db_user.id,
             account_id=None if db_account is None else db_account.id,
-            service_id=None if db_service is None else db_service.id,
+            service_id=db_service.id,
             status=order.status,
             duration=db_service.duration,
             data_limit=db_service.data_limit,
@@ -295,6 +303,8 @@ def create_order(
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
+
+    _process_order(db=db, db_user=db_user, db_order=db_order)
 
     return db_order
 
@@ -358,6 +368,24 @@ def get_order(db: Session, order_id: int):
     return db.query(Order).filter(Order.id == order_id).first()
 
 
+def _process_order(db: Session, db_order: Order, db_user: User):
+    sub_total = db_order.total - db_order.total_discount_amount
+
+    if db_order.status == OrderStatus.paid:
+        transaction = TransactionCreate(
+            user_id=db_user.id,
+            description=messages.ORDER_DECREASE_BALANCE.format(
+                order_id=db_order.id, total=sub_total
+            ),
+            amount=-sub_total,
+            type=TransactionType.order,
+        )
+
+        create_transaction(
+            db, db_order=db_order, db_user=db_user, transaction=transaction
+        )
+
+
 def _validate_order(db: Session, db_user: User, db_order: Order):
     if db_order.status in [OrderStatus.open, OrderStatus.pending]:
         open_orders, count_open = get_orders(
@@ -375,7 +403,7 @@ def _validate_order(db: Session, db_user: User, db_order: Order):
     if db_order.status == OrderStatus.paid:
         total = db_order.total - db_order.total_discount_amount
 
-        if db_user.balance < total:
+        if db_user.balance is None or db_user.balance < total:
             raise NoEnoughBalanceError(total=total)
 
 
@@ -511,3 +539,21 @@ def _get_query_result(limit, offset, query, return_with_count, sort):
         return query.all(), count
     else:
         return query.all()
+
+
+def _send_notification(
+    db, db_user: User, message: str, type_: NotificationType, level: int = 0
+):
+    create_notification(
+        db=db,
+        db_user=db_user,
+        notification=NotificationCreate(
+            message=message,
+            level=level,
+            type=type_,
+        ),
+    )
+
+    # notification_utils.send_approval_message_to_user(
+    #     db_user=db_user, db_notification=db_notification
+    # )

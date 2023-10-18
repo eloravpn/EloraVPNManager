@@ -14,6 +14,7 @@ from src.commerce.exc import (
 from src.telegram import bot, utils
 from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
+from src.users.models import User
 
 
 class IsSubscribedUser(custom_filters.SimpleCustomFilter):
@@ -24,7 +25,17 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
     def check(message: types.Message):
         try:
             telegram_user = message.from_user
-            utils.add_or_get_user(telegram_user=telegram_user)
+
+            referral_user = None
+
+            if message is types.Message and message.text:
+                referral_user = IsSubscribedUser.get_referral_user(
+                    message_text=message.text
+                )
+
+            utils.add_or_get_user(
+                telegram_user=telegram_user, referral_user=referral_user
+            )
 
             if not config.TELEGRAM_CHANNEL:
                 return True
@@ -47,6 +58,20 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
             logger.error(error)
 
         return False
+
+    @staticmethod
+    def get_referral_user(message_text) -> User:
+        user = None
+        try:
+            if message_text.startswith("/start"):
+                split_message_text = message_text.split(" ")
+                if len(split_message_text) == 2:
+                    referral_code = message_text.split(" ")[1]
+                    logger.info(f"Referral code: {referral_code}")
+                    user = utils.get_user(user_id=int(referral_code))
+        except Exception as error:
+            logger.error(error)
+        return user
 
 
 bot.add_custom_filter(IsSubscribedUser())
@@ -92,7 +117,14 @@ def my_profile(message):
 
     bot.reply_to(
         message,
-        messages.MY_PROFILE.format(full_name=user.full_name, balance=user.balance),
+        messages.MY_PROFILE.format(
+            user_id=user.id,
+            bot_user_name=config.BOT_USER_NAME,
+            full_name=user.full_name,
+            balance=user.balance if user.balance else 0,
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+            referral_count=utils.get_user_referral_count(telegram_user=telegram_user),
+        ),
         parse_mode="html",
     )
 
@@ -103,6 +135,20 @@ def support(message):
         message,
         text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
         parse_mode="markdown",
+    )
+
+
+@bot.message_handler(regexp=captions.PAYMENT, is_subscribed_user=True)
+def support(message):
+    bot.reply_to(
+        message,
+        text=messages.PAYMENT_MESSAGE.format(
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+            card_number=config.CARD_NUMBER,
+            card_owner=config.CARD_OWNER,
+        ),
+        parse_mode="html",
+        disable_web_page_preview=True,
     )
 
 
@@ -297,10 +343,11 @@ def buy_service_step_2(call: types.CallbackQuery):
         )
 
     except NoEnoughBalanceError as error:
+        balance = user.balance if user.balance else 0
         bot.edit_message_text(
             message_id=call.message.message_id,
             text=messages.NEW_ORDER_NO_ENOUGH_BALANCE.format(
-                balance=user.balance, admin_id=config.TELEGRAM_ADMIN_USER_NAME
+                balance=balance, admin_id=config.TELEGRAM_ADMIN_USER_NAME
             ),
             chat_id=config.TELEGRAM_ADMIN_ID,
             parse_mode="html",

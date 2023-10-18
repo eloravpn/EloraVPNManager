@@ -36,8 +36,11 @@ UVICORN_SSL_KEYFILE = config("UVICORN_SSL_KEYFILE", default=None)
 TELEGRAM_API_TOKEN = config("TELEGRAM_API_TOKEN", default=None)
 TELEGRAM_ADMIN_ID = config("TELEGRAM_ADMIN_ID", cast=int, default=0)
 TELEGRAM_ADMIN_USER_NAME = config("TELEGRAM_ADMIN_USER_NAME", default=None)
+BOT_USER_NAME = config("BOT_USER_NAME", default="")
 TELEGRAM_CHANNEL = config("TELEGRAM_CHANNEL", default=None)
 TELEGRAM_PROXY_URL = config("TELEGRAM_PROXY_URL", default=None)
+CARD_NUMBER = config("CARD_NUMBER", default="")
+CARD_OWNER = config("CARD_OWNER", default="")
 
 TEST_ACCOUNT_EMAIL_PREFIX = config("TEST_ACCOUNT_EMAIL_PREFIX", default="test_")
 TEST_ACCOUNT_LIMIT_INTERVAL_DAYS = config(

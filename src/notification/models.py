@@ -23,6 +23,8 @@ class Notification(Base):
     __tablename__ = "notification"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    user = relationship("User", back_populates="notification")
     account_id = Column(Integer, ForeignKey("account.id"), nullable=True)
     account = relationship("Account", back_populates="notification")
     level = Column(Integer, index=True)
