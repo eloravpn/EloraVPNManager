@@ -136,7 +136,7 @@ def process_pending_notifications():
                 try:
                     admin_message = messages.ADMIN_NOTIFICATION.format(
                         type=db_notification.type.value,
-                        user_detail=f"{db_user.full_name} /{db_user.telegram_username} /{db_user.telegram_chat_id}",
+                        user_detail=f"{db_user.telegram_profile_full}",
                         message=db_notification.message,
                     )
                     utils.send_message_to_admin(
@@ -176,12 +176,12 @@ def used_traffic_notification_job():
     percent_used_traffic_notification_job(min_percent=95, max_percent=100)
 
 
-scheduler.add_job(
-    func=process_pending_notifications,
-    max_instances=1,
-    trigger="interval",
-    seconds=5,
-)
+# scheduler.add_job(
+#     func=process_pending_notifications,
+#     max_instances=1,
+#     trigger="interval",
+#     seconds=5,
+# )
 
 
 if config.ENABLE_NOTIFICATION_JOBS:

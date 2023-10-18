@@ -95,10 +95,18 @@ def modify_order(
     admin: Admin = Depends(Admin.get_current),
 ):
     db_order = commerce_service.get_order(db, order_id=order_id)
+
     if not db_order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    return commerce_service.update_order(db=db, db_order=db_order, modify=order)
+    try:
+        db_order = commerce_service.update_order(db=db, db_order=db_order, modify=order)
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Order already exists")
+    except EloraApplicationError as error:
+        raise HTTPException(status_code=409, detail=error.message())
+
+    return db_order
 
 
 @order_router.get("/orders/{order_id}", tags=["Order"], response_model=OrderResponse)
