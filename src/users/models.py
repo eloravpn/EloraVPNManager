@@ -23,9 +23,13 @@ class User(Base):
     accounts = relationship(
         "Account", back_populates="user", cascade="all, delete-orphan"
     )
+    referral_user_id = Column(Integer, index=True, nullable=True)
     orders = relationship("Order", back_populates="user")
     payments = relationship("Payment", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
+    notification = relationship(
+        "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
     username = Column(String(128), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128))
     first_name = Column(String(128), index=True, nullable=True)

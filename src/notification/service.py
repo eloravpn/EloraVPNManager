@@ -11,6 +11,7 @@ from src.notification.schemas import (
     NotificationType,
     NotificationCreate,
 )
+from src.users.models import User
 
 NotificationSortingOptions = Enum(
     "NotificationSortingOptions",
@@ -34,10 +35,14 @@ NotificationSortingOptions = Enum(
 
 
 def create_notification(
-    db: Session, db_account: Account, notification: NotificationCreate
+    db: Session,
+    notification: NotificationCreate,
+    db_account: Optional[Account] = None,
+    db_user: Optional[User] = None,
 ):
     db_notification = Notification(
-        account_id=db_account.id,
+        account_id=None if db_account is None else db_account.id,
+        user_id=None if db_user is None else db_user.id,
         level=notification.level,
         message=notification.message,
         details=notification.details,

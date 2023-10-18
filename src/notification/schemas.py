@@ -19,6 +19,11 @@ class NotificationStatus(str, Enum):
 
 
 class NotificationType(str, Enum):
+    payment = "payment"
+    order = "order"
+    transaction = "transaction"
+    general = "general"
+    account = "account"
     used_traffic = "used_traffic"
     expire_time = "expire_time"
 
@@ -60,7 +65,8 @@ class NotificationModify(NotificationBase):
 
 class NotificationResponse(NotificationBase):
     id: int
-    account_id: int = 0
+    account_id: Optional[int] = None
+    user_id: Optional[int] = None
 
     created_at: datetime
     modified_at: datetime

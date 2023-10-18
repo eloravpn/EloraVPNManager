@@ -8,6 +8,7 @@ from src.database import GetDB
 from src.notification.schemas import NotificationStatus
 from src.notification.service import get_notification, update_status
 from src.telegram import bot
+from src.users.service import get_user
 
 
 @bot.callback_query_handler(
@@ -19,12 +20,17 @@ def approve_notification(call: types.CallbackQuery):
     notification_id = int(call.data.split(":")[1])
     with GetDB() as db:
         db_notification = get_notification(db=db, notification_id=notification_id)
-        db_account = get_account(db=db, account_id=db_notification.account_id)
+
+        if db_notification.account_id:
+            db_account = get_account(db=db, account_id=db_notification.account_id)
+            db_user = get_user(db=db, user_id=db_account.user_id)
+        elif db_notification.user_id:
+            db_user = get_user(db=db, user_id=db_notification.user_id)
 
         try:
             bot.send_message(
                 text=db_notification.message,
-                chat_id=db_account.user.telegram_chat_id,
+                chat_id=db_user.telegram_chat_id,
                 parse_mode="html",
             )
 
@@ -36,7 +42,7 @@ def approve_notification(call: types.CallbackQuery):
             )
 
             bot.edit_message_text(
-                text=f"Notification with id <code>{db_notification.id}</code> Approved and Sent to {db_account.user.full_name}!",
+                text=f"Notification with id <code>{db_notification.id}</code> Approved and Sent to {db_user.full_name}!",
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 parse_mode="html",

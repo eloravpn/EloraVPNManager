@@ -28,6 +28,7 @@ UserSortingOptions = Enum(
 
 def create_user(db: Session, user: UserCreate):
     db_user = User(
+        referral_user_id=user.referral_user_id,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
@@ -139,8 +140,12 @@ def remove_user(db: Session, db_user: User):
     return db_user
 
 
-def get_user(db: Session, user_id: int):
+def get_user(db: Session, user_id: int) -> User:
     return db.query(User).filter(User.id == user_id).first()
+
+
+def get_user_referral_count(db: Session, user_id: int) -> int:
+    return db.query(User).filter(User.referral_user_id == user_id).count()
 
 
 def get_user_by_telegram_chat_id(db: Session, telegram_chat_id: int):

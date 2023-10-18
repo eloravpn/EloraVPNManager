@@ -9,11 +9,14 @@ class BotUserKeyboard:
     def main_menu():
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-        keyboard.add(types.InlineKeyboardButton(text=captions.MY_SERVICES))
+        keyboard.add(
+            types.InlineKeyboardButton(text=captions.MY_SERVICES),
+            types.InlineKeyboardButton(text=captions.GET_TEST_SERVICE),
+        )
 
         keyboard.add(
             types.InlineKeyboardButton(text=captions.BUY_NEW_SERVICE),
-            types.InlineKeyboardButton(text=captions.GET_TEST_SERVICE),
+            types.InlineKeyboardButton(text=captions.PAYMENT),
         )
         keyboard.add(
             types.InlineKeyboardButton(text=captions.MY_PROFILE),

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from telebot import types
@@ -12,10 +13,16 @@ from src.notification.schemas import (
     NotificationCreate,
     NotificationType,
     NotificationExpireTimeLevel,
+    NotificationStatus,
 )
-from src.notification.service import create_notification, get_notifications
+from src.notification.service import (
+    create_notification,
+    get_notifications,
+    update_status,
+)
 from src.telegram import utils
 from src.telegram.user import messages
+from src.users.service import get_user
 
 
 def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
@@ -64,26 +71,7 @@ def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
                             type=NotificationType.used_traffic,
                         ),
                     )
-                    send_approval_message(account, db_notification)
-
-
-def send_approval_message(account, db_notification):
-    keyboard = types.InlineKeyboardMarkup(row_width=2)
-    keyboard.add(
-        types.InlineKeyboardButton(
-            text="Approve",
-            callback_data=f"approve_notification:{db_notification.id}",
-        ),
-        types.InlineKeyboardButton(
-            text="Decline!",
-            callback_data=f"decline_notification:{db_notification.id}",
-        ),
-    )
-    utils.send_message_to_admin(
-        message=f"Send notification to {account.user.full_name}/ <code>{account.email}</code> \n"
-        + db_notification.message,
-        keyboard=keyboard,
-    )
+                    utils.send_approval_message(account, db_notification)
 
 
 def days_to_expire_notification_job(min_days: int, max_days: int):
@@ -128,7 +116,55 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
                             type=NotificationType.expire_time,
                         ),
                     )
-                    send_approval_message(account, db_notification)
+                    utils.send_approval_message(account, db_notification)
+
+
+def process_pending_notifications():
+    logger.info("Process Pending notification")
+    with GetDB() as db:
+        notifications, count = get_notifications(
+            db=db, status=NotificationStatus.pending
+        )
+
+        for db_notification in notifications:
+            if db_notification.user_id:
+                db_user = get_user(db=db, user_id=db_notification.user_id)
+                # utils.send_approval_message_to_admin_by_user(
+                #     db_user=db_user, db_notification=db_notification
+                # )
+
+                try:
+                    admin_message = messages.ADMIN_NOTIFICATION.format(
+                        type=db_notification.type.value,
+                        user_detail=f"{db_user.full_name} /{db_user.telegram_username} /{db_user.telegram_chat_id}",
+                        message=db_notification.message,
+                    )
+                    utils.send_message_to_admin(
+                        message=admin_message,
+                        parse_mode="html",
+                    )
+
+                    update_status(
+                        db=db,
+                        db_notification=db_notification,
+                        status=NotificationStatus.sent,
+                        approve=True,
+                    )
+
+                    # bot.edit_message_text(
+                    #     text=f"Notification with id <code>{db_notification.id}</code> Approved and Sent to {db_user.full_name}!",
+                    #     chat_id=call.message.chat.id,
+                    #     message_id=call.message.message_id,
+                    #     parse_mode="html",
+                    # )
+                except Exception as error:
+                    logging.error(error)
+                    update_status(
+                        db=db,
+                        db_notification=db_notification,
+                        status=NotificationStatus.failed,
+                        approve=True,
+                    )
 
 
 def expire_time_notification_job():
@@ -138,6 +174,14 @@ def expire_time_notification_job():
 def used_traffic_notification_job():
     percent_used_traffic_notification_job(min_percent=80, max_percent=95)
     percent_used_traffic_notification_job(min_percent=95, max_percent=100)
+
+
+scheduler.add_job(
+    func=process_pending_notifications,
+    max_instances=1,
+    trigger="interval",
+    seconds=5,
+)
 
 
 if config.ENABLE_NOTIFICATION_JOBS:

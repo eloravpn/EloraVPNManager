@@ -31,6 +31,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    referral_user_id: Optional[int]
 
     @property
     def hashed_password(self):
