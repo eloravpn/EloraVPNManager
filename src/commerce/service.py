@@ -567,7 +567,7 @@ def process_payment(db: Session, db_payment: Payment, db_user: User):
         )
 
 
-def _validate_payment(db_payment: Payment, payment: PaymentModify):
+def _validate_payment(db_payment: Payment, payment: Optional[PaymentModify] = None):
     if db_payment.status == PaymentStatus.paid:
         raise PaymentPaidStatusError
 
