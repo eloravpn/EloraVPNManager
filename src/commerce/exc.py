@@ -28,6 +28,30 @@ class MaxPendingOrderError(EloraApplicationError, Exception):
         super().__init__(self._message)
 
 
+class OrderNotEditableError(EloraApplicationError, Exception):
+    """Exception raised when order not editable
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, total: int = 1):
+        self._message = f"Order is not editable"
+        super().__init__(self._message)
+
+
+class OrderStatusConflictError(EloraApplicationError, Exception):
+    """Exception raised when the new status is not valid
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, total: int = 1):
+        self._message = f"Could not set this status"
+        super().__init__(self._message)
+
+
 class NoEnoughBalanceError(EloraApplicationError, Exception):
     """Exception raised when user don't have enough balance to place paid order
 

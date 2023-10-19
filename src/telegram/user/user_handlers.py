@@ -121,7 +121,7 @@ def my_profile(message):
             user_id=user.id,
             bot_user_name=config.BOT_USER_NAME,
             full_name=user.full_name,
-            balance=user.balance if user.balance else 0,
+            balance=user.balance_readable if user.balance_readable else 0,
             admin_id=config.TELEGRAM_ADMIN_USER_NAME,
             referral_count=utils.get_user_referral_count(telegram_user=telegram_user),
         ),

@@ -59,7 +59,7 @@ def add_order(
     db_service = None
     db_account = None
 
-    if order.account_id > 0:
+    if order.account_id and order.account_id != 0:
         db_account = account_service.get_account(db=db, account_id=order.account_id)
 
         if not db_account:
