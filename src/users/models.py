@@ -65,4 +65,11 @@ class User(Base):
 
     @property
     def telegram_profile_full(self):
-        return f"👤 {self.full_name}:(<code>{self.telegram_username}</code>)[<code>{self.telegram_chat_id}</code>]"
+        return f"👤 {self.full_name} (<code>{self.telegram_username}</code>)[<code>{self.telegram_chat_id}</code>]"
+
+    @property
+    def balance_readable(self):
+        if self.balance:
+            return f"{self.balance:,}"
+        else:
+            return 0

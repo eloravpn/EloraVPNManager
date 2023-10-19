@@ -120,10 +120,10 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
 
 
 def process_pending_notifications():
-    logger.info("Process Pending notification")
+    logger.info("Process Pending and approved notifications")
     with GetDB() as db:
         notifications, count = get_notifications(
-            db=db, status=NotificationStatus.pending
+            db=db, status=NotificationStatus.pending, approve=1
         )
 
         for db_notification in notifications:
@@ -139,10 +139,6 @@ def process_pending_notifications():
                         user_detail=f"{db_user.telegram_profile_full}",
                         message=db_notification.message,
                     )
-                    utils.send_message_to_admin(
-                        message=admin_message,
-                        parse_mode="html",
-                    )
 
                     update_status(
                         db=db,
@@ -151,12 +147,17 @@ def process_pending_notifications():
                         approve=True,
                     )
 
-                    # bot.edit_message_text(
-                    #     text=f"Notification with id <code>{db_notification.id}</code> Approved and Sent to {db_user.full_name}!",
-                    #     chat_id=call.message.chat.id,
-                    #     message_id=call.message.message_id,
-                    #     parse_mode="html",
-                    # )
+                    utils.send_message_to_admin(
+                        message=admin_message,
+                        parse_mode="html",
+                    )
+
+                    utils.send_message_to_user(
+                        chat_id=db_user.telegram_chat_id,
+                        message=db_notification.message,
+                        parse_mode="html",
+                    )
+
                 except Exception as error:
                     logging.error(error)
                     update_status(
@@ -176,13 +177,13 @@ def used_traffic_notification_job():
     percent_used_traffic_notification_job(min_percent=95, max_percent=100)
 
 
-# scheduler.add_job(
-#     func=process_pending_notifications,
-#     max_instances=1,
-#     trigger="interval",
-#     seconds=5,
-# )
-
+if config.ENABLE_NOTIFICATION_SEND_PENDING_JOBS:
+    scheduler.add_job(
+        func=process_pending_notifications,
+        max_instances=1,
+        trigger="interval",
+        seconds=config.SEND_PENDING_NOTIFICATION_INTERVAL,
+    )
 
 if config.ENABLE_NOTIFICATION_JOBS:
     scheduler.add_job(

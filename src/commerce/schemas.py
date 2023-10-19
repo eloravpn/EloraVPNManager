@@ -42,6 +42,13 @@ class TransactionBase(BaseModel):
     amount: int
     type: TransactionType = TransactionType.payment
 
+    @property
+    def amount_readable(self):
+        if self.amount:
+            return f"{self.amount:,}"
+        else:
+            return 0
+
 
 class TransactionCreate(TransactionBase):
     pass

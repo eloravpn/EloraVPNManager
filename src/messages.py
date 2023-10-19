@@ -1,11 +1,15 @@
 from src.commerce.schemas import PaymentMethod
 
-TRANSACTION_INCREASE_BALANCE = """
-افزایش موجودی حساب  به مبلغ {total} تومان از طریق پرداخت به روش {method}
+PAYMENT_PAID_DESCRIPTION = """
+ از طریق پرداخت با شناسه <code>{id}</code> به روش {method}
 """
 
-ORDER_DECREASE_BALANCE = """
-برداشت از حساب  به مبلغ {total} تومان با سفارش شناسه {order_id}
+USER_BALANCE = """
+موجودی حساب شما: <code>{balance}</code> تومان
+"""
+
+ORDER_PAID_DESCRIPTION = """
+ از طریق سفارش شناسه <code>{id}</code>
 """
 
 PAYMENT_METHODS = {
@@ -15,5 +19,11 @@ PAYMENT_METHODS = {
 }
 
 TRANSACTION_DEPOSIT_NOTIFICATION = """
-➕ افزایش موجودی به مبلغ {amount}
+➕ افزایش موجودی حساب به مبلغ <code>{amount}</code> تومان {description}"""
+
+TRANSACTION_WITHDRAW_NOTIFICATION = """
+➖ برداشت از حساب به مبلغ <code>{amount}</code> تومان {description}"""
+
+ORDER_PAID_NOTIFICATION = """
+✅ سفارش {title} با شناسه <code>{id}</code> با موفقیت پرداخت شد.
 """

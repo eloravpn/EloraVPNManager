@@ -33,7 +33,7 @@ def send_message_to_admin(
         try:
             bot.send_message(
                 TELEGRAM_ADMIN_ID,
-                message,
+                text=message,
                 parse_mode=parse_mode,
                 reply_markup=keyboard,
                 disable_notification=disable_notification,
@@ -53,7 +53,7 @@ def send_message_to_user(
         try:
             bot.send_message(
                 chat_id=chat_id,
-                message=message,
+                text=message,
                 parse_mode=parse_mode,
                 reply_markup=keyboard,
                 disable_notification=disable_notification,

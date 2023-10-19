@@ -13,6 +13,8 @@ from src.commerce.exc import (
     MaxPendingOrderError,
     NoEnoughBalanceError,
     PaymentPaidStatusError,
+    OrderNotEditableError,
+    OrderStatusConflictError,
 )
 from src.commerce.models import Transaction, Order, Payment, Service
 from src.commerce.schemas import (
@@ -112,16 +114,30 @@ def create_transaction(
     db.commit()
     db.refresh(db_transaction)
 
-    user_service.update_user_balance(
+    db_user = user_service.update_user_balance(
         db=db, db_user=db_user, new_balance=balance + db_transaction.amount
     )
 
-    _send_notification(
-        db=db,
-        db_user=db_user,
-        type_=NotificationType.transaction,
-        message=f"Add to balance {f'{db_transaction.amount:,}'} Toman",
-    )
+    if db_transaction.amount > 0:
+        _send_notification(
+            db=db,
+            db_user=db_user,
+            type_=NotificationType.transaction,
+            message=messages.TRANSACTION_DEPOSIT_NOTIFICATION.format(
+                amount=transaction.amount_readable, description=transaction.description
+            )
+            + messages.USER_BALANCE.format(balance=db_user.balance_readable),
+        )
+    else:
+        _send_notification(
+            db=db,
+            db_user=db_user,
+            type_=NotificationType.transaction,
+            message=messages.TRANSACTION_WITHDRAW_NOTIFICATION.format(
+                amount=transaction.amount_readable, description=transaction.description
+            )
+            + messages.USER_BALANCE.format(balance=db_user.balance_readable),
+        )
 
     return db_transaction
 
@@ -304,13 +320,14 @@ def create_order(
     db.commit()
     db.refresh(db_order)
 
-    _process_order(db=db, db_user=db_user, db_order=db_order)
+    _process_order(db=db, db_user=db_user, db_order=db_order, db_service=db_service)
 
     return db_order
 
 
 def update_order(db: Session, db_order: Order, modify: OrderModify):
     db_user = user_service.get_user(db, db_order.user_id)
+    db_service = get_service(db, db_order.service_id)
 
     _validate_order(db=db, db_user=db_user, db_order=db_order, modify=modify)
 
@@ -322,6 +339,8 @@ def update_order(db: Session, db_order: Order, modify: OrderModify):
 
     db.commit()
     db.refresh(db_order)
+
+    _process_order(db=db, db_user=db_user, db_order=db_order, db_service=db_service)
 
     return db_order
 
@@ -368,15 +387,13 @@ def get_order(db: Session, order_id: int):
     return db.query(Order).filter(Order.id == order_id).first()
 
 
-def _process_order(db: Session, db_order: Order, db_user: User):
+def _process_order(db: Session, db_order: Order, db_user: User, db_service: Service):
     sub_total = db_order.total - db_order.total_discount_amount
 
     if db_order.status == OrderStatus.paid:
         transaction = TransactionCreate(
             user_id=db_user.id,
-            description=messages.ORDER_DECREASE_BALANCE.format(
-                order_id=db_order.id, total=sub_total
-            ),
+            description=messages.ORDER_PAID_DESCRIPTION.format(id=db_order.id),
             amount=-sub_total,
             type=TransactionType.order,
         )
@@ -385,10 +402,31 @@ def _process_order(db: Session, db_order: Order, db_user: User):
             db, db_order=db_order, db_user=db_user, transaction=transaction
         )
 
+        order_title = ""
+        if db_service:
+            order_title = db_service.name
+
+        _send_notification(
+            db=db,
+            db_user=db_user,
+            type_=NotificationType.order,
+            message=messages.ORDER_PAID_NOTIFICATION.format(
+                title=order_title, id=db_order.id
+            ),
+        )
+
 
 def _validate_order(
     db: Session, db_user: User, db_order: Order, modify: Optional[OrderModify] = None
 ):
+    if db_order.status in [OrderStatus.completed, OrderStatus.canceled]:
+        raise OrderNotEditableError
+
+    if db_order.status in [OrderStatus.paid] and (
+        modify and modify.status not in [OrderStatus.completed]
+    ):
+        raise OrderStatusConflictError
+
     if db_order.status in [OrderStatus.open, OrderStatus.pending]:
         open_orders, count_open = get_orders(
             db=db, user_id=db_user.id, status=OrderStatus.open
@@ -431,16 +469,17 @@ def create_payment(
     )
 
     db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
 
     if db_payment.status == PaymentStatus.paid:
         try:
             process_payment(db=db, db_payment=db_payment, db_user=db_user)
         except Exception:
-            db.rollback()
+            db_payment.status = PaymentStatus.pending
+            db.commit()
+            db.refresh(db_payment)
             raise IntegrityError
-    else:
-        db.commit()
-        db.refresh(db_payment)
 
     return db_payment
 
@@ -516,8 +555,8 @@ def process_payment(db: Session, db_payment: Payment, db_user: User):
     if db_payment.status == PaymentStatus.paid:
         transaction = TransactionCreate(
             user_id=db_user.id,
-            description=messages.TRANSACTION_INCREASE_BALANCE.format(
-                method=PAYMENT_METHODS[db_payment.method.value], total=db_payment.total
+            description=messages.PAYMENT_PAID_DESCRIPTION.format(
+                method=PAYMENT_METHODS[db_payment.method.value], id=db_payment.id
             ),
             amount=db_payment.total,
             type=TransactionType.payment,
@@ -554,6 +593,7 @@ def _send_notification(
         db=db,
         db_user=db_user,
         notification=NotificationCreate(
+            approve=True,
             message=message,
             level=level,
             type=type_,
