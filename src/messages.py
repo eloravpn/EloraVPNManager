@@ -1,15 +1,19 @@
 from src.commerce.schemas import PaymentMethod
 
 PAYMENT_PAID_DESCRIPTION = """
- از طریق پرداخت با شناسه <code>{id}</code> به روش {method}
+✳️ از طریق پرداخت با شناسه <code>{id}</code> به روش {method}
 """
 
 USER_BALANCE = """
-موجودی حساب شما: <code>{balance}</code> تومان
+ 💰 موجودی حساب: <code>{balance}</code> تومان
 """
 
 ORDER_PAID_DESCRIPTION = """
- از طریق سفارش شناسه <code>{id}</code>
+✳️ از طریق سفارش شناسه <code>{id}</code>
+"""
+
+REFERRAL_BONUS_DESCRIPTION = """
+🎉از طریق دعوت از دوستان
 """
 
 PAYMENT_METHODS = {
@@ -26,4 +30,8 @@ TRANSACTION_WITHDRAW_NOTIFICATION = """
 
 ORDER_PAID_NOTIFICATION = """
 ✅ سفارش {title} با شناسه <code>{id}</code> با موفقیت پرداخت شد.
+"""
+
+ORDER_COMPLETE_NOTIFICATION = """
+✅ سفارش {title} با شناسه <code>{id}</code> با موفقیت اعمال شد.
 """

@@ -306,7 +306,7 @@ def create_order(
         db_order = Order(
             user_id=db_user.id,
             account_id=None if db_account is None else db_account.id,
-            service_id=None if db_service is None else db_service.id,
+            service_id=None,
             status=order.status,
             duration=order.duration,
             data_limit=order.data_limit,
@@ -332,6 +332,7 @@ def update_order(db: Session, db_order: Order, modify: OrderModify):
     _validate_order(db=db, db_user=db_user, db_order=db_order, modify=modify)
 
     db_order.status = modify.status
+    db_order.account_id = modify.account_id
     db_order.duration = modify.duration
     db_order.data_limit = modify.data_limit
     db_order.total = modify.total
@@ -343,6 +344,26 @@ def update_order(db: Session, db_order: Order, modify: OrderModify):
     _process_order(db=db, db_user=db_user, db_order=db_order, db_service=db_service)
 
     return db_order
+
+
+def update_order_status(
+    db: Session,
+    db_order: Order,
+    status: OrderStatus,
+    db_account: Optional[Account] = None,
+):
+    order_modify = OrderModify(
+        user_id=db_order.user_id,
+        account_id=db_order.account_id if db_account is None else db_account.id,
+        service_id=db_order.service_id,
+        duration=db_order.duration,
+        data_limit=db_order.data_limit,
+        total=db_order.total,
+        total_discount_amount=db_order.total_discount_amount,
+        status=status,
+    )
+
+    return update_order(db=db, db_order=db_order, modify=order_modify)
 
 
 def remove_order(db: Session, db_order: Order):
@@ -390,6 +411,10 @@ def get_order(db: Session, order_id: int):
 def _process_order(db: Session, db_order: Order, db_user: User, db_service: Service):
     sub_total = db_order.total - db_order.total_discount_amount
 
+    order_title = ""
+    if db_service:
+        order_title = db_service.name
+
     if db_order.status == OrderStatus.paid:
         transaction = TransactionCreate(
             user_id=db_user.id,
@@ -402,10 +427,6 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             db, db_order=db_order, db_user=db_user, transaction=transaction
         )
 
-        order_title = ""
-        if db_service:
-            order_title = db_service.name
-
         _send_notification(
             db=db,
             db_user=db_user,
@@ -415,10 +436,27 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             ),
         )
 
+    if db_order.status == OrderStatus.completed:
+        _send_notification(
+            db=db,
+            db_user=db_user,
+            type_=NotificationType.order,
+            message=messages.ORDER_COMPLETE_NOTIFICATION.format(
+                title=order_title, id=db_order.id
+            ),
+        )
+
 
 def _validate_order(
     db: Session, db_user: User, db_order: Order, modify: Optional[OrderModify] = None
 ):
+    if db_order.status in [OrderStatus.completed] or (
+        modify
+        and modify.status == OrderStatus.completed
+        and db_order.status != OrderStatus.paid
+    ):
+        raise OrderStatusConflictError
+
     if db_order.status in [OrderStatus.completed, OrderStatus.canceled]:
         raise OrderNotEditableError
 
@@ -444,7 +482,9 @@ def _validate_order(
         ):
             raise MaxPendingOrderError(count_pending)
 
-    if db_order.status == OrderStatus.paid:
+    if (db_order.status == OrderStatus.paid and modify is None) or (
+        modify and modify.status == OrderStatus.paid
+    ):
         total = db_order.total - db_order.total_discount_amount
 
         if db_user.balance is None or db_user.balance < total:
@@ -599,7 +639,3 @@ def _send_notification(
             type=type_,
         ),
     )
-
-    # notification_utils.send_approval_message_to_user(
-    #     db_user=db_user, db_notification=db_notification
-    # )

@@ -28,7 +28,7 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
 
             referral_user = None
 
-            if message is types.Message and message.text:
+            if isinstance(message, types.Message) and message.text:
                 referral_user = IsSubscribedUser.get_referral_user(
                     message_text=message.text
                 )
@@ -236,7 +236,9 @@ def buy_service(message):
         bot.reply_to(
             message,
             messages.BUY_NEW_SERVICE_HELP,
-            reply_markup=BotUserKeyboard.available_services(available_services),
+            reply_markup=BotUserKeyboard.available_services(
+                available_services=available_services
+            ),
             parse_mode="html",
             disable_web_page_preview=True,
         )
@@ -267,6 +269,35 @@ def buy_service_step_1(call: types.CallbackQuery):
 
 
 @bot.callback_query_handler(
+    func=lambda call: call.data.startswith("recharge_service_1:"),
+    is_subscribed_user=True,
+)
+def recharge_service_1(call: types.CallbackQuery):
+    telegram_user = call.from_user
+
+    account_id = call.data.split(":")[1]
+
+    available_services = utils.get_available_service()
+
+    if not available_services:
+        bot.send_message(
+            text=messages.BUY_NEW_SERVICE_HELP, chat_id=call.message.chat.id
+        )
+    bot.reply_to(
+        message=call.message,
+        text=messages.RECHARGE_SERVICE_HELP,
+        # chat_id=call.message.chat.id,
+        reply_markup=BotUserKeyboard.available_services(
+            available_services=available_services, account_id=account_id
+        ),
+        parse_mode="html",
+        disable_web_page_preview=True,
+    )
+
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
+@bot.callback_query_handler(
     func=lambda call: call.data.startswith("buy_service_step_1:"),
     is_subscribed_user=True,
 )
@@ -275,13 +306,19 @@ def buy_service_step_1(call: types.CallbackQuery):
 
     service_id = call.data.split(":")[1]
 
+    account_id = call.data.split(":")[2]
+
     service = utils.get_service(service_id=int(service_id))
 
     bot.edit_message_text(
-        text=messages.BUY_NEW_SERVICE_CONFIRMATION.format(service.name, service.price),
+        text=messages.BUY_NEW_SERVICE_CONFIRMATION.format(
+            service.name, service.price_readable
+        ),
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        reply_markup=BotUserKeyboard.buy_service_step_1(service_id),
+        reply_markup=BotUserKeyboard.buy_service_step_1(
+            service_id=service_id, account_id=account_id
+        ),
         parse_mode="html",
     )
 
@@ -294,6 +331,7 @@ def buy_service_step_2(call: types.CallbackQuery):
     telegram_user = call.from_user
 
     service_id = call.data.split(":")[1]
+    account_id = call.data.split(":")[2]
 
     service = utils.get_service(service_id=int(service_id))
 
@@ -301,58 +339,59 @@ def buy_service_step_2(call: types.CallbackQuery):
 
     try:
         order = utils.place_paid_order(
-            chat_id=telegram_user.id, account_id=0, service_id=int(service_id)
+            chat_id=telegram_user.id,
+            account_id=int(account_id),
+            service_id=int(service_id),
         )
 
-        bot.edit_message_text(
-            text=messages.BUY_NEW_SERVICE_FINAL.format(
-                order.id, config.TELEGRAM_ADMIN_USER_NAME
-            ),
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
-            parse_mode="html",
-        )
-
-        # bot.send_message(
-        #     text=messages.NEW_ORDER_ADMIN_ALERT.format(
-        #         order.id, telegram_user.id, telegram_user.full_name, service.name
-        #     ),
-        #     chat_id=config.TELEGRAM_ADMIN_ID,
-        #     parse_mode="html",
-        # )
-
+        if int(account_id) > 0:
+            bot.edit_message_text(
+                text=messages.RECHARGE_SERVICE_FINAL.format(
+                    order.id, config.TELEGRAM_ADMIN_USER_NAME
+                ),
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
+                parse_mode="html",
+            )
+        else:
+            bot.edit_message_text(
+                text=messages.BUY_NEW_SERVICE_FINAL.format(
+                    order.id, config.TELEGRAM_ADMIN_USER_NAME
+                ),
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
+                parse_mode="html",
+            )
     except MaxOpenOrderError as error:
         bot.edit_message_text(
             message_id=call.message.message_id,
+            chat_id=call.message.chat.id,
             text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
                 total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
             ),
-            chat_id=config.TELEGRAM_ADMIN_ID,
             parse_mode="html",
         )
-
     except MaxPendingOrderError as error:
         bot.edit_message_text(
             message_id=call.message.message_id,
+            chat_id=call.message.chat.id,
             text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
                 total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
             ),
-            chat_id=config.TELEGRAM_ADMIN_ID,
             parse_mode="html",
         )
-
     except NoEnoughBalanceError as error:
-        balance = user.balance if user.balance else 0
+        balance = user.balance_readable if user.balance_readable else 0
         bot.edit_message_text(
             message_id=call.message.message_id,
+            chat_id=call.message.chat.id,
             text=messages.NEW_ORDER_NO_ENOUGH_BALANCE.format(
                 balance=balance, admin_id=config.TELEGRAM_ADMIN_USER_NAME
             ),
-            chat_id=config.TELEGRAM_ADMIN_ID,
             parse_mode="html",
         )
-    # except Int
 
     bot.answer_callback_query(callback_query_id=call.id)
 

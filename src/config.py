@@ -99,3 +99,13 @@ SYNC_ACCOUNTS_INTERVAL = config("SYNC_ACCOUNTS_INTERVAL", cast=int, default=60)
 SYNC_ACCOUNTS_TRAFFIC_INTERVAL = config(
     "SYNC_ACCOUNTS_TRAFFIC_INTERVAL", cast=int, default=3600
 )
+
+
+REFERRAL_BONUS_AMOUNT = config("REFERRAL_BONUS_AMOUNT", cast=int, default=1000)
+
+
+ENABLE_ORDER_JOBS = config("ENABLE_ORDER_JOBS", cast=bool, default=False)
+
+PROCESS_PAID_ORDERS_INTERVAL = config(
+    "PROCESS_PAID_ORDERS_INTERVAL", cast=int, default=60
+)

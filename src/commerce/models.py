@@ -125,3 +125,12 @@ class Service(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def price_readable(self):
+        if self.price and self.discount:
+            return f"<del>{self.price :,}</del> {self.price - self.discount :,}"
+        elif self.price:
+            return f"{self.price :,}"
+        else:
+            return 0

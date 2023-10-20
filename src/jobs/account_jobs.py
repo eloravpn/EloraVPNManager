@@ -14,8 +14,11 @@ from src.hosts.schemas import HostResponse
 from src.hosts.service import get_host
 from src.inbounds.service import get_inbounds
 from src.middleware.x_ui import XUI
+from src.notification.schemas import NotificationType, NotificationCreate
+from src.notification.service import create_notification
 from src.telegram import utils
 from src.telegram.user import messages, captions
+from src.users.models import User
 
 
 # from src.users.service import get_users
@@ -374,9 +377,20 @@ def review_accounts():
                     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
                         email=account.email,
                         due=captions.EXPIRE_TIME,
+                        user_markup=account.user.telegram_profile_full,
                         full_name=account.user.full_name,
                         telegram_user_name=telegram_user_name,
                     )
+                )
+
+                _send_notification(
+                    db=db,
+                    db_user=account.user,
+                    message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
+                        email=account.email,
+                        due=captions.EXPIRE_TIME,
+                    ),
+                    type_=NotificationType.account
                 )
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
@@ -393,9 +407,19 @@ def review_accounts():
                     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
                         email=account.email,
                         due=captions.EXCEEDED_DATA_LIMIT,
+                        user_markup=account.user.telegram_profile_full,
                         full_name=account.user.full_name,
                         telegram_user_name=telegram_user_name,
                     )
+                )
+                _send_notification(
+                    db=db,
+                    db_user=account.user,
+                    message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
+                        email=account.email,
+                        due=captions.EXCEEDED_DATA_LIMIT,
+                    ),
+                    type_=NotificationType.account
                 )
 
 
@@ -487,6 +511,21 @@ def remove_unused_test_accounts(last_days: int):
                     f" and email {db_account.email} and status {db_account.enable}"
                 )
                 delete_account(db=db, db_account=db_account)
+
+
+def _send_notification(
+    db, db_user: User, message: str, type_: NotificationType, level: int = 0
+):
+    create_notification(
+        db=db,
+        db_user=db_user,
+        notification=NotificationCreate(
+            approve=True,
+            message=message,
+            level=level,
+            type=type_,
+        ),
+    )
 
 
 # TODO: remove this func for prod
