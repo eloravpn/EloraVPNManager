@@ -106,7 +106,11 @@ def get_available_service():
     try:
         with GetDB() as db:
             return commerce_service.get_services(
-                db=db, limit=20, return_with_count=False, enable=1
+                db=db,
+                limit=20,
+                return_with_count=False,
+                enable=1,
+                sort=[commerce_service.ServiceSortingOptions["name"]],
             )
     except Exception as err:
         logger.error(err)
