@@ -96,9 +96,6 @@ class BotUserKeyboard:
         for available_service in available_services:
             name = available_service.name
 
-            traffic = available_service.data_limit
-            price = available_service.price
-
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=name,
