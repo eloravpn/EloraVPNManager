@@ -66,7 +66,6 @@ def create_account_used_traffic(
 def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.uuid = modify.uuid
     db_account.email = modify.email
-    # db_account.used_traffic = modify.used_traffic
     db_account.data_limit = modify.data_limit
     db_account.expired_at = modify.expired_at
     db_account.modified_at = datetime.datetime.utcnow()

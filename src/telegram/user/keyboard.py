@@ -90,7 +90,7 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
-    def available_services(available_services):
+    def available_services(available_services, account_id: int = 0):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
 
         for available_service in available_services:
@@ -102,7 +102,7 @@ class BotUserKeyboard:
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=name,
-                    callback_data=f"buy_service_step_1:{available_service.id}",
+                    callback_data=f"buy_service_step_1:{available_service.id}:{account_id}",
                 )
             )
 
@@ -121,17 +121,23 @@ class BotUserKeyboard:
             ),
         )
 
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text="🛍 تمدید سرویس", callback_data=f"recharge_service_1:{account_id}"
+            )
+        )
+
         return keyboard
 
     @staticmethod
-    def buy_service_step_1(service_id: int):
+    def buy_service_step_1(service_id: int, account_id: int = 0):
         keyboard = types.InlineKeyboardMarkup()
 
         keyboard.add(
             types.InlineKeyboardButton(text="❌ انصراف", callback_data=f"main_menu:"),
             types.InlineKeyboardButton(
-                text="✅ بله",
-                callback_data=f"buy_service_step_2:{service_id}",
+                text="✅ تایید و ادامه",
+                callback_data=f"buy_service_step_2:{service_id}:{account_id}",
             ),
         )
 
@@ -140,11 +146,6 @@ class BotUserKeyboard:
     @staticmethod
     def buy_service_step_2(data: str):
         keyboard = types.InlineKeyboardMarkup()
-
-        month = data.split(":")[1]
-        name = data.split(":")[2]
-        traffic = data.split(":")[3]
-        price = data.split(":")[4]
 
         keyboard.add(
             types.InlineKeyboardButton(
