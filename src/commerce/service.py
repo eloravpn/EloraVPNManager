@@ -57,6 +57,8 @@ ServiceSortingOptions = Enum(
         "-duration": Service.duration.desc(),
         "data_limit": Service.data_limit.asc(),
         "-data_limit": Service.data_limit.desc(),
+        "name": Service.name.asc(),
+        "-name": Service.name.desc(),
     },
 )
 
@@ -256,7 +258,7 @@ def get_services(
     db: Session,
     offset: Optional[int] = None,
     limit: Optional[int] = None,
-    sort: Optional[List[ServiceSortingOptions]] = [ServiceSortingOptions["-modified"]],
+    sort: Optional[List[ServiceSortingOptions]] = [ServiceSortingOptions["name"]],
     return_with_count: bool = True,
     enable: int = -1,
     q: str = None,
