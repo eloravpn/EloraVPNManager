@@ -390,7 +390,7 @@ def review_accounts():
                         email=account.email,
                         due=captions.EXPIRE_TIME,
                     ),
-                    type_=NotificationType.account
+                    type_=NotificationType.account,
                 )
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
@@ -419,7 +419,7 @@ def review_accounts():
                         email=account.email,
                         due=captions.EXCEEDED_DATA_LIMIT,
                     ),
-                    type_=NotificationType.account
+                    type_=NotificationType.account,
                 )
 
 
