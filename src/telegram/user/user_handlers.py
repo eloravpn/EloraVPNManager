@@ -124,6 +124,7 @@ def my_profile(message):
             balance=user.balance_readable if user.balance_readable else 0,
             admin_id=config.TELEGRAM_ADMIN_USER_NAME,
             referral_count=utils.get_user_referral_count(telegram_user=telegram_user),
+            bonus=config.REFERRAL_BONUS_AMOUNT,
         ),
         parse_mode="html",
     )
