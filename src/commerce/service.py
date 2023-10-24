@@ -29,6 +29,7 @@ from src.commerce.schemas import (
     OrderStatus,
     TransactionType,
 )
+from src.hosts.models import HostZone
 from src.messages import PAYMENT_METHODS
 from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
@@ -216,8 +217,9 @@ def get_transaction(db: Session, transaction_id: int):
 
 
 # Service CRUDs
-def create_service(db: Session, service: ServiceCreate):
+def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone = None):
     db_service = Service(
+        host_zone_id=0 if db_host_zone is None else db_host_zone.id,
         name=service.name,
         duration=service.duration,
         data_limit=service.data_limit,
@@ -234,6 +236,7 @@ def create_service(db: Session, service: ServiceCreate):
 
 
 def update_service(db: Session, db_service: Service, modify: ServiceCreate):
+    db_service.host_zone_id = modify.host_zone_id
     db_service.name = modify.name
     db_service.duration = modify.duration
     db_service.data_limit = modify.data_limit

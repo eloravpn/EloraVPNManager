@@ -13,6 +13,7 @@ class AccountUsedTrafficResponse(BaseModel):
 
 class AccountBase(BaseModel):
     user_id: int
+    host_zone_id: int
     # TODO: due to a circular import
     # user: Optional["UserResponse"]
     uuid: str = Field(default_factory=lambda: str(uuid4()))

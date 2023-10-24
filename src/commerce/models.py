@@ -113,6 +113,8 @@ class Service(Base):
     # Relations
 
     orders = relationship("Order", back_populates="service")
+    host_zone_id = Column(Integer, ForeignKey("host_zone.id"), nullable=False)
+    host_zone = relationship("HostZone", back_populates="services")
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(128), nullable=True)

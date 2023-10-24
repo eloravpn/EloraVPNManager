@@ -12,6 +12,7 @@ from src.accounts.schemas import (
     AccountModify,
     AccountUsedTrafficResponse,
 )
+from src.hosts.models import HostZone
 from src.notification.models import Notification
 from src.users.models import User
 
@@ -34,8 +35,11 @@ AccountSortingOptions = Enum(
 )
 
 
-def create_account(db: Session, db_user: User, account: AccountCreate):
+def create_account(
+    db: Session, db_user: User, account: AccountCreate, db_host_zone: HostZone = None
+):
     db_account = Account(
+        host_zone_id=0 if db_host_zone is None else db_host_zone.id,
         user_id=db_user.id,
         uuid=account.uuid,
         email=account.email,
@@ -65,6 +69,7 @@ def create_account_used_traffic(
 
 def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.uuid = modify.uuid
+    db_account.host_zone_id = modify.host_zone_id
     db_account.email = modify.email
     db_account.data_limit = modify.data_limit
     db_account.expired_at = modify.expired_at

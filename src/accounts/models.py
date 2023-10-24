@@ -22,6 +22,9 @@ class Account(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id"))
+    host_zone_id = Column(Integer, ForeignKey("host_zone.id"), nullable=False)
+    host_zone = relationship("HostZone", back_populates="accounts")
+
     user = relationship("User", back_populates="accounts")
     used_traffic_history = relationship(
         "AccountUsedTraffic", back_populates="account", cascade="all, delete-orphan"

@@ -80,6 +80,7 @@ class PaymentBase(PaymentBase):
 
 
 class ServiceBase(BaseModel):
+    host_zone_id: int
     name: str
     duration: int = 1
     data_limit: int = 0
