@@ -39,7 +39,7 @@ def create_account(
     db: Session, db_user: User, account: AccountCreate, db_host_zone: HostZone = None
 ):
     db_account = Account(
-        host_zone_id=0 if db_host_zone is None else db_host_zone.id,
+        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         user_id=db_user.id,
         uuid=account.uuid,
         email=account.email,

@@ -59,6 +59,7 @@ class Host(BaseModel):
 
 class HostResponse(Host):
     id: int
+    host_zone: HostZoneResponse
     created_at: datetime
     modified_at: datetime
 

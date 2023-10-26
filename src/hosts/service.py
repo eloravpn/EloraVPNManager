@@ -39,7 +39,7 @@ HostZoneSortingOptions = Enum(
 def create_host(db: Session, host: HostCreate, db_host_zone: HostZone = None):
     db_host = Host(
         name=host.name,
-        host_zone_id=0 if db_host_zone is None else db_host_zone.id,
+        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         domain=host.domain,
         port=host.port,
         ip=host.ip,
@@ -200,5 +200,5 @@ def remove_host_zone(db: Session, db_host_zone: HostZone):
     return db_host_zone
 
 
-def get_host_zone(db: Session, host_zone_id: int):
+def get_host_zone(db: Session, host_zone_id: int) -> HostZone:
     return db.query(HostZone).filter(HostZone.id == host_zone_id).first()

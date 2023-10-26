@@ -219,7 +219,7 @@ def get_transaction(db: Session, transaction_id: int):
 # Service CRUDs
 def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone = None):
     db_service = Service(
-        host_zone_id=0 if db_host_zone is None else db_host_zone.id,
+        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         name=service.name,
         duration=service.duration,
         data_limit=service.data_limit,

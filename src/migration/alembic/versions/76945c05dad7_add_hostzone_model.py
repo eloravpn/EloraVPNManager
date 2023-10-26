@@ -5,9 +5,10 @@ Revises: 9b69e8d4688e
 Create Date: 2023-10-24 19:49:01.998811
 
 """
+import datetime
+
 from alembic import op
 import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = "76945c05dad7"
@@ -42,28 +43,30 @@ def upgrade() -> None:
         host_zone_table,
         [
             {
-                "id": 0,
+                "id": 1,
                 "name": "Default Host Zone",
                 "description": "Default Host Zone",
                 "max_account": 0,
                 "enable": True,
+                "created_at": datetime.datetime.utcnow(),
+                "modified_at": datetime.datetime.utcnow(),
             }
         ],
     )
 
     op.add_column(
         "account",
-        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(0)),
+        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(1)),
     )
     op.create_foreign_key(None, "account", "host_zone", ["host_zone_id"], ["id"])
     op.add_column(
         "host",
-        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(0)),
+        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(1)),
     )
     op.create_foreign_key(None, "host", "host_zone", ["host_zone_id"], ["id"])
     op.add_column(
         "service",
-        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(0)),
+        sa.Column("host_zone_id", sa.Integer(), nullable=False, server_default=str(1)),
     )
     op.create_foreign_key(None, "service", "host_zone", ["host_zone_id"], ["id"])
     # ### end Alembic commands ###
