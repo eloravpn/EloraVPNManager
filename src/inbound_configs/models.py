@@ -33,6 +33,9 @@ class InboundConfig(Base):
     sni = Column(String(128), index=True)
     address = Column(String(128), index=True)
     path = Column(String(400))
+    pbk = Column(String(400))
+    sid = Column(String(400))
+    spx = Column(String(400))
     enable = Column(Boolean, default=True)
     develop = Column(Boolean, default=False)
 

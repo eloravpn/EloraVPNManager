@@ -254,3 +254,7 @@ def remove_account(db: Session, db_account: Account):
 
 def get_account(db: Session, account_id: int):
     return db.query(Account).filter(Account.id == account_id).first()
+
+
+def get_account_by_uuid(db: Session, uuid: str) -> Account:
+    return db.query(Account).filter(Account.uuid == uuid).first()

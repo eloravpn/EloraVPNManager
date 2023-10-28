@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, validator
 
@@ -21,6 +21,9 @@ class InboundConfigBase(BaseModel):
     sni: str
     address: str
     path: str
+    pbk: Optional[str]
+    sid: Optional[str]
+    spx: Optional[str]
     enable: bool
     develop: bool
     network: InboundNetwork = InboundNetwork.ws

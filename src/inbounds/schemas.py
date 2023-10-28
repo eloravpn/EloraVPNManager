@@ -21,11 +21,13 @@ class InboundSecurity(str, Enum):
 
     none = "none"
     tls = "tls"
+    reality = "reality"
 
 
 class InboundNetwork(str, Enum):
     ws = "ws"
     tcp = "tcp"
+    grpc = "grpc"
 
 
 class InboundFingerPrint(str, Enum):
