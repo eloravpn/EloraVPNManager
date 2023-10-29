@@ -51,7 +51,12 @@ def modify_host(
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
 
-    return service.update_host(db=db, db_host=db_host, modify=host)
+    try:
+        db_host = service.update_host(db=db, db_host=db_host, modify=host)
+    except IntegrityError as error:
+        raise HTTPException(status_code=409, detail="Host already exists")
+
+    return db_host
 
 
 @router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)

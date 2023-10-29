@@ -44,13 +44,22 @@ def upgrade() -> None:
         [
             {
                 "id": 1,
-                "name": "Default Host Zone",
-                "description": "Default Host Zone",
-                "max_account": 0,
+                "name": "Traffic Limited Zone",
+                "description": "Traffic Limited Zone",
+                "max_account": 200,
                 "enable": True,
                 "created_at": datetime.datetime.utcnow(),
                 "modified_at": datetime.datetime.utcnow(),
-            }
+            },
+            {
+                "id": 2,
+                "name": "Unlimited Zone",
+                "description": "Unlimited Zone",
+                "max_account": 200,
+                "enable": True,
+                "created_at": datetime.datetime.utcnow(),
+                "modified_at": datetime.datetime.utcnow(),
+            },
         ],
     )
 

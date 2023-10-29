@@ -34,6 +34,7 @@ def sub(
         if (
             inbound_config.enable
             and inbound_config.inbound.enable
+            and inbound_config.inbound.host.enable
             and (inbound_config.develop is not True or develop is True)
         ):
             link = xray.generate_vless_config(
