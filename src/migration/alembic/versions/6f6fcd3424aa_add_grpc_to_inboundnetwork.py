@@ -1,40 +1,38 @@
-"""Add commerce types to notificationtype
+"""Add gRPC to InboundNetwork
 
-Revision ID: c639b45954ac
-Revises: 42f7b8e1a7af
-Create Date: 2023-10-17 20:38:30.870588
+Revision ID: 6f6fcd3424aa
+Revises: 1d0e2502f045
+Create Date: 2023-10-27 15:56:31.716036
 
 """
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
-revision = "c639b45954ac"
-down_revision = "42f7b8e1a7af"
+revision = "6f6fcd3424aa"
+down_revision = "1d0e2502f045"
 branch_labels = None
 depends_on = None
 
 # Describing of enum
-enum_name = "notificationtype"
+enum_name = "inboundnetwork"
 temp_enum_name = f"temp_{enum_name}"
-old_values = ("used_traffic", "expire_time")
-new_values = ("payment", "order", "transaction", "general", "account", *old_values)
-downgrade_to = ("used_traffic", "expire_time")  # on downgrade convert [0] to [1]
+old_values = ("tcp", "ws")
+new_values = ("grpc", *old_values)
+downgrade_to = ("ws", "tcp")  # on downgrade convert [0] to [1]
 old_type = sa.Enum(*old_values, name=enum_name)
 new_type = sa.Enum(*new_values, name=enum_name)
 temp_type = sa.Enum(*new_values, name=temp_enum_name)
 
-
 # Describing of table
-table_name = "notification"
-column_name = "type"
-temp_table = sa.sql.table(table_name, sa.Column(column_name, new_type, nullable=False))
+table_name = "inbound_config"
+column_name = "network"
 
 
 def upgrade() -> None:
     # temp type to use instead of old one
     temp_type.create(op.get_bind(), checkfirst=False)
+    op.execute("ALTER TABLE inbound_config ALTER COLUMN network DROP DEFAULT")
 
     # changing of column type from old enum to new one.
     # SQLite will create temp table for this

@@ -29,6 +29,7 @@ from src.commerce.schemas import (
     OrderStatus,
     TransactionType,
 )
+from src.hosts.models import HostZone
 from src.messages import PAYMENT_METHODS
 from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
@@ -216,11 +217,13 @@ def get_transaction(db: Session, transaction_id: int):
 
 
 # Service CRUDs
-def create_service(db: Session, service: ServiceCreate):
+def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone = None):
     db_service = Service(
+        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         name=service.name,
         duration=service.duration,
         data_limit=service.data_limit,
+        ip_limit=service.ip_limit,
         price=service.price,
         discount=service.discount,
         enable=service.enable,
@@ -234,9 +237,11 @@ def create_service(db: Session, service: ServiceCreate):
 
 
 def update_service(db: Session, db_service: Service, modify: ServiceCreate):
+    db_service.host_zone_id = modify.host_zone_id
     db_service.name = modify.name
     db_service.duration = modify.duration
     db_service.data_limit = modify.data_limit
+    db_service.ip_limit = modify.ip_limit
     db_service.price = modify.price
     db_service.discount = modify.discount
     db_service.enable = modify.enable
@@ -301,6 +306,7 @@ def create_order(
             status=order.status,
             duration=db_service.duration,
             data_limit=db_service.data_limit,
+            ip_limit=order.ip_limit,
             total=db_service.price,
             total_discount_amount=db_service.discount,
         )
@@ -312,6 +318,7 @@ def create_order(
             status=order.status,
             duration=order.duration,
             data_limit=order.data_limit,
+            ip_limit=order.ip_limit,
             total=order.total,
             total_discount_amount=order.total_discount_amount,
         )
@@ -337,6 +344,7 @@ def update_order(db: Session, db_order: Order, modify: OrderModify):
     db_order.account_id = modify.account_id
     db_order.duration = modify.duration
     db_order.data_limit = modify.data_limit
+    db_order.ip_limit = modify.ip_limit
     db_order.total = modify.total
     db_order.total_discount_amount = modify.total_discount_amount
 

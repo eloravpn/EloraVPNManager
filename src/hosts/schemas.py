@@ -11,7 +11,40 @@ class HostType(str, Enum):
     x_ui_kafka = "X-UI-FRANZKAFKAYU"
 
 
+class HostZoneBase(BaseModel):
+    name: str
+    description: str
+    max_account: int
+    enable: bool
+
+
+class HostZoneCreate(HostZoneBase):
+    pass
+
+
+class HostZoneModify(HostZoneBase):
+    id: int
+
+
+class HostZoneResponse(HostZoneBase):
+    id: int
+    created_at: datetime
+    modified_at: datetime
+
+    def dict(cls, *args, **kwargs):
+        return super().dict(*args, **kwargs)
+
+    class Config:
+        orm_mode = True
+
+
+class HostZonesResponse(BaseModel):
+    host_zones: List[HostZoneResponse]
+    total: int
+
+
 class Host(BaseModel):
+    host_zone_id: int
     name: str
     domain: str
     port: int
@@ -26,6 +59,7 @@ class Host(BaseModel):
 
 class HostResponse(Host):
     id: int
+    host_zone: HostZoneResponse
     created_at: datetime
     modified_at: datetime
 

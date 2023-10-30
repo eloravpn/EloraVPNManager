@@ -18,6 +18,7 @@ from src.accounts.schemas import (
 )
 from src.admins.schemas import Admin
 from src.database import get_db
+from src.hosts.service import get_host_zone
 
 router = APIRouter()
 
@@ -99,11 +100,17 @@ def add_account(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    logger.info(f"Account expired at {account.expired_at}")
-    logger.info(f"Account data limit  {account.data_limit}")
+    db_host_zone = get_host_zone(db, host_zone_id=account.host_zone_id)
+    if not db_host_zone:
+        raise HTTPException(
+            status_code=404,
+            detail="Hose Zone not found with id " + account.host_zone_id,
+        )
 
     try:
-        db_account = service.create_account(db=db, db_user=db_user, account=account)
+        db_account = service.create_account(
+            db=db, db_user=db_user, account=account, db_host_zone=db_host_zone.id
+        )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Account already exists")
 

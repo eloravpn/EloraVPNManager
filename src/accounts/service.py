@@ -12,6 +12,7 @@ from src.accounts.schemas import (
     AccountModify,
     AccountUsedTrafficResponse,
 )
+from src.hosts.models import HostZone
 from src.notification.models import Notification
 from src.users.models import User
 
@@ -34,11 +35,15 @@ AccountSortingOptions = Enum(
 )
 
 
-def create_account(db: Session, db_user: User, account: AccountCreate):
+def create_account(
+    db: Session, db_user: User, account: AccountCreate, db_host_zone: HostZone = None
+):
     db_account = Account(
+        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         user_id=db_user.id,
         uuid=account.uuid,
         email=account.email,
+        ip_limit=account.ip_limit,
         data_limit=account.data_limit,
         expired_at=account.expired_at,
         enable=account.enable,
@@ -65,8 +70,10 @@ def create_account_used_traffic(
 
 def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.uuid = modify.uuid
+    db_account.host_zone_id = modify.host_zone_id
     db_account.email = modify.email
     db_account.data_limit = modify.data_limit
+    db_account.ip_limit = modify.ip_limit
     db_account.expired_at = modify.expired_at
     db_account.modified_at = datetime.datetime.utcnow()
 
@@ -249,3 +256,7 @@ def remove_account(db: Session, db_account: Account):
 
 def get_account(db: Session, account_id: int):
     return db.query(Account).filter(Account.id == account_id).first()
+
+
+def get_account_by_uuid(db: Session, uuid: str) -> Account:
+    return db.query(Account).filter(Account.uuid == uuid).first()

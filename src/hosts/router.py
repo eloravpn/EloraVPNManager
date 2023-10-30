@@ -7,7 +7,13 @@ from sqlalchemy.orm import Session
 
 from src.admins.schemas import Admin
 from src.database import get_db, Base, engine
-from src.hosts.schemas import HostCreate, HostResponse, HostsResponse, HostModify
+from src.hosts.schemas import (
+    HostCreate,
+    HostResponse,
+    HostsResponse,
+    HostModify,
+    HostZonesResponse,
+)
 import src.hosts.service as service
 
 router = APIRouter()
@@ -19,8 +25,15 @@ def add_host(
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
+    db_host_zone = service.get_host_zone(db, host.host_zone_id)
+    if not db_host_zone:
+        raise HTTPException(
+            status_code=404,
+            detail="Hose Zone not found with id " + host.host_zone_id,
+        )
+
     try:
-        db_host = service.create_host(db=db, host=host)
+        db_host = service.create_host(db=db, db_host_zone=db_host_zone, host=host)
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Host already exists")
 
@@ -38,7 +51,12 @@ def modify_host(
     if not db_host:
         raise HTTPException(status_code=404, detail="Host not found")
 
-    return service.update_host(db=db, db_host=db_host, modify=host)
+    try:
+        db_host = service.update_host(db=db, db_host=db_host, modify=host)
+    except IntegrityError as error:
+        raise HTTPException(status_code=409, detail="Host already exists")
+
+    return db_host
 
 
 @router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
@@ -94,3 +112,31 @@ def get_hosts(
     )
 
     return {"hosts": hosts, "total": count}
+
+
+@router.get("/host-zones/", tags=["HostZone"], response_model=HostZonesResponse)
+def get_host_zones(
+    offset: int = None,
+    limit: int = None,
+    sort: str = None,
+    enable: int = -1,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    if sort is not None:
+        opts = sort.strip(",").split(",")
+        sort = []
+        for opt in opts:
+            try:
+                sort.append(service.HostZoneSortingOptions[opt])
+            except KeyError:
+                raise HTTPException(
+                    status_code=400, detail=f'"{opt}" is not a valid sort option'
+                )
+
+    host_zones, count = service.get_host_zones(
+        db=db, offset=offset, limit=limit, enable=enable, q=q, sort=sort
+    )
+
+    return {"host_zones": host_zones, "total": count}

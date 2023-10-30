@@ -4,6 +4,7 @@ from typing import List, Tuple, Optional
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from src.hosts.models import HostZone, Host
 from src.inbound_configs.models import InboundConfig
 from src.inbound_configs.schemas import InboundConfigCreate, InboundConfigModify
 from src.inbounds.models import Inbound
@@ -40,6 +41,9 @@ def create_inbound_config(
         finger_print=inbound_config.finger_print,
         address=inbound_config.address,
         path=inbound_config.path,
+        spx=db_inbound_config.spx,
+        sid=db_inbound_config.sid,
+        pbk=db_inbound_config.pbk,
         enable=inbound_config.enable,
         develop=inbound_config.develop,
         security=inbound_config.security,
@@ -64,6 +68,9 @@ def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
         finger_print=db_inbound_config.finger_print,
         address=db_inbound_config.address,
         path=db_inbound_config.path,
+        spx=db_inbound_config.spx,
+        sid=db_inbound_config.sid,
+        pbk=db_inbound_config.pbk,
         enable=db_inbound_config.enable,
         develop=True,
         security=db_inbound_config.security,
@@ -87,6 +94,9 @@ def update_inbound_config(
     db_inbound_config.sni = modify.sni
     db_inbound_config.address = modify.address
     db_inbound_config.path = modify.path
+    db_inbound_config.sid = modify.sid
+    db_inbound_config.pbk = modify.pbk
+    db_inbound_config.spx = modify.spx
     db_inbound_config.finger_print = modify.finger_print
     db_inbound_config.enable = modify.enable
     db_inbound_config.develop = modify.develop
@@ -110,6 +120,7 @@ def get_inbound_configs(
     q: str = None,
     enable: int = -1,
     inbound_id: int = 0,
+    host_zone_id: int = 0,
     return_with_count: bool = True,
 ) -> Tuple[List[InboundConfig], int]:
     query = db.query(InboundConfig)
@@ -130,6 +141,12 @@ def get_inbound_configs(
                 InboundConfig.sni.ilike(f"%{q}%"),
             )
         )
+
+    if host_zone_id > 0:
+        query = query.join(Inbound, Inbound.id == InboundConfig.inbound_id)
+        query = query.join(Host, Host.id == Inbound.host_id)
+        query = query.join(HostZone, HostZone.id == Host.host_zone_id)
+        query = query.filter(HostZone.id == host_zone_id)
 
     if sort:
         query = query.order_by(*(opt.value for opt in sort))

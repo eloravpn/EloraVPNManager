@@ -22,6 +22,9 @@ class Account(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id"))
+    host_zone_id = Column(Integer, ForeignKey("host_zone.id"), nullable=False)
+    host_zone = relationship("HostZone", back_populates="accounts")
+
     user = relationship("User", back_populates="accounts")
     used_traffic_history = relationship(
         "AccountUsedTraffic", back_populates="account", cascade="all, delete-orphan"
@@ -33,6 +36,7 @@ class Account(Base):
     uuid = Column(String(128), index=True, unique=True, nullable=False)
     email = Column(String(128), index=True, unique=True, nullable=False)
     enable = Column(Boolean, default=True)
+    ip_limit = Column(Integer, default=0)
     used_traffic = Column(BigInteger, default=0)
     data_limit = Column(BigInteger, nullable=True)
 

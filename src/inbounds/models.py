@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from src.database import Base
-from src.inbounds.schemas import InboundSecurity, InboundType
+from src.inbounds.schemas import InboundSecurity, InboundType, InboundFlow
 
 
 class Inbound(Base):
@@ -42,6 +42,12 @@ class Inbound(Base):
         unique=False,
         nullable=False,
         default=InboundSecurity.default.value,
+    )
+
+    flow = Column(
+        Enum(InboundFlow, native_enum=False, validate_strings=False),
+        unique=False,
+        nullable=True,
     )
 
     type = Column(Enum(InboundType), nullable=False, default=InboundType.default.value)

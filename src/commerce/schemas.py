@@ -80,9 +80,11 @@ class PaymentBase(PaymentBase):
 
 
 class ServiceBase(BaseModel):
+    host_zone_id: int
     name: str
     duration: int = 1
     data_limit: int = 0
+    ip_limit: Optional[int] = 0
     price: int = 0
     discount: int = 0
     enable: bool = True
@@ -119,6 +121,7 @@ class OrderBase(BaseModel):
     service_id: Optional[int] = None
     duration: Optional[int] = None
     data_limit: Optional[int] = None
+    ip_limit: Optional[int] = 0
     total: Optional[int] = None
     total_discount_amount: Optional[int] = None
 
