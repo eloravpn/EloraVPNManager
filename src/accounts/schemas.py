@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, validator, Field
@@ -17,6 +17,7 @@ class AccountBase(BaseModel):
     # TODO: due to a circular import
     # user: Optional["UserResponse"]
     uuid: str = Field(default_factory=lambda: str(uuid4()))
+    ip_limit: Optional[int] = 0
     data_limit: int
     email: str
     enable: bool

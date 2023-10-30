@@ -43,6 +43,7 @@ def create_account(
         user_id=db_user.id,
         uuid=account.uuid,
         email=account.email,
+        ip_limit=account.ip_limit,
         data_limit=account.data_limit,
         expired_at=account.expired_at,
         enable=account.enable,
@@ -72,6 +73,7 @@ def update_account(db: Session, db_account: Account, modify: AccountModify):
     db_account.host_zone_id = modify.host_zone_id
     db_account.email = modify.email
     db_account.data_limit = modify.data_limit
+    db_account.ip_limit = modify.ip_limit
     db_account.expired_at = modify.expired_at
     db_account.modified_at = datetime.datetime.utcnow()
 

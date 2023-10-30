@@ -97,6 +97,7 @@ class Order(Base):
 
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.open)
 
+    ip_limit = Column(Integer, default=0)
     duration = Column(Integer, default=1)
     data_limit = Column(BigInteger, nullable=True)
 
@@ -121,6 +122,7 @@ class Service(Base):
 
     duration = Column(Integer, default=1)
     data_limit = Column(BigInteger, nullable=True)
+    ip_limit = Column(Integer, default=0)
     price = Column(BigInteger, default=0)
     discount = Column(Integer, default=0)
     enable = Column(Boolean, default=True, nullable=False)

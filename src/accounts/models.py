@@ -36,6 +36,7 @@ class Account(Base):
     uuid = Column(String(128), index=True, unique=True, nullable=False)
     email = Column(String(128), index=True, unique=True, nullable=False)
     enable = Column(Boolean, default=True)
+    ip_limit = Column(Integer, default=0)
     used_traffic = Column(BigInteger, default=0)
     data_limit = Column(BigInteger, nullable=True)
 
