@@ -101,6 +101,8 @@ class MHSANAEI:
         uuid: str,
         data_limit: int = 0,
         expire_time: int = 0,
+        ip_limit: int = 0,
+        flow: str = "",
         enable: bool = True,
     ):
         headers = {"Content-type": "application/json", "Accept": "text/plain"}
@@ -110,7 +112,14 @@ class MHSANAEI:
         logger.debug(f"Final url fro add client is: {url}")
 
         payload_add_client = MHSANAEI.get_client_payload(
-            data_limit, email, enable, expire_time, inbound_id, uuid
+            data_limit,
+            email,
+            enable,
+            expire_time,
+            inbound_id,
+            uuid,
+            ip_limit=ip_limit,
+            flow=flow,
         )
 
         logger.debug(f"Final payload to add client is: {payload_add_client}")
@@ -178,6 +187,8 @@ class MHSANAEI:
         expire_time: int,
         inbound_id: int,
         uuid: str,
+        ip_limit: int = 0,
+        flow: str = "",
     ) -> object:
         """
         :param data_limit Data Limit
@@ -185,9 +196,10 @@ class MHSANAEI:
         """
         client = {
             "id": uuid,
+            "flow": flow,
             "alterId": 0,
             "email": email,
-            "limitIp": 0,
+            "limitIp": ip_limit,
             "totalGB": data_limit,
             "expiryTime": expire_time,
             "enable": enable,

@@ -41,6 +41,7 @@ def create_inbound(db: Session, db_host: Host, inbound: InboundCreate):
         enable=inbound.enable,
         develop=inbound.develop,
         security=inbound.security,
+        flow=inbound.flow,
         type=inbound.type,
     )
 
@@ -62,6 +63,7 @@ def update_inbound(db: Session, db_inbound: Inbound, modify: InboundModify):
     db_inbound.enable = modify.enable
     db_inbound.develop = modify.develop
     db_inbound.security = modify.security
+    db_inbound.flow = modify.flow
     db_inbound.type = modify.type
 
     db.commit()
