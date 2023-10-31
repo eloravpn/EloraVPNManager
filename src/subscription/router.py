@@ -50,6 +50,9 @@ def sub(
                 sid=inbound_config.sid,
                 pbk=inbound_config.pbk,
                 spx=inbound_config.spx,
+                flow=inbound_config.inbound.flow.value
+                if inbound_config.inbound.flow
+                else None,
                 remark=inbound_config.remark,
             )
             rows.append(link)
