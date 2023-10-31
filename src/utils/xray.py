@@ -16,6 +16,7 @@ def generate_vless_config(
     sid: str,
     spx: str,
     pbk: str,
+    flow: str,
     network_type: str = "ws",
 ):
     alpn = "h2,http/1.1,h3"
@@ -35,6 +36,9 @@ def generate_vless_config(
 
     if host:
         postfix_list.append("host=%s" % host)
+
+    if flow:
+        postfix_list.append("flow=%s" % flow)
 
     if security == InboundSecurity.reality.value:
         if sid:

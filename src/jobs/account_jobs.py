@@ -164,13 +164,13 @@ def get_account_email_prefix(host_id: int, inbound_key: int, email: str):
 
 
 def delete_client_in_all_inbounds(db, db_account: Account):
-    inbounds, count = get_inbounds(db=db)
+    inbounds, count = get_inbounds(db=db, enable=1)
     for inbound in inbounds:
         logger.info(f"Inbound Remark: {inbound.remark}")
         logger.info(f"Inbound Id: {inbound.id}")
         logger.info(f"Inbound host ID: {inbound.host_id}")
 
-        if not inbound.enable:
+        if not inbound.enable or not inbound.host.enable:
             logger.info("Skip this inbound because it is disabled.")
             continue
 
@@ -204,13 +204,13 @@ def delete_client_in_all_inbounds(db, db_account: Account):
 
 
 def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False):
-    inbounds, count = get_inbounds(db=db)
+    inbounds, count = get_inbounds(db=db, enable=1)
     for inbound in inbounds:
         logger.info(f"Inbound Remark: {inbound.remark}")
         logger.info(f"Inbound Id: {inbound.id}")
         logger.info(f"Inbound host ID: {inbound.host_id}")
 
-        if not inbound.enable:
+        if not inbound.enable or not inbound.host.enable:
             logger.info("Skip this inbound because it is disabled.")
             continue
 
@@ -245,16 +245,16 @@ def sync_new_accounts():
     with GetDB() as db:
         print("Start syncing new accounts in all inbounds " + str(datetime.now()))
 
-        inbounds, count = get_inbounds(db=db)
+        inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
             logger.info(f"Inbound Remark: {inbound.remark}")
             logger.info(f"Inbound host ID: {inbound.host_id}")
 
-            if not inbound.enable:
+            if not inbound.enable or not inbound.host.enable:
                 logger.info("Skip this inbound because it is disabled.")
                 continue
 
-            host = get_host(db, inbound.host_id)
+            host = get_host(db, host_id=inbound.host_id)
 
             xui = XUI(host=HostResponse.from_orm(host))
 
@@ -284,6 +284,8 @@ def sync_new_accounts():
                         inbound_id=inbound.key,
                         email=account_unique_email,
                         uuid=account.uuid,
+                        flow=inbound.flow.value if inbound.flow else "",
+                        ip_limit=account.ip_limit,
                     )
 
 
@@ -291,7 +293,7 @@ def sync_accounts_traffic():
     with GetDB() as db:
         print("Start syncing accounts traffic from all inbounds " + str(datetime.now()))
 
-        inbounds, count = get_inbounds(db=db)
+        inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
             logger.info(f"Inbound Remark: {inbound.remark}")
             logger.info(f"Inbound host ID: {inbound.host_id}")
@@ -594,6 +596,7 @@ if config.ENABLE_SYNC_ACCOUNTS:
         trigger="interval",
         seconds=config.SYNC_ACCOUNTS_INTERVAL,
     )
+
     scheduler.add_job(
         func=sync_accounts_traffic,
         max_instances=1,

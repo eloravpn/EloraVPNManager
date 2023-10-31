@@ -109,7 +109,7 @@ def add_account(
 
     try:
         db_account = service.create_account(
-            db=db, db_user=db_user, account=account, db_host_zone=db_host_zone.id
+            db=db, db_user=db_user, account=account, db_host_zone=db_host_zone
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Account already exists")

@@ -51,6 +51,7 @@ def modify_inbound_config(
     admin: Admin = Depends(Admin.get_current),
 ):
     db_inbound_config = service.get_inbound_config(db, inbound_config_id)
+
     if not db_inbound_config:
         raise HTTPException(status_code=404, detail="Inbound Config not found")
 

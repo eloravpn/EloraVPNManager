@@ -23,9 +23,11 @@ class MHSANAEI:
         self._login_cookies = self._get_login_cookie()
 
     def _generate_base_url(self, ssl: bool = False, api_path: str = ""):
+        address = self._host.ip if self._host.domain is None else self._host.domain
+
         return "%s://%s:%s%s" % (
             "https" if ssl else "http",
-            self._host.ip,
+            address,
             self._host.port,
             api_path,
         )
