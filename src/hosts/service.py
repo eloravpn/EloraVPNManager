@@ -148,7 +148,6 @@ def update_host_zone(db: Session, db_host_zone: HostZone, modify: HostZoneModify
     db_host_zone.description = modify.description
     db_host_zone.max_account = modify.max_account
     db_host_zone.enable = modify.enable
-    db_host_zone.type = modify.type
 
     db.commit()
     db.refresh(db_host_zone)

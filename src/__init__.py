@@ -10,7 +10,8 @@ from src.accounts.router import router as account_router
 from src.admins.router import router as admin_router
 from src.config import DOCS, DEBUG
 from src.database import Base, engine
-from src.hosts.router import router as host_router
+from src.hosts.router import host_router as host_router
+from src.hosts.router import host_zone_router as host_zone_router
 from src.inbound_configs.router import router as inbound_config_router
 from src.inbounds.router import router as inbound_router
 from src.users.router import router as user_router
@@ -62,6 +63,7 @@ app.add_middleware(
 
 app.include_router(subscription_router, prefix="/api", tags=["Subscription"])
 app.include_router(host_router, prefix="/api", tags=["Host"])
+app.include_router(host_zone_router, prefix="/api", tags=["HostZone"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(account_router, prefix="/api", tags=["Account"])
