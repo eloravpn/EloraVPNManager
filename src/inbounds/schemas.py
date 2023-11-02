@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, validator, root_validator
@@ -38,7 +38,7 @@ class InboundFingerPrint(str, Enum):
     firefox = "firefox"
 
 
-class InboundFlow(StrEnum):
+class InboundFlow(str, Enum):
     xtls_rprx_vision = "xtls-rprx-vision"
     xtls_rprx_vision_udp443 = "xtls-rprx-vision-udp443"
 

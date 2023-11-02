@@ -43,7 +43,6 @@ def upgrade() -> None:
         host_zone_table,
         [
             {
-                "id": 1,
                 "name": "Traffic Limited Zone",
                 "description": "Traffic Limited Zone",
                 "max_account": 200,
@@ -52,7 +51,6 @@ def upgrade() -> None:
                 "modified_at": datetime.datetime.utcnow(),
             },
             {
-                "id": 2,
                 "name": "Unlimited Zone",
                 "description": "Unlimited Zone",
                 "max_account": 200,

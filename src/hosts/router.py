@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from apscheduler.jobstores import sqlalchemy
@@ -13,13 +14,17 @@ from src.hosts.schemas import (
     HostsResponse,
     HostModify,
     HostZonesResponse,
+    HostZoneResponse,
+    HostZoneCreate,
+    HostZoneModify,
 )
 import src.hosts.service as service
 
-router = APIRouter()
+host_router = APIRouter()
+host_zone_router = APIRouter()
 
 
-@router.post("/hosts/", response_model=HostResponse)
+@host_router.post("/hosts/", tags=["Host"], response_model=HostResponse)
 def add_host(
     host: HostCreate,
     db: Session = Depends(get_db),
@@ -40,7 +45,7 @@ def add_host(
     return db_host
 
 
-@router.put("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
+@host_router.put("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
 def modify_host(
     host_id: int,
     host: HostModify,
@@ -59,7 +64,7 @@ def modify_host(
     return db_host
 
 
-@router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
+@host_router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
 def get_host(
     host_id: int,
     db: Session = Depends(get_db),
@@ -72,7 +77,7 @@ def get_host(
     return db_host
 
 
-@router.delete("/hosts/{host_id}", tags=["Host"])
+@host_router.delete("/hosts/{host_id}", tags=["Host"])
 def get_host(
     host_id: int,
     db: Session = Depends(get_db),
@@ -86,7 +91,7 @@ def get_host(
     return {}
 
 
-@router.get("/hosts/", tags=["Host"], response_model=HostsResponse)
+@host_router.get("/hosts/", tags=["Host"], response_model=HostsResponse)
 def get_hosts(
     offset: int = None,
     limit: int = None,
@@ -114,7 +119,62 @@ def get_hosts(
     return {"hosts": hosts, "total": count}
 
 
-@router.get("/host-zones/", tags=["HostZone"], response_model=HostZonesResponse)
+@host_zone_router.post(
+    "/host-zones/", tags=["HostZone"], response_model=HostZoneResponse
+)
+def add_host(
+    host_zone: HostZoneCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    try:
+        db_host_zone = service.create_host_zone(db=db, host_zone=host_zone)
+    except IntegrityError as Error:
+        raise HTTPException(status_code=409, detail="Database Error")
+
+    return db_host_zone
+
+
+@host_zone_router.put(
+    "/host-zones/{host_zone_id}", tags=["HostZone"], response_model=HostZoneResponse
+)
+def modify_host(
+    host_zone_id: int,
+    host_zone: HostZoneModify,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_host_zone = service.get_host_zone(db, host_zone_id)
+    if not db_host_zone:
+        raise HTTPException(status_code=404, detail="Host Zone not found")
+
+    try:
+        db_host_zone = service.update_host_zone(
+            db=db, db_host_zone=db_host_zone, modify=host_zone
+        )
+    except IntegrityError as error:
+        raise HTTPException(status_code=409, detail="Database Error")
+
+    return db_host_zone
+
+
+@host_zone_router.delete("/host-zones/{host_zone_id}", tags=["HostZone"])
+def get_host(
+    host_zone_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_host_zone = service.get_host_zone(db, host_zone_id)
+    if not db_host_zone:
+        raise HTTPException(status_code=404, detail="Host Zone not found")
+
+    service.remove_host_zone(db=db, db_host_zone=db_host_zone)
+    return {}
+
+
+@host_zone_router.get(
+    "/host-zones/", tags=["HostZone"], response_model=HostZonesResponse
+)
 def get_host_zones(
     offset: int = None,
     limit: int = None,
