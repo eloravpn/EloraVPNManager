@@ -36,6 +36,7 @@ def generate_vless_config(
 
     if host:
         postfix_list.append("host=%s" % host)
+        postfix_list.append("headerType=%s" % "http")
 
     if flow:
         postfix_list.append("flow=%s" % flow)
