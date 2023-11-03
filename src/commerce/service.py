@@ -303,6 +303,7 @@ def create_order(
             user_id=db_user.id,
             account_id=None if db_account is None else db_account.id,
             service_id=db_service.id,
+            host_zone_id=db_service.host_zone_id,
             status=order.status,
             duration=db_service.duration,
             data_limit=db_service.data_limit,

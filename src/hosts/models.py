@@ -49,6 +49,7 @@ class HostZone(Base):
     )
     accounts = relationship("Account", back_populates="host_zone")
     services = relationship("Service", back_populates="host_zone")
+    orders = relationship("Order", back_populates="host_zone")
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(128), index=True)
