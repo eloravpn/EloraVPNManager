@@ -242,6 +242,7 @@ def add_test_account(user_id: int):
         db_user = user_service.get_user(db=db, user_id=user_id)
 
         account = AccountCreate(
+            host_zone_id=config.TEST_ACCOUNT_HOST_ZONE_ID,
             user_id=db_user.id,
             data_limit=config.TEST_ACCOUNT_DATA_LIMIT,
             email=config.TEST_ACCOUNT_EMAIL_PREFIX + get_random_string(8),
