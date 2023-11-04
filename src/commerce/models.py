@@ -85,7 +85,9 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="orders")
 
-    host_zone_id = Column(Integer, ForeignKey("host_zone.id"), nullable=False, server_default=str(1))
+    host_zone_id = Column(
+        Integer, ForeignKey("host_zone.id"), nullable=False, server_default=str(1)
+    )
     host_zone = relationship("HostZone", back_populates="orders")
 
     account_id = Column(Integer, ForeignKey("account.id"), nullable=True)

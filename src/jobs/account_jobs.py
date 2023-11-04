@@ -389,7 +389,7 @@ def review_accounts():
                     db=db,
                     db_user=account.user,
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
-                        email=account.email,
+                        id=account.id,
                         due=captions.EXPIRE_TIME,
                     ),
                     type_=NotificationType.account,
@@ -418,7 +418,7 @@ def review_accounts():
                     db=db,
                     db_user=account.user,
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
-                        email=account.email,
+                        id=account.id,
                         due=captions.EXCEEDED_DATA_LIMIT,
                     ),
                     type_=NotificationType.account,

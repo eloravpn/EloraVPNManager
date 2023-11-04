@@ -76,10 +76,16 @@ class BotUserKeyboard:
                 if not account.expired_at
                 else utils.get_jalali_date(account.expired_at.timestamp())
             )
+
+            data_limit = (
+                utils.get_readable_size_short(account.data_limit)
+                if account.data_limit > 0
+                else "Unlimited"
+            )
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=captions.ACCOUNT_LIST_ITEM.format(
-                        utils.get_readable_size_short(account.data_limit),
+                        data_limit,
                         expired_at,
                         captions.ENABLE if account.enable else captions.DISABLE,
                     ),

@@ -17,6 +17,7 @@ from src.commerce.models import Service, Order
 from src.commerce.schemas import OrderCreate, OrderStatus
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
+from src.hosts.service import get_host_zone
 from src.notification.models import Notification
 from src.telegram import bot
 from src.users.models import User
@@ -240,16 +241,18 @@ def get_user(user_id=0) -> User:
 def add_test_account(user_id: int):
     with GetDB() as db:
         db_user = user_service.get_user(db=db, user_id=user_id)
+        db_host_zone = get_host_zone(
+            db=db, host_zone_id=config.TEST_ACCOUNT_HOST_ZONE_ID
+        )
 
         account = AccountCreate(
-            host_zone_id=config.TEST_ACCOUNT_HOST_ZONE_ID,
             user_id=db_user.id,
             data_limit=config.TEST_ACCOUNT_DATA_LIMIT,
             email=config.TEST_ACCOUNT_EMAIL_PREFIX + get_random_string(8),
             enable=True,
         )
         db_account = account_service.create_account(
-            db=db, db_user=db_user, account=account
+            db=db, db_user=db_user, account=account, db_host_zone=db_host_zone
         )
         logger.warn(f"A new test account has been created {account}")
         return AccountResponse.from_orm(db_account)
