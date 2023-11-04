@@ -27,6 +27,7 @@ def process_paid_orders():
                     db_service = db_order.service
                     db_account = db_order.account
                     db_user = db_order.user
+                    db_host_zone = db_order.host_zone
 
                     today = datetime.now()
                     expired_at = today + timedelta(days=db_order.duration)
@@ -64,7 +65,6 @@ def process_paid_orders():
                         logger.info(f"Create new account")
 
                         account = AccountCreate(
-                            host_zone_id=db_order.host_zone_id,
                             user_id=db_order.user_id,
                             data_limit=db_service.data_limit,
                             email=get_random_string(6),
@@ -73,7 +73,10 @@ def process_paid_orders():
                         )
 
                         db_account = create_account(
-                            db=db, db_user=db_user, account=account
+                            db=db,
+                            db_user=db_user,
+                            account=account,
+                            db_host_zone=db_host_zone,
                         )
 
                         update_order_status(

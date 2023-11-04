@@ -13,7 +13,6 @@ class AccountUsedTrafficResponse(BaseModel):
 
 class AccountBase(BaseModel):
     user_id: int
-    host_zone_id: int
     # TODO: due to a circular import
     # user: Optional["UserResponse"]
     uuid: str = Field(default_factory=lambda: str(uuid4()))
@@ -51,6 +50,7 @@ class AccountModify(AccountBase):
 # from src.users.schemas import UserResponse
 class AccountResponse(AccountBase):
     id: int
+    host_zone_id: int
     used_traffic: int
     used_traffic_percent: float
     created_at: datetime

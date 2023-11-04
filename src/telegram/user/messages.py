@@ -205,7 +205,7 @@ ADMIN_NOTIFICATION_USER_EXPIRED = """
 """
 
 USER_NOTIFICATION_ACCOUNT_EXPIRED = """
-اکانت شما با ایمیل {email} بدلیل {due} منقضی شد.
+اکانت شما با شناسه {id} بدلیل {due} منقضی شد.
 """
 
 ADMIN_NOTIFICATION = """
