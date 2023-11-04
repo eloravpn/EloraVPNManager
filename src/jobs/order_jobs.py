@@ -64,6 +64,7 @@ def process_paid_orders():
                         logger.info(f"Create new account")
 
                         account = AccountCreate(
+                            host_zone_id=db_order.host_zone_id,
                             user_id=db_order.user_id,
                             data_limit=db_service.data_limit,
                             email=get_random_string(6),
