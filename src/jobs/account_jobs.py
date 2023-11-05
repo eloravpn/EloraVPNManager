@@ -236,7 +236,7 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
                 uuid=db_account.uuid,
                 enable=enable,
                 ip_limit=db_account.ip_limit,
-                flow=inbound.flow
+                flow=inbound.flow,
             )
 
         else:
@@ -429,7 +429,7 @@ def review_accounts():
 
 def sync_accounts_status():
     now = datetime.utcnow().timestamp()
-    logger.info("Start Sync accounts status" + str(datetime.now()))
+    logger.info("Start Sync accounts status " + str(datetime.now()))
 
     with GetDB() as db:
         for account in get_accounts(db=db, return_with_count=False):
@@ -459,7 +459,7 @@ def sync_accounts_status():
                         f"Account with email {account.email} disable successfully"
                     )
             else:
-                logger.info(f"Skip Account with email {account.email}")
+                logger.debug(f"Skip Account with email {account.email}")
 
 
 def remove_disabled_accounts(last_days: int):
