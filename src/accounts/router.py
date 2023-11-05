@@ -128,7 +128,16 @@ def modify_account(
     if not db_account:
         raise HTTPException(status_code=404, detail="Account not found")
 
-    return service.update_account(db=db, db_account=db_account, modify=account)
+    db_host_zone = get_host_zone(db, host_zone_id=account.host_zone_id)
+    if not db_host_zone:
+        raise HTTPException(
+            status_code=404,
+            detail="Hose Zone not found with id " + account.host_zone_id,
+        )
+
+    return service.update_account(
+        db=db, db_account=db_account, modify=account, db_host_zone=db_host_zone
+    )
 
 
 @router.get("/accounts/{account_id}", tags=["Account"], response_model=AccountResponse)

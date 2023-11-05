@@ -43,6 +43,7 @@ def process_paid_orders():
                             account_modify = AccountModify(
                                 id=db_account.id,
                                 user_id=db_account.user_id,
+                                host_zone_id=db_host_zone.id,
                                 uuid=db_account.uuid,
                                 data_limit=db_order.data_limit,
                                 ip_limit=db_order.ip_limit,
@@ -52,7 +53,10 @@ def process_paid_orders():
                             )
 
                             db_account = update_account(
-                                db=db, db_account=db_account, modify=account_modify
+                                db=db,
+                                db_account=db_account,
+                                modify=account_modify,
+                                db_host_zone=db_host_zone,
                             )
 
                             update_order_status(

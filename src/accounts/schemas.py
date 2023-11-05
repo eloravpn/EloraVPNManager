@@ -45,6 +45,7 @@ class AccountCreate(AccountBase):
 
 class AccountModify(AccountBase):
     id: int
+    host_zone_id: int
 
 
 # from src.users.schemas import UserResponse

@@ -68,9 +68,14 @@ def create_account_used_traffic(
     return db_account_used_traffic
 
 
-def update_account(db: Session, db_account: Account, modify: AccountModify):
+def update_account(
+    db: Session,
+    db_account: Account,
+    modify: AccountModify,
+    db_host_zone: HostZone = None,
+):
     db_account.uuid = modify.uuid
-    db_account.host_zone_id = modify.host_zone_id
+    db_account.host_zone_id = (db_host_zone.id,)
     db_account.email = modify.email
     db_account.data_limit = modify.data_limit
     db_account.ip_limit = modify.ip_limit
