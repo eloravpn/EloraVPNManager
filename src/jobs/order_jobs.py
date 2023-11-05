@@ -45,6 +45,7 @@ def process_paid_orders():
                                 user_id=db_account.user_id,
                                 uuid=db_account.uuid,
                                 data_limit=db_order.data_limit,
+                                ip_limit=db_order.ip_limit,
                                 email=db_account.email,
                                 enable=True,
                                 expired_at=expired_at,
@@ -66,6 +67,7 @@ def process_paid_orders():
 
                         account = AccountCreate(
                             user_id=db_order.user_id,
+                            ip_limit=db_order.ip_limit,
                             data_limit=db_service.data_limit,
                             email=get_random_string(6),
                             enable=True,
