@@ -235,6 +235,8 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
                 email=account_unique_email,
                 uuid=db_account.uuid,
                 enable=enable,
+                ip_limit=db_account.ip_limit,
+                flow=inbound.flow
             )
 
         else:
@@ -264,7 +266,7 @@ def sync_new_accounts():
                 # account_expire_time = account.expired_at.timestamp() * 1000s
 
                 if not account.enable:
-                    logger.info("Account is disable, skipped to add!")
+                    logger.debug("Account is disable, skipped to add!")
                     continue
 
                 account_unique_email = get_account_email_prefix(
@@ -310,13 +312,13 @@ def sync_accounts_traffic():
 
             for account in get_accounts(db=db, return_with_count=False):
                 # account_expire_time = account.expired_at.timestamp() * 1000
-                logger.info(f"Account uuid: {account.uuid}")
-                logger.info(f"Account email: {account.email}")
-                logger.info(f"Account Expire time: {account.expired_at}")
-                logger.info(f"Account Status: {account.enable}")
+                logger.debug(f"Account uuid: {account.uuid}")
+                logger.debug(f"Account email: {account.email}")
+                logger.debug(f"Account Expire time: {account.expired_at}")
+                logger.debug(f"Account Status: {account.enable}")
 
                 if not account.enable:
-                    logger.info("Account is disable, skipped to update traffic!")
+                    logger.debug("Account is disable, skipped to update traffic!")
                     continue
 
                 account_unique_email = get_account_email_prefix(

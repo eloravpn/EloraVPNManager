@@ -149,6 +149,8 @@ class MHSANAEI:
         email: str,
         uuid: str,
         data_limit: int = 0,
+        ip_limit: int = 0,
+        flow: str = "",
         expire_time: int = 0,
         enable: bool = True,
     ):
@@ -159,7 +161,14 @@ class MHSANAEI:
         logger.debug(f"Final url for update client is: {url}")
 
         payload_add_client = MHSANAEI.get_client_payload(
-            data_limit, email, enable, expire_time, inbound_id, uuid
+            data_limit,
+            email,
+            enable,
+            expire_time,
+            inbound_id,
+            uuid,
+            ip_limit=ip_limit,
+            flow=flow,
         )
 
         logger.debug(f"Final payload to update is: {payload_add_client}")
@@ -176,7 +185,7 @@ class MHSANAEI:
         logger.debug(f"Response code: {response.status_code}")
         logger.debug(f"Response text: {response.text}")
 
-        if response.status_code == 200 and data["success"] == True:
+        if response.status_code == 200 and data["success"] is True:
             return True
         else:
             return False
