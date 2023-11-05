@@ -269,6 +269,9 @@ def sync_new_accounts():
                     logger.debug("Account is disable, skipped to add!")
                     continue
 
+                if account.host_zone_id != inbound.host.host_zone_id:
+                    continue
+
                 account_unique_email = get_account_email_prefix(
                     host.id, inbound.key, account.email
                 )
