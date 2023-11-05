@@ -307,7 +307,7 @@ def create_order(
             status=order.status,
             duration=db_service.duration,
             data_limit=db_service.data_limit,
-            ip_limit=order.ip_limit,
+            ip_limit=db_service.ip_limit,
             total=db_service.price,
             total_discount_amount=db_service.discount,
         )
