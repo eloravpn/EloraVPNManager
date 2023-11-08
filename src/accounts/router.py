@@ -1,4 +1,6 @@
+import datetime
 import logging
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.openapi.models import Response
@@ -15,6 +17,8 @@ from src.accounts.schemas import (
     AccountsResponse,
     AccountUsedTrafficResponse,
     AccountsReport,
+    AccountUsedTrafficReportResponse,
+    AccountUedTrafficTrunc,
 )
 from src.admins.schemas import Admin
 from src.database import get_db
@@ -88,6 +92,23 @@ def get_accounts_report(
     total = active_accounts[1] + disabled_accounts[1]
 
     return AccountsReport(active=active_accounts[1], total=total)
+
+
+@router.get(
+    "/accounts/report_used_traffic",
+    tags=["Account"],
+    response_model=List[AccountUsedTrafficReportResponse],
+)
+def get_account_report_used_traffic(
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
+    trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    return service.get_accounts_used_traffic_report(
+        db=db, trunc=trunc, start_date=start_date, end_date=end_date
+    )
 
 
 @router.post("/accounts/", tags=["Account"], response_model=AccountResponse)

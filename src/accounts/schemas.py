@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List, Union, Optional
 from uuid import uuid4
 
@@ -9,6 +10,20 @@ class AccountUsedTrafficResponse(BaseModel):
     account_id: int
     download: Union[int, None] = 0
     upload: Union[int, None] = 0
+
+
+class AccountUsedTrafficReportResponse(BaseModel):
+    account_id: int = 0
+    date: datetime
+    download: Union[int, None] = 0
+    upload: Union[int, None] = 0
+
+
+class AccountUedTrafficTrunc(str, Enum):
+    HOUR = "hour"
+    DAY = "day"
+    MONTH = "month"
+    YEAR = "year"
 
 
 class AccountBase(BaseModel):

@@ -11,6 +11,8 @@ from src.accounts.schemas import (
     AccountCreate,
     AccountModify,
     AccountUsedTrafficResponse,
+    AccountUsedTrafficReportResponse,
+    AccountUedTrafficTrunc,
 )
 from src.hosts.models import HostZone
 from src.notification.models import Notification
@@ -245,6 +247,40 @@ def get_all_accounts_used_traffic(db: Session, delta: int = 3) -> AccountUsedTra
 
     else:
         return AccountUsedTrafficResponse(account_id=0)
+
+
+def get_accounts_used_traffic_report(
+    db: Session,
+    start_date: datetime.datetime = None,
+    end_date: datetime.datetime = None,
+    trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
+) -> List[AccountUsedTrafficReportResponse]:
+    query = db.query(
+        func.date_trunc(trunc, AccountUsedTraffic.created_at),
+        func.sum(AccountUsedTraffic.download).label("total_download"),
+        func.sum(AccountUsedTraffic.upload).label("total_upload"),
+    ).group_by(func.date_trunc(trunc, AccountUsedTraffic.created_at))
+
+    if end_date and start_date:
+        query = query.filter(
+            and_(
+                AccountUsedTraffic.created_at >= start_date,
+                AccountUsedTraffic.created_at <= end_date,
+            )
+        )
+
+    db_result = query.all()
+
+    result = []
+
+    for res in db_result:
+        result.append(
+            AccountUsedTrafficReportResponse(
+                date=res[0], download=res[1], upload=res[2]
+            )
+        )
+
+    return result
 
 
 def remove_account(db: Session, db_account: Account):
