@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import pytz
@@ -147,9 +148,7 @@ def report_account_usage(call: types.CallbackQuery):
     except ApiTelegramException as Error:
         logging.error(Error)
 
-    bot.answer_callback_query(
-        callback_query_id=call.id, show_alert=True, text="Updated!"
-    )
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(
@@ -172,9 +171,7 @@ def account_usage_detail(call: types.CallbackQuery):
     except ApiTelegramException as Error:
         logging.error(Error)
 
-    bot.answer_callback_query(
-        callback_query_id=call.id, show_alert=True, text="Updated!"
-    )
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(
@@ -210,9 +207,7 @@ def report_orders(call: types.CallbackQuery):
     except ApiTelegramException as Error:
         logging.error(Error)
 
-    bot.answer_callback_query(
-        callback_query_id=call.id, show_alert=True, text="Updated!"
-    )
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(
@@ -268,15 +263,17 @@ def report_transaction(call: types.CallbackQuery):
     except ApiTelegramException as Error:
         logging.error(Error)
 
-    bot.answer_callback_query(
-        callback_query_id=call.id, show_alert=True, text="Updated!"
-    )
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 def _get_account_usage_from_report(report):
     tz_IR = pytz.timezone("Asia/Tehran")
+    now = datetime.datetime.now().astimezone(tz_IR)
 
-    message = """Date \| Count \| Usage\n"""
+    message = """
+    *Now*: `{}` \n\n*Date \| Count \| Usage*\n""".format(
+        now.strftime("%y\-%m\-%d %H:%M:%S")
+    )
     for item in report:
         message += """`{}` \| `{}` \|  `{}` \n""".format(
             item.date.astimezone(tz_IR).strftime("%m-%d %H:%M"),
