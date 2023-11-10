@@ -1,7 +1,8 @@
+import datetime
 from enum import Enum
 from typing import List, Tuple, Optional
 
-from sqlalchemy import or_, String, cast
+from sqlalchemy import or_, String, cast, and_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -212,6 +213,48 @@ def get_transactions(
     return _get_query_result(limit, offset, query, return_with_count, sort)
 
 
+def get_transactions_sum(
+    db: Session,
+    user_id: int = 0,
+    type_: TransactionType = None,
+    start_date: datetime.datetime = None,
+    end_date: datetime.datetime = None,
+) -> int:
+    query = db.query(
+        func.sum(Transaction.amount).label("sum"),
+    )
+
+    if user_id > 0:
+        query = query.filter(Transaction.user_id == user_id)
+
+    if type_:
+        query = query.filter(Transaction.type == type_)
+
+    if user_id > 0:
+        query = query.filter(Transaction.user_id == user_id)
+
+    if end_date:
+        query = query.filter(
+            and_(
+                Transaction.created_at <= end_date,
+            )
+        )
+
+    if start_date:
+        query = query.filter(
+            and_(
+                Transaction.created_at >= start_date,
+            )
+        )
+
+    result = query.one()
+
+    if result:
+        return result[0]
+    else:
+        return 0
+
+
 def get_transaction(db: Session, transaction_id: int):
     return db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
@@ -394,6 +437,8 @@ def get_orders(
     account_id: int = 0,
     status: OrderStatus = None,
     q: str = None,
+    start_date: datetime.datetime = None,
+    end_date: datetime.datetime = None,
 ) -> Tuple[List[Order], int]:
     query = db.query(Order)
 
@@ -410,6 +455,20 @@ def get_orders(
         query = query.filter(
             or_(
                 cast(Order.id, String).ilike(f"%{q}%"),
+            )
+        )
+
+    if end_date:
+        query = query.filter(
+            and_(
+                Order.created_at <= end_date,
+            )
+        )
+
+    if start_date:
+        query = query.filter(
+            and_(
+                Order.created_at >= start_date,
             )
         )
     return _get_query_result(limit, offset, query, return_with_count, sort)
