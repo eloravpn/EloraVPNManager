@@ -263,8 +263,6 @@ def get_accounts_used_traffic_report(
         func.count(distinct(AccountUsedTraffic.account_id)).label("count"),
     ).group_by(func.date_trunc(trunc, AccountUsedTraffic.created_at))
 
-    query = query.order_by(desc("date"))
-
     if end_date:
         query = query.filter(
             and_(
@@ -278,6 +276,8 @@ def get_accounts_used_traffic_report(
                 AccountUsedTraffic.created_at >= start_date,
             )
         )
+
+    query = query.order_by(desc("date"))
 
     db_result = query.all()
 
