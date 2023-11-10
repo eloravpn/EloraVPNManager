@@ -1,5 +1,7 @@
+import datetime
 import random
 import string
+from typing import List
 
 import humanize as humanize
 import pytz
@@ -12,9 +14,13 @@ import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src import logger, config
 from src.accounts.models import Account
-from src.accounts.schemas import AccountCreate, AccountResponse
+from src.accounts.schemas import (
+    AccountCreate,
+    AccountResponse,
+    AccountUsedTrafficReportResponse,
+)
 from src.commerce.models import Service, Order
-from src.commerce.schemas import OrderCreate, OrderStatus
+from src.commerce.schemas import OrderCreate, OrderStatus, TransactionType
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.hosts.service import get_host_zone
@@ -210,6 +216,54 @@ def add_or_get_user(telegram_user, referral_user: User = None) -> UserResponse:
         logger.error(err)
 
 
+def get_all_account_usage(delta: int):
+    result = 0
+
+    with GetDB() as db:
+        data_usage = account_service.get_all_accounts_used_traffic(db=db, delta=delta)
+        if data_usage.download is not None:
+            result += data_usage.download
+
+        if data_usage.upload is not None:
+            result += data_usage.upload
+
+    return result
+
+
+def get_all_account_usage_report(delta: int) -> List[AccountUsedTrafficReportResponse]:
+    with GetDB() as db:
+        return account_service.get_accounts_used_traffic_report(
+            db=db, start_date=_get_date(delta)
+        )
+
+
+def get_accounts(enable: bool, test_account: bool):
+    with GetDB() as db:
+        return account_service.get_accounts(
+            db=db, filter_enable=True, enable=enable, test_account=test_account
+        )
+
+
+def get_orders(
+    delta: int,
+    status: OrderStatus = None,
+):
+    with GetDB() as db:
+        return commerce_service.get_orders(
+            db=db, start_date=_get_date(delta=delta), status=status
+        )
+
+
+def get_transaction_sum(
+    delta: int = 0,
+    type_: TransactionType = None,
+) -> int:
+    with GetDB() as db:
+        return commerce_service.get_transactions_sum(
+            db=db, start_date=_get_date(delta=delta) if delta > 0 else None, type_=type_
+        )
+
+
 def get_random_string(length):
     # choose from all lowercase letter
     letters = string.ascii_lowercase
@@ -281,3 +335,19 @@ def get_jalali_date(ms: int):
     return JalaliDateTime.fromtimestamp(ms, pytz.timezone("Asia/Tehran")).strftime(
         "%Y/%m/%d"
     )
+
+
+def get_price_readable(price):
+    if price:
+        return f"{price :,}"
+    else:
+        return 0
+
+
+def _get_date(delta: int, before: bool = True):
+    today = datetime.datetime.now()
+
+    if before:
+        return today - datetime.timedelta(days=delta)
+    else:
+        return today + datetime.timedelta(days=delta)

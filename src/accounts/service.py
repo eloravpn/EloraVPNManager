@@ -1,8 +1,9 @@
 import datetime
+import logging
 from enum import Enum
 from typing import List, Tuple, Optional
 
-from sqlalchemy import and_, func, or_, String, cast
+from sqlalchemy import and_, func, or_, String, cast, desc, distinct
 from sqlalchemy.orm import Session
 
 from src import config
@@ -231,7 +232,7 @@ def get_all_accounts_used_traffic(db: Session, delta: int = 3) -> AccountUsedTra
     today = datetime.datetime.now()
     n_days_ago = today - datetime.timedelta(days=delta)
 
-    print("Generate report from " + str(n_days_ago))
+    logging.info("Generate Account used traffic report from " + str(n_days_ago))
 
     query = db.query(
         func.sum(AccountUsedTraffic.download).label("total_download"),
@@ -256,16 +257,25 @@ def get_accounts_used_traffic_report(
     trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
 ) -> List[AccountUsedTrafficReportResponse]:
     query = db.query(
-        func.date_trunc(trunc, AccountUsedTraffic.created_at),
+        func.date_trunc(trunc, AccountUsedTraffic.created_at).label("date"),
         func.sum(AccountUsedTraffic.download).label("total_download"),
         func.sum(AccountUsedTraffic.upload).label("total_upload"),
+        func.count(distinct(AccountUsedTraffic.account_id)).label("count"),
     ).group_by(func.date_trunc(trunc, AccountUsedTraffic.created_at))
 
-    if end_date and start_date:
+    query = query.order_by(desc("date"))
+
+    if end_date:
+        query = query.filter(
+            and_(
+                AccountUsedTraffic.created_at <= end_date,
+            )
+        )
+
+    if start_date:
         query = query.filter(
             and_(
                 AccountUsedTraffic.created_at >= start_date,
-                AccountUsedTraffic.created_at <= end_date,
             )
         )
 
@@ -276,7 +286,7 @@ def get_accounts_used_traffic_report(
     for res in db_result:
         result.append(
             AccountUsedTrafficReportResponse(
-                date=res[0], download=res[1], upload=res[2]
+                date=res[0], download=res[1], upload=res[2], count=res[3]
             )
         )
 

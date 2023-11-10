@@ -1,14 +1,36 @@
 import logging
 
-from telebot import types
+import pytz
+from telebot import types, custom_filters
+from telebot.apihelper import ApiTelegramException
 
 from src import config
 from src.accounts.service import get_account
+from src.commerce.schemas import OrderStatus, TransactionType
 from src.database import GetDB
 from src.notification.schemas import NotificationStatus
 from src.notification.service import get_notification, update_status
-from src.telegram import bot
+from src.telegram import bot, utils
+from src.telegram.admin import messages
+from src.telegram.admin.keyboard import BotAdminKeyboard
 from src.users.service import get_user
+
+
+class IsAdminUser(custom_filters.SimpleCustomFilter):
+    # Class will check whether the user is admin or creator in group or not
+    key = "is_admin"
+
+    @staticmethod
+    def check(message: types.Message):
+        telegram_user = message.from_user
+
+        if telegram_user.id == config.TELEGRAM_ADMIN_ID:
+            return True
+        else:
+            return False
+
+
+bot.add_custom_filter(IsAdminUser())
 
 
 @bot.callback_query_handler(
@@ -81,3 +103,185 @@ def decline_notification(call: types.CallbackQuery):
             message_id=call.message.message_id,
             parse_mode="html",
         )
+
+
+# Handle '/admin'
+@bot.message_handler(commands=["admin"], is_admin=True)
+def send_welcome(message: types.Message):
+    bot.send_message(
+        chat_id=message.from_user.id,
+        text="Hi admin!",
+        disable_web_page_preview=True,
+        reply_markup=BotAdminKeyboard.main_menu(),
+        parse_mode="markdown",
+    )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data == "report_account_usage", is_admin=True
+)
+def report_account_usage(call: types.CallbackQuery):
+    last_24h_usage = utils.get_all_account_usage(1)
+    last_week_usage = utils.get_all_account_usage(7)
+    last_month_usage = utils.get_all_account_usage(30)
+
+    active_accounts = utils.get_accounts(enable=True, test_account=False)
+
+    test_accounts = utils.get_accounts(enable=False, test_account=True)
+
+    try:
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=messages.ACCOUNT_USAGE.format(
+                total_active_accounts=active_accounts[1],
+                total_active_test_accounts=test_accounts[1],
+                last_24h_usage=utils.get_readable_size(last_24h_usage),
+                last_week_usage=utils.get_readable_size(last_week_usage),
+                last_month_usage=utils.get_readable_size(last_month_usage),
+            ),
+            reply_markup=BotAdminKeyboard.main_menu(),
+            parse_mode="MarkdownV2",
+            disable_web_page_preview=True,
+        )
+    except ApiTelegramException as Error:
+        logging.error(Error)
+
+    bot.answer_callback_query(
+        callback_query_id=call.id, show_alert=True, text="Updated!"
+    )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data == "account_usage_detail", is_admin=True
+)
+def account_usage_detail(call: types.CallbackQuery):
+    report = utils.get_all_account_usage_report(1)
+
+    report_message = _get_account_usage_from_report(report)
+
+    try:
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=report_message,
+            reply_markup=BotAdminKeyboard.main_menu(),
+            parse_mode="MarkdownV2",
+            disable_web_page_preview=True,
+        )
+    except ApiTelegramException as Error:
+        logging.error(Error)
+
+    bot.answer_callback_query(
+        callback_query_id=call.id, show_alert=True, text="Updated!"
+    )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data == "report_orders", is_admin=True
+)
+def report_orders(call: types.CallbackQuery):
+    today_paid_orders = utils.get_orders(1, OrderStatus.paid)
+    today_completed_orders = utils.get_orders(1, OrderStatus.completed)
+
+    last_week_paid_orders = utils.get_orders(7, OrderStatus.paid)
+    last_week_completed_orders = utils.get_orders(7, OrderStatus.completed)
+
+    last_month_paid_orders = utils.get_orders(30, OrderStatus.paid)
+    last_month_completed_orders = utils.get_orders(30, OrderStatus.completed)
+
+    last_24h_orders = today_paid_orders[1] + today_completed_orders[1]
+    last_week_orders = last_week_paid_orders[1] + last_week_completed_orders[1]
+    last_month_orders = last_month_paid_orders[1] + last_month_completed_orders[1]
+
+    try:
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=messages.ORDERS_REPORT.format(
+                last_24h_orders=last_24h_orders,
+                last_week_orders=last_week_orders,
+                last_month_orders=last_month_orders,
+            ),
+            reply_markup=BotAdminKeyboard.main_menu(),
+            parse_mode="MarkdownV2",
+            disable_web_page_preview=True,
+        )
+    except ApiTelegramException as Error:
+        logging.error(Error)
+
+    bot.answer_callback_query(
+        callback_query_id=call.id, show_alert=True, text="Updated!"
+    )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data == "report_transaction", is_admin=True
+)
+def report_transaction(call: types.CallbackQuery):
+    try:
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=messages.TRANSACTIONS_REPORT.format(
+                last_24h_payment=utils.get_price_readable(
+                    utils.get_transaction_sum(1, TransactionType.payment)
+                ),
+                last_24h_orders=utils.get_price_readable(
+                    utils.get_transaction_sum(1, TransactionType.order)
+                ),
+                last_24h_bonuses=utils.get_price_readable(
+                    utils.get_transaction_sum(1, TransactionType.bonus)
+                ),
+                last_week_payment=utils.get_price_readable(
+                    utils.get_transaction_sum(7, TransactionType.payment)
+                ),
+                last_week_orders=utils.get_price_readable(
+                    utils.get_transaction_sum(7, TransactionType.order)
+                ),
+                last_week_bonuses=utils.get_price_readable(
+                    utils.get_transaction_sum(7, TransactionType.bonus)
+                ),
+                last_month_payment=utils.get_price_readable(
+                    utils.get_transaction_sum(30, TransactionType.payment)
+                ),
+                last_month_orders=utils.get_price_readable(
+                    utils.get_transaction_sum(30, TransactionType.order)
+                ),
+                last_month_bonuses=utils.get_price_readable(
+                    utils.get_transaction_sum(30, TransactionType.bonus)
+                ),
+                total_payment=utils.get_price_readable(
+                    utils.get_transaction_sum(type_=TransactionType.payment)
+                ),
+                total_orders=utils.get_price_readable(
+                    utils.get_transaction_sum(type_=TransactionType.order)
+                ),
+                total_bonuses=utils.get_price_readable(
+                    utils.get_transaction_sum(type_=TransactionType.bonus)
+                ),
+            ),
+            reply_markup=BotAdminKeyboard.main_menu(),
+            parse_mode="MarkdownV2",
+            disable_web_page_preview=True,
+        )
+    except ApiTelegramException as Error:
+        logging.error(Error)
+
+    bot.answer_callback_query(
+        callback_query_id=call.id, show_alert=True, text="Updated!"
+    )
+
+
+def _get_account_usage_from_report(report):
+    tz_IR = pytz.timezone("Asia/Tehran")
+
+    message = """Date \| Count \| Usage\n"""
+    for item in report:
+        message += """`{}` \| `{}` \|  `{}` \n""".format(
+            item.date.astimezone(tz_IR).strftime("%m-%d %H:%M"),
+            item.count,
+            utils.get_readable_size(item.download + item.upload),
+        )
+
+    return message

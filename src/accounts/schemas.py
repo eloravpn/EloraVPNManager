@@ -14,6 +14,7 @@ class AccountUsedTrafficResponse(BaseModel):
 
 class AccountUsedTrafficReportResponse(BaseModel):
     account_id: int = 0
+    count: int = 0
     date: datetime
     download: Union[int, None] = 0
     upload: Union[int, None] = 0
