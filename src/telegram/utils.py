@@ -345,7 +345,7 @@ def get_price_readable(price):
 
 
 def _get_date(delta: int, before: bool = True):
-    today = datetime.datetime.now()
+    today = datetime.datetime.utcnow()
 
     if before:
         return today - datetime.timedelta(days=delta)

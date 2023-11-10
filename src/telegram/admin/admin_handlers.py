@@ -275,8 +275,10 @@ def _get_account_usage_from_report(report):
         now.strftime("%y\-%m\-%d %H:%M:%S")
     )
     for item in report:
+        date = item.date.replace(tzinfo=pytz.utc)
+
         message += """`{}` \| `{}` \|  `{}` \n""".format(
-            item.date.astimezone(tz_IR).strftime("%m-%d %H:%M"),
+            date.astimezone(tz_IR).strftime("%m-%d %H:%M"),
             item.count,
             utils.get_readable_size(item.download + item.upload),
         )
