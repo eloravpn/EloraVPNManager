@@ -331,13 +331,18 @@ def sync_accounts_traffic():
                 client_stat = xui.api.get_client_stat(email=account_unique_email)
                 if client_stat is not None:
                     total_usage = int(client_stat["up"]) + int(client_stat["down"])
-                    logger.info(f"Client Upload: {client_stat['up']}")
-                    logger.info(f"Client Download: {client_stat['down']}")
-                    logger.info(f"Client total usage: {total_usage}")
-                    reset = xui.api.reset_client_traffic(
-                        inbound_id=inbound.key, email=account_unique_email
-                    )
-                    if reset and total_usage > 0:
+
+                    reset = False
+
+                    if total_usage > 0:
+                        logger.info(f"Client Upload: {client_stat['up']}")
+                        logger.info(f"Client Download: {client_stat['down']}")
+                        logger.info(f"Client total usage: {total_usage}")
+                        reset = xui.api.reset_client_traffic(
+                            inbound_id=inbound.key, email=account_unique_email
+                        )
+
+                    if reset:
                         create_account_used_traffic(
                             db=db,
                             db_account=account,
