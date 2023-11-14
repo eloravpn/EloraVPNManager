@@ -300,6 +300,7 @@ def add_test_account(user_id: int):
         )
 
         account = AccountCreate(
+            host_zone_id=db_host_zone.id,
             user_id=db_user.id,
             data_limit=config.TEST_ACCOUNT_DATA_LIMIT,
             email=config.TEST_ACCOUNT_EMAIL_PREFIX + get_random_string(8),

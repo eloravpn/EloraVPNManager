@@ -56,6 +56,7 @@ class AccountBase(BaseModel):
 
 
 class AccountCreate(AccountBase):
+    host_zone_id: int
     user_id: int
 
 
