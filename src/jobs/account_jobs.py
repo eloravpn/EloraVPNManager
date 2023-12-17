@@ -482,7 +482,11 @@ def remove_disabled_accounts(last_days: int):
         for db_account in get_accounts(
             db=db, return_with_count=False, filter_enable=True, enable=False
         ):
-            if db_account.modified_at and db_account.modified_at < last_day_later:
+            if (
+                db_account.modified_at
+                and db_account.modified_at < last_day_later
+                or db_account.email.startswith(config.TEST_ACCOUNT_EMAIL_PREFIX)
+            ):
                 logger.info(
                     f"Try to delete account for {db_account.user.full_name} with modified date {db_account.modified_at}"
                     f" and email {db_account.email} and status {db_account.enable}"
