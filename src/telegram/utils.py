@@ -299,12 +299,18 @@ def add_test_account(user_id: int):
             db=db, host_zone_id=config.TEST_ACCOUNT_HOST_ZONE_ID
         )
 
+        today = datetime.datetime.now()
+        expired_at = today + datetime.timedelta(
+            days=config.TEST_ACCOUNT_DURATION_DAY_LIMIT
+        )
+
         account = AccountCreate(
             host_zone_id=db_host_zone.id,
             user_id=db_user.id,
             data_limit=config.TEST_ACCOUNT_DATA_LIMIT,
             email=config.TEST_ACCOUNT_EMAIL_PREFIX + get_random_string(8),
             enable=True,
+            expired_at=expired_at,
         )
         db_account = account_service.create_account(
             db=db, db_user=db_user, account=account, db_host_zone=db_host_zone
