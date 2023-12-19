@@ -20,6 +20,7 @@ class UserBase(BaseModel):
     email_address: Optional[str] = None
     enable: bool = True
     banned: bool = False
+    force_join_channel: bool = True
 
     @validator("username")
     def validate_username(cls, username: str):

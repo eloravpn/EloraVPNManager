@@ -28,7 +28,16 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
 
             referral_user = None
 
-            if not config.TELEGRAM_CHANNEL:
+            if isinstance(message, types.Message) and message.text:
+                referral_user = IsSubscribedUser.get_referral_user(
+                    message_text=message.text
+                )
+
+            user = utils.add_or_get_user(
+                telegram_user=telegram_user, referral_user=referral_user
+            )
+
+            if not config.TELEGRAM_CHANNEL or not user.force_join_channel:
                 return True
             else:
                 result = bot.get_chat_member(
@@ -44,15 +53,6 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
                     )
                     return False
                 else:
-                    if isinstance(message, types.Message) and message.text:
-                        referral_user = IsSubscribedUser.get_referral_user(
-                            message_text=message.text
-                        )
-
-                    utils.add_or_get_user(
-                        telegram_user=telegram_user, referral_user=referral_user
-                    )
-
                     return True
         except Exception as error:
             logger.error(error)

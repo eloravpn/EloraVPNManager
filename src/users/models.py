@@ -43,6 +43,9 @@ class User(Base):
 
     enable = Column(Boolean, default=True)
     banned = Column(Boolean, default=False)
+    force_join_channel = Column(
+        Boolean, default=True, nullable=False, server_default="true"
+    )
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

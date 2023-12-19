@@ -42,6 +42,7 @@ def create_user(db: Session, user: UserCreate):
         telegram_username=user.telegram_username,
         enable=user.enable,
         banned=user.banned,
+        force_join_channel=user.force_join_channel,
     )
 
     db.add(db_user)
@@ -64,6 +65,7 @@ def update_user(db: Session, db_user: User, modify: UserModify):
     db_user.phone_number = modify.phone_number
     db_user.enable = modify.enable
     db_user.banned = modify.banned
+    db_user.force_join_channel = modify.force_join_channel
 
     db.commit()
     db.refresh(db_user)
