@@ -385,15 +385,15 @@ def review_accounts():
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
-                utils.send_message_to_admin(
-                    message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
-                        email=account.email,
-                        due=captions.EXPIRE_TIME,
-                        user_markup=account.user.telegram_profile_full,
-                        full_name=account.user.full_name,
-                        telegram_user_name=telegram_user_name,
-                    )
-                )
+                # utils.send_message_to_admin(
+                #     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
+                #         email=account.email,
+                #         due=captions.EXPIRE_TIME,
+                #         user_markup=account.user.telegram_profile_full,
+                #         full_name=account.user.full_name,
+                #         telegram_user_name=telegram_user_name,
+                #     )
+                # )
 
                 _send_notification(
                     db=db,
@@ -415,15 +415,15 @@ def review_accounts():
                 logger.info(f"Account status: {account.enable}")
                 # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
-                utils.send_message_to_admin(
-                    message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
-                        email=account.email,
-                        due=captions.EXCEEDED_DATA_LIMIT,
-                        user_markup=account.user.telegram_profile_full,
-                        full_name=account.user.full_name,
-                        telegram_user_name=telegram_user_name,
-                    )
-                )
+                # utils.send_message_to_admin(
+                #     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
+                #         email=account.email,
+                #         due=captions.EXCEEDED_DATA_LIMIT,
+                #         user_markup=account.user.telegram_profile_full,
+                #         full_name=account.user.full_name,
+                #         telegram_user_name=telegram_user_name,
+                #     )
+                # )
                 _send_notification(
                     db=db,
                     db_user=account.user,

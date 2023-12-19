@@ -68,10 +68,11 @@ def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
                                 used_traffic_percent=min_percent,
                             ),
                             level=level.value,
+                            approve=True,
                             type=NotificationType.used_traffic,
                         ),
                     )
-                    utils.send_approval_message(account, db_notification)
+                    # utils.send_approval_message(account, db_notification)
 
 
 def days_to_expire_notification_job(min_days: int, max_days: int):
@@ -112,11 +113,12 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
                                 admin_id=config.TELEGRAM_ADMIN_USER_NAME,
                                 days=max_days,
                             ),
+                            approve=True,
                             level=level.value,
                             type=NotificationType.expire_time,
                         ),
                     )
-                    utils.send_approval_message(account, db_notification)
+                    # utils.send_approval_message(account, db_notification)
 
 
 def process_pending_notifications():
@@ -150,6 +152,7 @@ def process_pending_notifications():
                     utils.send_message_to_admin(
                         message=admin_message,
                         parse_mode="html",
+                        disable_notification=True,
                     )
 
                     utils.send_message_to_user(
