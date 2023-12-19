@@ -158,7 +158,7 @@ def my_services(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
-    my_accounts = user.accounts
+    my_accounts = sorted(user.accounts, key=lambda x: x.modified_at, reverse=True)
 
     if not my_accounts:
         bot.reply_to(message, messages.NO_ACCOUNT_MESSAGE)
@@ -455,10 +455,10 @@ def account_detail(call: types.CallbackQuery):
             text=messages.MY_ACCOUNT_MESSAGE.format(
                 captions.ENABLE if account.enable else captions.DISABLE,
                 account.email,
+                expired_at,
                 utils.get_readable_size(account.used_traffic),
                 utils.get_readable_size(account.data_limit),
                 percent_traffic_usage,
-                expired_at,
                 config.SUBSCRIPTION_BASE_URL,
                 account.uuid,
             ),
