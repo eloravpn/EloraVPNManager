@@ -19,6 +19,7 @@ from src.notification.service import (
     create_notification,
     get_notifications,
     update_status,
+    NotificationSortingOptions,
 )
 from src.telegram import utils
 from src.telegram.user import messages
@@ -125,7 +126,10 @@ def process_pending_notifications():
     logger.info("Process Pending and approved notifications")
     with GetDB() as db:
         notifications, count = get_notifications(
-            db=db, status=NotificationStatus.pending, approve=1
+            db=db,
+            status=NotificationStatus.pending,
+            approve=1,
+            sort=[NotificationSortingOptions["modified"]],
         )
 
         for db_notification in notifications:
