@@ -62,6 +62,7 @@ def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
                 if count == 0:
                     db_notification = create_notification(
                         db=db,
+                        db_user=account.user,
                         db_account=account,
                         notification=NotificationCreate(
                             message=messages.USED_TRAFFIC_NOTIFICATION.format(
@@ -108,6 +109,7 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
                 if count == 0:
                     db_notification = create_notification(
                         db=db,
+                        db_user=account.user,
                         db_account=account,
                         notification=NotificationCreate(
                             message=messages.EXPIRE_TIME_NOTIFICATION.format(
