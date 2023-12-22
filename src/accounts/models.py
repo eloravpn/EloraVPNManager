@@ -14,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 
+from src import config
 from src.database import Base
 
 
@@ -43,6 +44,13 @@ class Account(Base):
     expired_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def is_test(self):
+        if self.email.startswith(config.TEST_ACCOUNT_EMAIL_PREFIX):
+            return True
+        else:
+            return False
 
     @hybrid_property
     def used_traffic_percent(self):

@@ -463,7 +463,7 @@ def account_detail(call: types.CallbackQuery):
                 account.uuid,
             ),
             chat_id=telegram_user.id,
-            reply_markup=BotUserKeyboard.my_account(account_id),
+            reply_markup=BotUserKeyboard.my_account(account),
             parse_mode="html",
         )
     except ApiTelegramException as error:

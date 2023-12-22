@@ -1,5 +1,6 @@
 from telebot import types  # noqa
 
+from src.accounts.models import Account
 from src.telegram import utils
 from src.telegram.user import captions
 
@@ -112,23 +113,25 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
-    def my_account(account_id):
+    def my_account(account: Account):
         keyboard = types.InlineKeyboardMarkup()
 
         keyboard.add(
             types.InlineKeyboardButton(
-                text="دریافت QR کد", callback_data=f"qrcode:{account_id}"
+                text="دریافت QR کد", callback_data=f"qrcode:{account.id}"
             ),
             types.InlineKeyboardButton(
-                text="🔄 بروزرسانی", callback_data=f"account_detail:{account_id}"
+                text="🔄 بروزرسانی", callback_data=f"account_detail:{account.id}"
             ),
         )
 
-        keyboard.add(
-            types.InlineKeyboardButton(
-                text="🛍 تمدید سرویس", callback_data=f"recharge_service_1:{account_id}"
+        if not account.is_test:
+            keyboard.add(
+                types.InlineKeyboardButton(
+                    text="🛍 تمدید سرویس",
+                    callback_data=f"recharge_service_1:{account.id}",
+                )
             )
-        )
 
         return keyboard
 
