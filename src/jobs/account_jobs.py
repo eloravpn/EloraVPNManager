@@ -164,9 +164,13 @@ def _get_account_email_prefix(host_id: int, inbound_key: int, email: str):
 
 
 def _get_account_real_email(client_email: str):
+    if client_email is None:
+        return None
+
     email_split = client_email.split("_")
-    if len(email_split) == 3:
-        return email_split[2]
+
+    if len(email_split) > 1:
+        return email_split[-1]
     else:
         return None
 
