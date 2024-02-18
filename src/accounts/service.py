@@ -311,3 +311,11 @@ def get_account(db: Session, account_id: int):
 
 def get_account_by_uuid(db: Session, uuid: str) -> Account:
     return db.query(Account).filter(Account.uuid == uuid).first()
+
+
+def get_account_by_uuid_and_email(db: Session, uuid: str, email: str) -> Account:
+    return (
+        db.query(Account)
+        .filter(and_(Account.uuid == uuid, Account.email == email))
+        .first()
+    )

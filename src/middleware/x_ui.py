@@ -224,6 +224,33 @@ class MHSANAEI:
         )
         return payload_add_client
 
+    def get_inbound_clients(
+        self,
+        inbound_id: int,
+    ):
+        logger.info(f"Get clients from inbound {inbound_id}")
+
+        url = f"{self._base_api_url}/inbounds/get/{inbound_id}"
+
+        inbound_stat = requests.get(url, cookies=self._login_cookies, verify=False)
+
+        logger.debug(
+            f"Status code: {inbound_stat.status_code} for Inbound {inbound_id}"
+        )
+
+        logger.info(inbound_stat.text)
+
+        data = inbound_stat.json()
+
+        settings = data["obj"]["settings"]
+
+        if settings:
+            setting_obj = json.loads(settings)
+            clients = setting_obj["clients"]
+            return clients
+        else:
+            return None
+
 
 class FRANZKAFKAYU:
     def __init__(self):

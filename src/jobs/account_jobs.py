@@ -8,6 +8,7 @@ from src.accounts.service import (
     update_account_status,
     create_account_used_traffic,
     remove_account,
+    get_account_by_uuid_and_email,
 )
 from src.database import GetDB
 from src.hosts.schemas import HostResponse
@@ -16,7 +17,6 @@ from src.inbounds.service import get_inbounds
 from src.middleware.x_ui import XUI
 from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
-from src.telegram import utils
 from src.telegram.user import messages, captions
 from src.users.models import User
 
@@ -159,8 +159,16 @@ from src.users.models import User
 #
 
 
-def get_account_email_prefix(host_id: int, inbound_key: int, email: str):
+def _get_account_email_prefix(host_id: int, inbound_key: int, email: str):
     return "%s_%s_%s" % (host_id, inbound_key, email)
+
+
+def _get_account_real_email(client_email: str):
+    email_split = client_email.split("_")
+    if len(email_split) == 3:
+        return email_split[2]
+    else:
+        return None
 
 
 def delete_client_in_all_inbounds(db, db_account: Account):
@@ -180,7 +188,7 @@ def delete_client_in_all_inbounds(db, db_account: Account):
 
         logger.info("Host name: " + host.name)
 
-        account_unique_email = get_account_email_prefix(
+        account_unique_email = _get_account_email_prefix(
             host.id, inbound.key, db_account.email
         )
 
@@ -220,7 +228,7 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
         logger.info("Host name: " + host.name)
 
-        account_unique_email = get_account_email_prefix(
+        account_unique_email = _get_account_email_prefix(
             host.id, inbound.key, db_account.email
         )
 
@@ -241,6 +249,71 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
         else:
             logger.info(f"Client does not exist in this inbound yet")
+
+
+def clean_up_inbounds():
+    with GetDB() as db:
+        print("Start Clean UP accounts in all inbounds " + str(datetime.now()))
+
+        inbounds, count = get_inbounds(db=db, enable=1)
+        for inbound in inbounds:
+            try:
+                logger.info(f"Inbound Host: {inbound.host.name}")
+                logger.info(f"Inbound Remark: {inbound.remark}")
+                logger.info(f"Inbound host ID: {inbound.host_id}")
+
+                if not inbound.enable or not inbound.host.enable:
+                    logger.info("Skip this inbound because it is disabled.")
+                    continue
+
+                host = get_host(db, host_id=inbound.host_id)
+
+                xui = XUI(host=HostResponse.from_orm(host))
+
+                remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
+
+                for client in remote_inbound_clients:
+                    client_email = client["email"]
+                    uuid = client["id"]
+                    enable = client["enable"]
+                    account_email = _get_account_real_email(client_email)
+
+                    logger.info(f"Client Email: {client_email}")
+                    logger.info(f"Account Email: {account_email}")
+                    logger.info(f"Client UUID: {uuid}")
+                    logger.info(f"Client Status: {enable}")
+
+                    if account_email is None:
+                        logger.warn("This client is not handle with Elora Panel! Skip!")
+                        continue
+
+                    account = get_account_by_uuid_and_email(
+                        db=db, uuid=uuid, email=account_email
+                    )
+
+                    if account:
+                        if not account.enable and enable:
+                            logger.info("Try to disable account!")
+                            xui.api.update_client(
+                                inbound_id=inbound.key,
+                                email=client_email,
+                                uuid=uuid,
+                                enable=False,
+                                ip_limit=account.ip_limit,
+                                flow=inbound.flow,
+                            )
+                    else:
+                        logger.warn("Try to delete client in this inbound!")
+                        deleted = xui.api.delete_client(
+                            inbound_id=inbound.key, uuid=uuid
+                        )
+                        if not deleted:
+                            logger.error("Error in delete account in this inbound!")
+                        else:
+                            logger.info("Client Successfully deleted in this inbound!")
+
+            except Exception as error:
+                logger.error(error)
 
 
 def sync_new_accounts():
@@ -272,7 +345,7 @@ def sync_new_accounts():
                 if account.host_zone_id != inbound.host.host_zone_id:
                     continue
 
-                account_unique_email = get_account_email_prefix(
+                account_unique_email = _get_account_email_prefix(
                     host.id, inbound.key, account.email
                 )
 
@@ -324,7 +397,7 @@ def sync_accounts_traffic():
                     logger.debug("Account is disable, skipped to update traffic!")
                     continue
 
-                account_unique_email = get_account_email_prefix(
+                account_unique_email = _get_account_email_prefix(
                     host.id, inbound.key, account.email
                 )
 
@@ -373,9 +446,9 @@ def review_accounts():
             if account.expired_at:
                 account_expire_time = account.expired_at.timestamp()
 
-            telegram_user_name = (
-                account.user.telegram_username if account.user.telegram_username else ""
-            )
+            # telegram_user_name = (
+            #     account.user.telegram_username if account.user.telegram_username else ""
+            # )
 
             if (0 < account_expire_time <= now) and account.enable:
                 logger.info("Account has been expired due to expired time.")
@@ -494,7 +567,7 @@ def remove_disabled_accounts(last_days: int):
 
 def delete_account(db, db_account: Account):
     try:
-        delete_client_in_all_inbounds(db=db, db_account=db_account)
+        # delete_client_in_all_inbounds(db=db, db_account=db_account)
 
         remove_account(db=db, db_account=db_account)
 
@@ -542,51 +615,10 @@ def _send_notification(
     )
 
 
-# TODO: remove this func for prod
-# def temp_review_accounts():
-#     print('Start Review accounts ' + str(datetime.now()))
-#     host_ip = ""
-#     host_port = 1234
-#     user_name = "admin"
-#     password = "admin"
-#
-#     base_log_api_url = generate_base_url(host_ip, host_port, "", False)
-#     base_api_url = generate_base_url(host_ip, host_port, "/panel/API", False)
-#
-#     loging_cookies = get_login_cookie(base_log_api_url, user_name, password)
-#
-#     logger.info("Login Cookies is " + str(loging_cookies))
-#
-#     inbound_list = requests.get(base_api_url + '/inbounds/list',
-#                                 cookies=loging_cookies, verify=False)
-#     logger.info(inbound_list.text)
-#
-#     data = inbound_list.json()
-#
-#     logger.info(len(data["obj"]))
-#
-#     settings = data["obj"][2]["settings"]
-#     remark = data["obj"][0]["remark"]
-#     # print(settings)
-#     settingsObj = json.loads(str(settings))
-#     logger.info(remark)
-#     # print(settingsObj["clients"][0]["id"])
-#
-#     for client in settingsObj["clients"]:
-#         logger.info(client["id"])
-#         client_state = requests.get(base_api_url + '/inbounds/getClientTraffics/' + client["email"],
-#                                     cookies=loging_cookies, verify=False)
-#
-#         logger.info(client_state.text)
-#
-#     now = datetime.utcnow().timestamp()
-#
-#     pass
-
-
 def run_review_account_jobs():
     review_accounts()
-    sync_accounts_status()
+    clean_up_inbounds()
+    # sync_accounts_status()
 
 
 def run_remove_disabled_accounts_jobs():
