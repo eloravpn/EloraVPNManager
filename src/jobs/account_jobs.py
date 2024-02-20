@@ -348,7 +348,7 @@ def clean_up_inbounds():
             except Exception as error:
                 logger.error(error)
     end = datetime.utcnow().timestamp()
-    logger.info(f"End Cleanup Inbounds in {start - end} ms")
+    logger.info(f"End Cleanup Inbounds in {end - start} Sec")
 
 
 def sync_new_accounts():
