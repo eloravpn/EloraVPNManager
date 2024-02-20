@@ -170,7 +170,10 @@ def _get_account_real_email(client_email: str):
     email_split = client_email.split("_")
 
     if len(email_split) > 1:
-        return email_split[-1]
+        if client_email.index(config.TEST_ACCOUNT_EMAIL_PREFIX) > 0:
+            return config.TEST_ACCOUNT_EMAIL_PREFIX + email_split[-1]
+        else:
+            return email_split[-1]
     else:
         return None
 
