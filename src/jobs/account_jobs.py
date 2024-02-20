@@ -298,7 +298,7 @@ def clean_up_inbounds():
 
                     if account:
                         if not account.enable and enable:
-                            logger.info("Try to disable account!")
+                            logger.info("Try to Disable account!")
                             xui.api.update_client(
                                 inbound_id=inbound.key,
                                 email=client_email,
@@ -307,6 +307,18 @@ def clean_up_inbounds():
                                 ip_limit=account.ip_limit,
                                 flow=inbound.flow,
                             )
+
+                        if account.enable and not enable:
+                            logger.info("Try to Enable account!")
+                            xui.api.update_client(
+                                inbound_id=inbound.key,
+                                email=client_email,
+                                uuid=uuid,
+                                enable=True,
+                                ip_limit=account.ip_limit,
+                                flow=inbound.flow,
+                            )
+
                     else:
                         logger.warn("Try to delete client in this inbound!")
                         deleted = xui.api.delete_client(
