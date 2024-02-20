@@ -260,15 +260,18 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
 def clean_up_inbounds():
     logger.info("Start Cleanup Inbounds")
+    start = datetime.utcnow().timestamp()
+
     with GetDB() as db:
-        print("Start Clean UP accounts in all inbounds " + str(datetime.now()))
 
         inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
             try:
-                logger.info(f"Inbound Host: {inbound.host.name}")
-                logger.info(f"Inbound Remark: {inbound.remark}")
-                logger.info(f"Inbound host ID: {inbound.host_id}")
+                logger.info(f"Cleanup - Inbound Host: {inbound.host.name}")
+                logger.info(f"Cleanup - Inbound host ID: {inbound.host_id}")
+                logger.info(
+                    f"Cleanup - Inbound Remark: {inbound.remark} with key {inbound.key}"
+                )
 
                 if not inbound.enable or not inbound.host.enable:
                     logger.info("Skip this inbound because it is disabled.")
@@ -286,10 +289,10 @@ def clean_up_inbounds():
                     enable = client["enable"]
                     account_email = _get_account_real_email(client_email)
 
-                    logger.info(f"Client Email: {client_email}")
-                    logger.info(f"Account Email: {account_email}")
-                    logger.info(f"Client UUID: {uuid}")
-                    logger.info(f"Client Status: {enable}")
+                    logger.debug(f"Client Email: {client_email}")
+                    logger.debug(f"Account Email: {account_email}")
+                    logger.debug(f"Client UUID: {uuid}")
+                    logger.debug(f"Client Status: {enable}")
 
                     if account_email is None:
                         logger.warn("This client is not handle with Elora Panel! Skip!")
@@ -301,7 +304,9 @@ def clean_up_inbounds():
 
                     if account:
                         if not account.enable and enable:
-                            logger.info("Try to Disable account!")
+                            logger.info(
+                                f"Try to Disable account with email {client_email}!"
+                            )
                             xui.api.update_client(
                                 inbound_id=inbound.key,
                                 email=client_email,
@@ -312,7 +317,9 @@ def clean_up_inbounds():
                             )
 
                         if account.enable and not enable:
-                            logger.info("Try to Enable account!")
+                            logger.info(
+                                f"Try to Enable account with email {client_email}!"
+                            )
                             xui.api.update_client(
                                 inbound_id=inbound.key,
                                 email=client_email,
@@ -323,18 +330,25 @@ def clean_up_inbounds():
                             )
 
                     else:
-                        logger.warn("Try to delete client in this inbound!")
+                        logger.warn(
+                            f"Try to delete client with email {client_email} in this inbound!"
+                        )
                         deleted = xui.api.delete_client(
                             inbound_id=inbound.key, uuid=uuid
                         )
                         if not deleted:
-                            logger.error("Error in delete account in this inbound!")
+                            logger.error(
+                                f"Error in delete account email {client_email} in this inbound!"
+                            )
                         else:
-                            logger.info("Client Successfully deleted in this inbound!")
+                            logger.info(
+                                f"Client email {client_email} Successfully deleted in this inbound!"
+                            )
 
             except Exception as error:
                 logger.error(error)
-    logger.info("End Cleanup Inbounds")
+    end = datetime.utcnow().timestamp()
+    logger.info(f"End Cleanup Inbounds in {start - end} ms")
 
 
 def sync_new_accounts():
