@@ -256,6 +256,7 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
 
 def clean_up_inbounds():
+    logger.info("Start Cleanup Inbounds")
     with GetDB() as db:
         print("Start Clean UP accounts in all inbounds " + str(datetime.now()))
 
@@ -318,6 +319,7 @@ def clean_up_inbounds():
 
             except Exception as error:
                 logger.error(error)
+    logger.info("End Cleanup Inbounds")
 
 
 def sync_new_accounts():
@@ -442,7 +444,7 @@ def sync_accounts_traffic():
 
 def review_accounts():
     now = datetime.utcnow().timestamp()
-    print("Start Review accounts " + str(datetime.now()))
+    logger.info("Start Review Accounts")
 
     with GetDB() as db:
         for account in get_accounts(db=db, return_with_count=False):
@@ -510,6 +512,7 @@ def review_accounts():
                     ),
                     type_=NotificationType.account,
                 )
+    logger.info("End Review Accounts")
 
 
 def sync_accounts_status():
@@ -620,9 +623,11 @@ def _send_notification(
 
 
 def run_review_account_jobs():
+    logger.info(f"Start Review Account Jobs")
     review_accounts()
     clean_up_inbounds()
     # sync_accounts_status()
+    logger.info(f"End Review Account Jobs")
 
 
 def run_remove_disabled_accounts_jobs():

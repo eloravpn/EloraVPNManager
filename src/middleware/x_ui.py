@@ -238,8 +238,6 @@ class MHSANAEI:
             f"Status code: {inbound_stat.status_code} for Inbound {inbound_id}"
         )
 
-        logger.info(inbound_stat.text)
-
         data = inbound_stat.json()
 
         settings = data["obj"]["settings"]
