@@ -4,6 +4,9 @@ import requests
 
 from src import logger
 from src.hosts.schemas import HostType, HostResponse
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class XUI:
@@ -19,25 +22,32 @@ class MHSANAEI:
         logger.debug("Init Sanaei X-UI")
         self._host: HostResponse = host
 
-        self._base_api_url = self._generate_base_url(api_path=host.api_path)
+        self._base_api_url = self._generate_base_url(
+            api_path=host.api_path, ssl=self._host.master
+        )
         self._login_cookies = self._get_login_cookie()
 
     def _generate_base_url(self, ssl: bool = False, api_path: str = ""):
         address = self._host.ip if self._host.domain is None else self._host.domain
 
-        return "%s://%s:%s%s" % (
+        base_url = "%s://%s:%s%s" % (
             "https" if ssl else "http",
             address,
             self._host.port,
             api_path,
         )
-        logger.debug("Base URL is: " + base_api_url)
+
+        logger.debug(f"Base URL is: {base_url}")
+
+        return base_url
 
     def _get_login_cookie(self):
-        login_url = self._generate_base_url() + "/login"
+        base_login_url = self._base_api_url.replace("/panel/api", "")
+        login_url = base_login_url + "/login"
         payload = {"username": self._host.username, "password": self._host.password}
         logger.debug("Try login with url: " + login_url)
         req = requests.request("POST", login_url, data=payload, verify=False)
+        logger.debug(f"Login response: {req.text}")
         return req.cookies
 
     def get_client_stat(self, email: str):

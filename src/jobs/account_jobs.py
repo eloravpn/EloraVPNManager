@@ -191,7 +191,11 @@ def delete_client_in_all_inbounds(db, db_account: Account):
 
         host = get_host(db, inbound.host_id)
 
-        xui = XUI(host=HostResponse.from_orm(host))
+        try:
+            xui = XUI(host=HostResponse.from_orm(host))
+        except Exception as error:
+            logger.error(f"Could not connect to host {host.name} ")
+            continue
 
         logger.info("Host name: " + host.name)
 
@@ -231,7 +235,11 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
         host = get_host(db, inbound.host_id)
 
-        xui = XUI(host=HostResponse.from_orm(host))
+        try:
+            xui = XUI(host=HostResponse.from_orm(host))
+        except Exception as error:
+            logger.error(f"Could not connect to host {host.name} ")
+            continue
 
         logger.info("Host name: " + host.name)
 
@@ -279,7 +287,11 @@ def clean_up_inbounds():
 
                 host = get_host(db, host_id=inbound.host_id)
 
-                xui = XUI(host=HostResponse.from_orm(host))
+                try:
+                    xui = XUI(host=HostResponse.from_orm(host))
+                except Exception as error:
+                    logger.error(f"Could not connect to host {host.name} ")
+                    continue
 
                 remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
 
@@ -366,7 +378,11 @@ def sync_new_accounts():
 
             host = get_host(db, host_id=inbound.host_id)
 
-            xui = XUI(host=HostResponse.from_orm(host))
+            try:
+                xui = XUI(host=HostResponse.from_orm(host))
+            except Exception as error:
+                logger.error(f"Could not connect to host {host.name} ")
+                continue
 
             logger.info("Host name: " + host.name)
 
@@ -417,7 +433,11 @@ def sync_accounts_traffic():
                 logger.info("Skip this inbound because it is disabled.")
                 continue
 
-            xui = XUI(host=HostResponse.from_orm(host))
+            try:
+                xui = XUI(host=HostResponse.from_orm(host))
+            except Exception as error:
+                logger.error(f"Could not connect to host {host.name} ")
+                continue
 
             logger.info("Host name: " + host.name)
 
@@ -507,7 +527,7 @@ def review_accounts():
                     db=db,
                     db_user=account.user,
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
-                        id=account.id,
+                        id=account.email,
                         due=captions.EXPIRE_TIME,
                     ),
                     type_=NotificationType.account,
@@ -536,7 +556,7 @@ def review_accounts():
                     db=db,
                     db_user=account.user,
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
-                        id=account.id,
+                        id=account.email,
                         due=captions.EXCEEDED_DATA_LIMIT,
                     ),
                     type_=NotificationType.account,
