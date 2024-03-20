@@ -100,14 +100,19 @@ def get_accounts_report(
     response_model=List[AccountUsedTrafficReportResponse],
 )
 def get_account_report_used_traffic(
+    account_id: int,
     start_date: datetime.datetime,
     end_date: datetime.datetime,
     trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
-    return service.get_accounts_used_traffic_report(
-        db=db, trunc=trunc, start_date=start_date, end_date=end_date
+    return service.get_account_used_traffic_report(
+        db=db,
+        trunc=trunc,
+        start_date=start_date,
+        end_date=end_date,
+        account_id=account_id,
     )
 
 

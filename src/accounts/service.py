@@ -250,8 +250,9 @@ def get_all_accounts_used_traffic(db: Session, delta: int = 3) -> AccountUsedTra
         return AccountUsedTrafficResponse(account_id=0)
 
 
-def get_accounts_used_traffic_report(
+def get_account_used_traffic_report(
     db: Session,
+    account_id: int = 0,
     start_date: datetime.datetime = None,
     end_date: datetime.datetime = None,
     trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
@@ -274,6 +275,13 @@ def get_accounts_used_traffic_report(
         query = query.filter(
             and_(
                 AccountUsedTraffic.created_at >= start_date,
+            )
+        )
+
+    if account_id > 0:
+        query = query.filter(
+            and_(
+                AccountUsedTraffic.account_id == account_id,
             )
         )
 

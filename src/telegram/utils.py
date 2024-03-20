@@ -232,7 +232,7 @@ def get_all_account_usage(delta: int):
 
 def get_all_account_usage_report(delta: int) -> List[AccountUsedTrafficReportResponse]:
     with GetDB() as db:
-        return account_service.get_accounts_used_traffic_report(
+        return account_service.get_account_used_traffic_report(
             db=db, start_date=_get_date(delta)
         )
 
