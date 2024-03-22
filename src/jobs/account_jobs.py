@@ -382,6 +382,8 @@ def sync_new_accounts():
                 logger.error(f"Could not connect to host {host.name} ")
                 continue
 
+            remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
+
             for account in get_accounts(
                 db=db, return_with_count=False, filter_enable=True, enable=True
             ):
@@ -397,8 +399,6 @@ def sync_new_accounts():
                 account_unique_email = _get_account_email_prefix(
                     host.id, inbound.key, account.email
                 )
-
-                remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
 
                 if not any(
                     client.get("email", "") == account_unique_email
