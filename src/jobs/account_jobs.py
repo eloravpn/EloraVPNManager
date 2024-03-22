@@ -275,10 +275,8 @@ def clean_up_inbounds():
         inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
             try:
-                logger.info(f"Cleanup - Inbound Host: {inbound.host.name}")
-                logger.info(f"Cleanup - Inbound host ID: {inbound.host_id}")
                 logger.info(
-                    f"Cleanup - Inbound Remark: {inbound.remark} with key {inbound.key}"
+                    f"Cleanup - Inbound Host: {inbound.host.name} and Inbound Remark: {inbound.remark} with key {inbound.key}"
                 )
 
                 if not inbound.enable or not inbound.host.enable:
