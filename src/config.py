@@ -67,6 +67,8 @@ SUBSCRIPTION_BASE_URL = config(
 
 AVAILABLE_SERVICES = config("AVAILABLE_SERVICES", default="").split(",")
 
+X_UI_REQUEST_TIMEOUT = config("X_UI_REQUEST_TIMEOUT", cast=int, default=20)
+
 XUI_DB_PATH = config("XUI_DB_URL", default="./x-ui.db")
 OLD_BOT_DB_PATH = config("OLD_BOT_DB_PATH", default="./v2raybot.sqlite3")
 

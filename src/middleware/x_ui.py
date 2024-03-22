@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from src import logger
+from src import logger, config
 from src.hosts.schemas import HostType, HostResponse
 import urllib3
 
@@ -46,13 +46,24 @@ class MHSANAEI:
         login_url = base_login_url + "/login"
         payload = {"username": self._host.username, "password": self._host.password}
         logger.debug("Try login with url: " + login_url)
-        req = requests.request("POST", login_url, data=payload, verify=False)
+        req = requests.request(
+            "POST",
+            login_url,
+            data=payload,
+            verify=False,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
+        )
         logger.debug(f"Login response: {req.text}")
         return req.cookies
 
     def get_client_stat(self, email: str):
         url = f"{self._base_api_url}/inbounds/getClientTraffics/{email}"
-        client_stat = requests.get(url, cookies=self._login_cookies, verify=False)
+        client_stat = requests.get(
+            url,
+            cookies=self._login_cookies,
+            verify=False,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
+        )
         logger.debug(f"Status code: {client_stat.status_code} for client {email}")
 
         if client_stat.status_code != 200:
@@ -76,7 +87,11 @@ class MHSANAEI:
         logger.debug(f"Final url for reset client traffic is: {url}")
 
         response = requests.post(
-            url, cookies=self._login_cookies, verify=False, headers=headers
+            url,
+            cookies=self._login_cookies,
+            verify=False,
+            headers=headers,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
         )
         data = response.json()
         logger.debug(f"Response code: {response.status_code}")
@@ -95,7 +110,11 @@ class MHSANAEI:
         logger.debug(f"Final url for delete client is: {url}")
 
         response = requests.post(
-            url, cookies=self._login_cookies, verify=False, headers=headers
+            url,
+            cookies=self._login_cookies,
+            verify=False,
+            headers=headers,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
         )
         data = response.json()
         logger.info(f"Response code: {response.status_code}")
@@ -142,6 +161,7 @@ class MHSANAEI:
             data=payload_add_client,
             verify=False,
             headers=headers,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
         )
         data = response.json()
 
@@ -189,6 +209,7 @@ class MHSANAEI:
             data=payload_add_client,
             verify=False,
             headers=headers,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
         )
         data = response.json()
 
@@ -238,11 +259,16 @@ class MHSANAEI:
         self,
         inbound_id: int,
     ):
-        logger.info(f"Get clients from inbound {inbound_id}")
+        logger.info(f"Get clients from {self._host.name} inbound {inbound_id}")
 
         url = f"{self._base_api_url}/inbounds/get/{inbound_id}"
 
-        inbound_stat = requests.get(url, cookies=self._login_cookies, verify=False)
+        inbound_stat = requests.get(
+            url,
+            cookies=self._login_cookies,
+            verify=False,
+            timeout=config.X_UI_REQUEST_TIMEOUT,
+        )
 
         logger.debug(
             f"Status code: {inbound_stat.status_code} for Inbound {inbound_id}"

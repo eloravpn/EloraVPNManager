@@ -365,12 +365,12 @@ def clean_up_inbounds():
 
 def sync_new_accounts():
     with GetDB() as db:
-        print("Start syncing new accounts in all inbounds " + str(datetime.now()))
+        logger.info("Start syncing new accounts in all inbounds")
+        start = datetime.utcnow().timestamp()
 
         inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
-            logger.info(f"Inbound Remark: {inbound.remark}")
-            logger.info(f"Inbound host ID: {inbound.host_id}")
+            logger.info(f"Host {inbound.host.name} Inbound Remark: {inbound.remark}")
 
             if not inbound.enable or not inbound.host.enable:
                 logger.info("Skip this inbound because it is disabled.")
@@ -384,9 +384,9 @@ def sync_new_accounts():
                 logger.error(f"Could not connect to host {host.name} ")
                 continue
 
-            logger.info("Host name: " + host.name)
-
-            for account in get_accounts(db=db, return_with_count=False):
+            for account in get_accounts(
+                db=db, return_with_count=False, filter_enable=True, enable=True
+            ):
                 # account_expire_time = account.expired_at.timestamp() * 1000s
 
                 if not account.enable:
@@ -400,14 +400,16 @@ def sync_new_accounts():
                     host.id, inbound.key, account.email
                 )
 
-                client_stat = xui.api.get_client_stat(email=account_unique_email)
-                if client_stat is None:
-                    logger.info(f"Client does not exist in this inbound yet")
+                remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
+
+                if not any(
+                    client.get("email", "") == account_unique_email
+                    for client in remote_inbound_clients
+                ):
                     logger.info(f"Try to add client in this inbound")
                     logger.info(f"Account uuid: {account.uuid}")
                     logger.info(f"Account email: {account.email}")
                     logger.info(f"Account Expire time: {account.expired_at}")
-                    logger.info(f"Account Status: {account.enable}")
 
                     xui.api.add_client(
                         inbound_id=inbound.key,
@@ -416,11 +418,15 @@ def sync_new_accounts():
                         flow=inbound.flow.value if inbound.flow else "",
                         ip_limit=account.ip_limit,
                     )
+        end = datetime.utcnow().timestamp()
+        logger.info(f"End Sync new accounts in all Inbounds in {end - start} Sec")
 
 
 def sync_accounts_traffic():
     with GetDB() as db:
-        print("Start syncing accounts traffic from all inbounds " + str(datetime.now()))
+        logger.info(
+            "Start syncing accounts traffic from all inbounds " + str(datetime.now())
+        )
 
         inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
