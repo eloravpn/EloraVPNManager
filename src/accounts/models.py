@@ -46,6 +46,10 @@ class Account(Base):
     modified_at = Column(DateTime, default=datetime.utcnow)
 
     @property
+    def subscription_url(self):
+        return config.SUBSCRIPTION_BASE_URL + self.uuid
+
+    @property
     def is_test(self):
         if self.email.startswith(config.TEST_ACCOUNT_EMAIL_PREFIX):
             return True

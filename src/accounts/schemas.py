@@ -74,6 +74,7 @@ class AccountResponse(AccountBase):
     created_at: datetime
     modified_at: datetime
     full_name: str
+    subscription_url: str
 
     @validator("used_traffic_percent")
     def used_traffic_percent_check(cls, v):
