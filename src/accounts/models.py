@@ -47,7 +47,7 @@ class Account(Base):
 
     @property
     def subscription_url(self):
-        return config.SUBSCRIPTION_BASE_URL + self.uuid
+        return config.SUBSCRIPTION_BASE_URL + "/" + self.uuid
 
     @property
     def is_test(self):
