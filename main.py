@@ -28,6 +28,7 @@ if __name__ == "__main__":
             uds=(None if DEBUG else UVICORN_UDS),
             ssl_certfile=UVICORN_SSL_CERTFILE,
             ssl_keyfile=UVICORN_SSL_KEYFILE,
+            forwarded_allow_ips="*",
             workers=1,
             reload=DEBUG,
             use_colors=True,
