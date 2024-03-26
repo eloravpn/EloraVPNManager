@@ -102,7 +102,7 @@ USAGE_HELP_MESSAGE = """
 
 PRICE_LIST = """
 جهت مشاهده لیست تعرفه سرویس ها روی لینک زیر ضربه بزنید.
-<a href="https://t.me/EloraVPNChannel/102"> 🛍 لیست تعرفه سرویس</a>
+<a href="https://t.me/EloraVPNChannel/260"> 🛍 لیست تعرفه سرویس</a>
 """
 
 MY_PROFILE = """
