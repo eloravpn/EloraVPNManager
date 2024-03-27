@@ -82,6 +82,7 @@ def get_notifications(
     ],
     q: str = None,
     approve: int = -1,
+    user_id: int = 0,
     account_id: int = 0,
     notification_type: NotificationType = None,
     level: int = 0,
@@ -95,6 +96,9 @@ def get_notifications(
 
     if account_id > 0:
         query = query.filter(Notification.account_id == account_id)
+
+    if user_id > 0:
+        query = query.filter(Notification.user_id == user_id)
 
     if level > 0:
         query = query.filter(Notification.level == level)

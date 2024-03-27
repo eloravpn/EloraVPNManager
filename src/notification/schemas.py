@@ -79,5 +79,5 @@ class NotificationResponse(NotificationBase):
 
 
 class NotificationsResponse(BaseModel):
-    inbound_configs: List[NotificationResponse]
+    notifications: List[NotificationResponse]
     total: int
