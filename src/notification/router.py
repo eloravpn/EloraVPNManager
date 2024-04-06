@@ -130,8 +130,7 @@ def modify_notification(
 
 @notification_router.delete(
     "/notifications/{notification_id}",
-    tags=["Notification"],
-    response_model=NotificationResponse,
+    tags=["Notification"]
 )
 def delete_notification(
     notification_id: int,
