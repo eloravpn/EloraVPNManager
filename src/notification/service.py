@@ -143,9 +143,10 @@ def _validate_notification(
     db_notification: Notification,
     modify: NotificationModify,
 ):
+
     db_account = account_service.get_account(db=db, account_id=modify.account_id)
 
-    if db_account.user_id != db_user.id:
+    if db_account and db_account.user_id != db_user.id:
         # TODO: create new exception
         raise Exception
 

@@ -126,3 +126,24 @@ def modify_notification(
     return notification_service.update_notification(
         db=db, db_notification=db_notification, modify=notification
     )
+
+
+@notification_router.delete(
+    "/notifications/{notification_id}",
+    tags=["Notification"],
+    response_model=NotificationResponse,
+)
+def delete_notification(
+    notification_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_notification = notification_service.get_notification(
+        db, notification_id=notification_id
+    )
+    if not db_notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    notification_service.remove_notification(db=db, db_notification=db_notification)
+
+    return {}
