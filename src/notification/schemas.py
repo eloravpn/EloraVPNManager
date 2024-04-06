@@ -44,6 +44,8 @@ class NotificationExpireTimeLevel(int, Enum):
 
 
 class NotificationBase(BaseModel):
+    user_id: int
+    account_id: Optional[int] = None
     level: int
     message: str = None
     details: str = None

@@ -4,12 +4,16 @@ from typing import List, Tuple, Optional
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+
+import src.users.service as user_service
+import src.accounts.service as account_service
 from src.accounts.models import Account
 from src.notification.models import Notification
 from src.notification.schemas import (
     NotificationStatus,
     NotificationType,
     NotificationCreate,
+    NotificationModify,
 )
 from src.users.models import User
 
@@ -131,6 +135,43 @@ def get_notifications(
         return query.all(), count
     else:
         return query.all()
+
+
+def _validate_notification(
+    db: Session,
+    db_user: User,
+    db_notification: Notification,
+    modify: NotificationModify,
+):
+    db_account = account_service.get_account(db=db, account_id=modify.account_id)
+
+    if db_account.user_id != db_user.id:
+        # TODO: create new exception
+        raise Exception
+
+
+def update_notification(
+    db: Session, db_notification: Notification, modify: NotificationModify
+):
+    db_user = user_service.get_user(db, db_notification.user_id)
+
+    _validate_notification(
+        db=db, db_user=db_user, db_notification=db_notification, modify=modify
+    )
+
+    db_notification.account_id = modify.account_id
+    db_notification.user_id = modify.user_id
+    db_notification.level = modify.level
+    db_notification.message = modify.message
+    db_notification.approve = modify.approve
+    db_notification.engine = modify.engine
+    db_notification.status = modify.status
+    db_notification.type = modify.type
+
+    db.commit()
+    db.refresh(db_notification)
+
+    return db_notification
 
 
 def remove_notification(db: Session, db_notification: Notification):
