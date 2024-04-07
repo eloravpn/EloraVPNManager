@@ -128,10 +128,7 @@ def modify_notification(
     )
 
 
-@notification_router.delete(
-    "/notifications/{notification_id}",
-    tags=["Notification"]
-)
+@notification_router.delete("/notifications/{notification_id}", tags=["Notification"])
 def delete_notification(
     notification_id: int,
     db: Session = Depends(get_db),

@@ -669,6 +669,7 @@ def _send_notification(
         db=db,
         db_user=db_user,
         notification=NotificationCreate(
+            user_id=db_user.id,
             approve=True,
             message=message,
             level=level,
