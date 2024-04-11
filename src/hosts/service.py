@@ -1,3 +1,5 @@
+import random
+import string
 from enum import Enum
 from typing import Optional, List, Union, Tuple
 
@@ -6,6 +8,9 @@ from sqlalchemy.orm import Session
 
 from src.hosts.models import Host, HostZone
 from src.hosts.schemas import HostCreate, HostModify, HostZoneCreate, HostZoneModify
+from src.inbounds.models import Inbound
+from src.inbounds.schemas import InboundCreate
+import src.inbounds.service as inbound_service
 
 HostSortingOptions = Enum(
     "HostSortingOptions",
@@ -74,6 +79,55 @@ def update_host(db: Session, db_host: Host, modify: HostModify):
     db.refresh(db_host)
 
     return db_host
+
+
+def copy_host(db: Session, db_host: Host):
+
+    ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
+
+    domain_prefix = "".join(random.choice(string.ascii_lowercase) for _ in range(3))
+
+    new_domain = domain_prefix + "." + db_host.domain
+
+    new_db_host = Host(
+        name=db_host.name + " Clone",
+        host_zone_id=db_host.host_zone_id,
+        domain=new_domain,
+        port=db_host.port,
+        ip=ip,
+        username=db_host.username,
+        password=db_host.password,
+        api_path=db_host.api_path,
+        enable=False,
+        master=db_host.master,
+        type=db_host.type,
+    )
+
+    db.add(new_db_host)
+    db.commit()
+    db.refresh(new_db_host)
+
+    for db_inbound in db_host.inbounds:
+        new_inbound = InboundCreate(
+            remark=db_inbound.remark,
+            host_id=new_db_host.id,
+            port=db_inbound.port,
+            domain=db_inbound.domain,
+            request_host=db_inbound.request_host,
+            sni=db_inbound.sni,
+            address=db_inbound.address,
+            path=db_inbound.path,
+            key=db_inbound.key,
+            enable=db_inbound.enable,
+            develop=db_inbound.develop,
+            security=db_inbound.security,
+            flow=db_inbound.flow,
+            type=db_inbound.type,
+        )
+
+        inbound_service.create_inbound(db=db, db_host=new_db_host, inbound=new_inbound)
+
+    return new_db_host
 
 
 def get_hosts(

@@ -64,6 +64,19 @@ def modify_host(
     return db_host
 
 
+@host_router.post("/hosts/{host_id}/copy", tags=["Host"], response_model=HostResponse)
+def copy_host(
+    host_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_host = service.get_host(db, host_id=host_id)
+    if not db_host:
+        raise HTTPException(status_code=404, detail="Host not found")
+
+    return service.copy_host(db=db, db_host=db_host)
+
+
 @host_router.get("/hosts/{host_id}", tags=["Host"], response_model=HostResponse)
 def get_host(
     host_id: int,
