@@ -86,20 +86,24 @@ class MHSANAEI:
 
         logger.debug(f"Final url for reset client traffic is: {url}")
 
-        response = requests.post(
-            url,
-            cookies=self._login_cookies,
-            verify=False,
-            headers=headers,
-            timeout=config.X_UI_REQUEST_TIMEOUT,
-        )
-        data = response.json()
-        logger.debug(f"Response code: {response.status_code}")
-        logger.debug(f"Response text: {response.text}")
+        try:
+            response = requests.post(
+                url,
+                cookies=self._login_cookies,
+                verify=False,
+                headers=headers,
+                timeout=config.X_UI_REQUEST_TIMEOUT,
+            )
+            data = response.json()
+            logger.debug(f"Response code: {response.status_code}")
+            logger.debug(f"Response text: {response.text}")
 
-        if response.status_code == 200 and data["success"] == True:
-            return True
-        else:
+            if response.status_code == 200 and data["success"] == True:
+                return True
+            else:
+                return False
+        except Exception as error:
+            logger.warn(error)
             return False
 
     def delete_client(self, inbound_id: int, uuid: str):
