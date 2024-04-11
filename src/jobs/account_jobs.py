@@ -293,6 +293,12 @@ def clean_up_inbounds():
 
                 remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
 
+                if remote_inbound_clients is None:
+                    logger.warn(
+                        f"Remote clients is None in Inbound Remark: {inbound.remark} with key {inbound.key} in {host.name}"
+                    )
+                    continue
+
                 for client in remote_inbound_clients:
                     client_email = client["email"]
                     uuid = client["id"]
@@ -383,6 +389,12 @@ def sync_new_accounts():
                 continue
 
             remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
+
+            if remote_inbound_clients is None:
+                logger.warn(
+                    f"Remote clients is None in Inbound Remark: {inbound.remark} with key {inbound.key} in {host.name}"
+                )
+                continue
 
             for account in get_accounts(
                 db=db, return_with_count=False, filter_enable=True, enable=True
