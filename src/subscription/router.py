@@ -1,4 +1,5 @@
 import base64
+import socket
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -17,7 +18,14 @@ router = APIRouter()
 
 @router.get("/sub/{uuid}", tags=["Subscription"], response_class=PlainTextResponse)
 def sub(
-    uuid: str, size: int = -1, develop: bool = False, db: Session = Depends(get_db)
+    uuid: str,
+    size: int = -1,
+    plain: bool = False,
+    resolve: bool = False,
+    develop: bool = False,
+    address: str = None,
+    q: str = None,
+    db: Session = Depends(get_db),
 ):
     db_account = account_service.get_account_by_uuid(db=db, uuid=uuid)
 
@@ -25,7 +33,7 @@ def sub(
         raise HTTPException(status_code=404, detail="Account not found")
 
     inbound_configs, count = get_inbound_configs(
-        db=db, host_zone_id=db_account.host_zone_id
+        db=db, host_zone_id=db_account.host_zone_id, q=q
     )
 
     rows = []
@@ -37,8 +45,20 @@ def sub(
             and inbound_config.inbound.host.enable
             and (inbound_config.develop is not True or develop is True)
         ):
+
+            if address:
+                inbound_address = address
+            else:
+                inbound_address = inbound_config.address
+
+            if resolve:
+                inbound_address = _get_ip(inbound_address)
+                remark = inbound_config.remark + " " + inbound_config.address
+            else:
+                remark = inbound_config.remark
+
             link = xray.generate_vless_config(
-                address=inbound_config.address,
+                address=inbound_address,
                 network_type=inbound_config.network.value,
                 port=inbound_config.port,
                 uuid=uuid,
@@ -55,11 +75,25 @@ def sub(
                     if inbound_config.inbound.flow
                     else None
                 ),
-                remark=inbound_config.remark,
+                remark=remark,
             )
             rows.append(link)
 
     text = "\n".join(rows) + "\n"
-    html = base64.b64encode(text.encode("utf-8"))
+    if not plain:
+        html = base64.b64encode(text.encode("utf-8"))
+    else:
+        html = text.encode("utf-8")
 
     return html
+
+
+def _get_ip(d):
+    """
+    This method returns the first IP address string
+    that responds as the given domain name
+    """
+    try:
+        return socket.gethostbyname(d)
+    except Exception:
+        return d
