@@ -482,7 +482,9 @@ def sync_accounts_traffic():
                     if total_usage > 0:
                         logger.info(f"Client Upload: {upload}")
                         logger.info(f"Client Download: {download}")
-                        logger.info(f"Client total usage: {total_usage} with ratio {config.GLOBAL_TRAFFIC_RATIO}")
+                        logger.info(
+                            f"Client total usage: {total_usage} with ratio {config.GLOBAL_TRAFFIC_RATIO}"
+                        )
                         reset = xui.api.reset_client_traffic(
                             inbound_id=inbound.key, email=account_unique_email
                         )
