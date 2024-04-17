@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import src.users.service as user_service
 import src.accounts.service as account_service
 from src.accounts.models import Account
+from src.exc import EloraApplicationError
 from src.notification.models import Notification
 from src.notification.schemas import (
     NotificationStatus,
@@ -60,6 +61,35 @@ def create_notification(
     db.commit()
     db.refresh(db_notification)
     return db_notification
+
+
+def create_bulk_notification(
+    db: Session,
+    account_ids: Optional[List[int]],
+    notification: NotificationCreate,
+):
+    for account_id in account_ids:
+
+        db_account = account_service.get_account(db=db, account_id=account_id)
+
+        if not db_account:
+            raise EloraApplicationError(f"Account does not found with id {account_id}")
+
+        db_notification = Notification(
+            account_id=db_account.id,
+            user_id=db_account.user_id,
+            level=notification.level,
+            message=notification.message,
+            details=notification.details,
+            approve=notification.approve,
+            status=notification.status,
+            engine=notification.engine,
+            type=notification.type,
+        )
+
+        db.add(db_notification)
+
+    db.commit()
 
 
 def update_status(

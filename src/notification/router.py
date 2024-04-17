@@ -1,5 +1,6 @@
 import logging
 from sqlite3 import IntegrityError
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -66,6 +67,26 @@ def get_notifications(
     )
 
     return {"notifications": notifications, "total": count}
+
+
+@notification_router.post("/notifications/bulk_send", tags=["Notification"])
+def bulk_send_notification(
+    account_ids: Optional[List[int]],
+    notification: NotificationCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+
+    try:
+        notification_service.create_bulk_notification(
+            db=db,
+            account_ids=account_ids,
+            notification=notification,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Error in create notifications")
+    except EloraApplicationError as error:
+        raise HTTPException(status_code=409, detail=error.message())
 
 
 @notification_router.post(
