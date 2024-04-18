@@ -65,19 +65,14 @@ def create_notification(
 
 def create_bulk_notification(
     db: Session,
-    account_ids: Optional[List[int]],
+    user_ids: Optional[List[int]],
     notification: NotificationCreate,
 ):
-    for account_id in account_ids:
-
-        db_account = account_service.get_account(db=db, account_id=account_id)
-
-        if not db_account:
-            raise EloraApplicationError(f"Account does not found with id {account_id}")
+    for user_id in user_ids:
 
         db_notification = Notification(
-            account_id=db_account.id,
-            user_id=db_account.user_id,
+            account_id=None,
+            user_id=user_id,
             level=notification.level,
             message=notification.message,
             details=notification.details,
