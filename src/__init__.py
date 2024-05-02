@@ -15,6 +15,7 @@ from src.hosts.router import host_zone_router as host_zone_router
 from src.inbound_configs.router import router as inbound_config_router
 from src.inbounds.router import router as inbound_router
 from src.users.router import router as user_router
+from src.monitoring.router import router as monitoring_router
 from src.commerce.router import (
     order_router,
     service_router,
@@ -76,6 +77,7 @@ app.include_router(service_router, prefix="/api", tags=["Service"])
 app.include_router(payment_router, prefix="/api", tags=["Payment"])
 app.include_router(transaction_router, prefix="/api", tags=["Transaction"])
 app.include_router(notification_router, prefix="/api", tags=["Notification"])
+app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 
 # from src import hosts, admins
 
