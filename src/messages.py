@@ -35,3 +35,10 @@ ORDER_PAID_NOTIFICATION = """
 ORDER_COMPLETE_NOTIFICATION = """
 ✅ سفارش {title} با شناسه <code>{id}</code> با موفقیت اعمال شد.
 """
+
+USER_NOTIFICATION_ACCOUNT_EXTENDED = """
+
+✅  ترافیک سرویس شما با آیدی {id} به میزان {extend_data_limit_gb}  گیگابایت و مدت زمان سرویس {extend_day} روز افزایش یافت.
+
+<a href="https://t.me/{admin_id}">💬 ارتباط با پشتیبانی</a>
+"""

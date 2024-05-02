@@ -293,6 +293,12 @@ def clean_up_inbounds():
 
                 remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
 
+                if remote_inbound_clients is None:
+                    logger.warn(
+                        f"Remote clients is None in Inbound Remark: {inbound.remark} with key {inbound.key} in {host.name}"
+                    )
+                    continue
+
                 for client in remote_inbound_clients:
                     client_email = client["email"]
                     uuid = client["id"]
@@ -384,6 +390,12 @@ def sync_new_accounts():
 
             remote_inbound_clients = xui.api.get_inbound_clients(inbound.key)
 
+            if remote_inbound_clients is None:
+                logger.warn(
+                    f"Remote clients is None in Inbound Remark: {inbound.remark} with key {inbound.key} in {host.name}"
+                )
+                continue
+
             for account in get_accounts(
                 db=db, return_with_count=False, filter_enable=True, enable=True
             ):
@@ -462,37 +474,40 @@ def sync_accounts_traffic():
 
                 client_stat = xui.api.get_client_stat(email=account_unique_email)
                 if client_stat is not None:
-                    total_usage = int(client_stat["up"]) + int(client_stat["down"])
+                    download = int(client_stat["down"]) * config.GLOBAL_TRAFFIC_RATIO
+                    upload = int(client_stat["up"]) * config.GLOBAL_TRAFFIC_RATIO
 
-                    reset = False
+                    total_usage = download + upload
 
                     if total_usage > 0:
-                        logger.info(f"Client Upload: {client_stat['up']}")
-                        logger.info(f"Client Download: {client_stat['down']}")
-                        logger.info(f"Client total usage: {total_usage}")
+                        logger.info(f"Client Upload: {upload}")
+                        logger.info(f"Client Download: {download}")
+                        logger.info(
+                            f"Client total usage: {total_usage} with ratio {config.GLOBAL_TRAFFIC_RATIO}"
+                        )
                         reset = xui.api.reset_client_traffic(
                             inbound_id=inbound.key, email=account_unique_email
                         )
 
-                    if reset:
-                        create_account_used_traffic(
-                            db=db,
-                            db_account=account,
-                            upload=int(client_stat["up"]),
-                            download=int(client_stat["down"]),
-                        )
-                        update_account_used_traffic(
-                            db=db,
-                            db_account=account,
-                            used_traffic=total_usage + account.used_traffic,
-                        )
-                        logger.info(
-                            f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}"
-                        )
-                    else:
-                        logger.warn(
-                            f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}"
-                        )
+                        if reset:
+                            create_account_used_traffic(
+                                db=db,
+                                db_account=account,
+                                upload=upload,
+                                download=download,
+                            )
+                            update_account_used_traffic(
+                                db=db,
+                                db_account=account,
+                                used_traffic=total_usage + account.used_traffic,
+                            )
+                            logger.info(
+                                f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}"
+                            )
+                        else:
+                            logger.warn(
+                                f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}"
+                            )
 
 
 def review_accounts():
@@ -669,6 +684,7 @@ def _send_notification(
         db=db,
         db_user=db_user,
         notification=NotificationCreate(
+            user_id=db_user.id,
             approve=True,
             message=message,
             level=level,

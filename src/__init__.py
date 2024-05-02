@@ -21,6 +21,8 @@ from src.commerce.router import (
     payment_router,
     transaction_router,
 )
+
+from src.notification.router import notification_router
 from src.users.schemas import UserResponse
 
 # logging_config = dict(
@@ -73,6 +75,7 @@ app.include_router(order_router, prefix="/api", tags=["Order"])
 app.include_router(service_router, prefix="/api", tags=["Service"])
 app.include_router(payment_router, prefix="/api", tags=["Payment"])
 app.include_router(transaction_router, prefix="/api", tags=["Transaction"])
+app.include_router(notification_router, prefix="/api", tags=["Notification"])
 
 # from src import hosts, admins
 
