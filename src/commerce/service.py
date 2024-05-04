@@ -132,7 +132,7 @@ def create_transaction(
             )
             + messages.USER_BALANCE.format(balance=db_user.balance_readable),
         )
-    else:
+    elif db_transaction.amount < 0:
         _send_notification(
             db=db,
             db_user=db_user,
@@ -501,14 +501,15 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             db, db_order=db_order, db_user=db_user, transaction=transaction
         )
 
-        _send_notification(
-            db=db,
-            db_user=db_user,
-            type_=NotificationType.order,
-            message=messages.ORDER_PAID_NOTIFICATION.format(
-                title=order_title, id=db_order.id
-            ),
-        )
+        if db_order.total > 0:
+            _send_notification(
+                db=db,
+                db_user=db_user,
+                type_=NotificationType.order,
+                message=messages.ORDER_PAID_NOTIFICATION.format(
+                    title=order_title, id=db_order.id
+                ),
+            )
 
     if db_order.status == OrderStatus.completed:
         _send_notification(
