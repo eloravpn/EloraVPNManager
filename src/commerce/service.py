@@ -489,7 +489,9 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
     if db_service:
         order_title = db_service.name
 
-    if db_order.status == OrderStatus.paid:
+    if db_order.status == OrderStatus.paid and (
+        db_order.total - db_order.total_discount_amount > 0
+    ):
         transaction = TransactionCreate(
             user_id=db_user.id,
             description=messages.ORDER_PAID_DESCRIPTION.format(id=db_order.id),
@@ -501,15 +503,14 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             db, db_order=db_order, db_user=db_user, transaction=transaction
         )
 
-        if db_order.total > 0:
-            _send_notification(
-                db=db,
-                db_user=db_user,
-                type_=NotificationType.order,
-                message=messages.ORDER_PAID_NOTIFICATION.format(
-                    title=order_title, id=db_order.id
-                ),
-            )
+        _send_notification(
+            db=db,
+            db_user=db_user,
+            type_=NotificationType.order,
+            message=messages.ORDER_PAID_NOTIFICATION.format(
+                title=order_title, id=db_order.id
+            ),
+        )
 
     if db_order.status == OrderStatus.completed:
         _send_notification(
