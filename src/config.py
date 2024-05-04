@@ -52,6 +52,8 @@ TEST_ACCOUNT_DURATION_DAY_LIMIT = config(
 )
 TEST_ACCOUNT_HOST_ZONE_ID = config("TEST_ACCOUNT_HOST_ZONE_ID", cast=int, default=1)
 
+TEST_SERVICE_ID = config("TEST_SERVICE_ID", cast=int, default=0)
+
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = config(
     "JWT_ACCESS_TOKEN_EXPIRE_MINUTES", cast=int, default=1440
 )

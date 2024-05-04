@@ -292,42 +292,20 @@ def get_user(user_id=0) -> User:
         return account
 
 
-def add_test_account(user_id: int):
+def allow_to_get_new_test_service(user_id: int) -> bool:
     with GetDB() as db:
         db_user = user_service.get_user(db=db, user_id=user_id)
-        db_host_zone = get_host_zone(
-            db=db, host_zone_id=config.TEST_ACCOUNT_HOST_ZONE_ID
-        )
-
-        today = datetime.datetime.now()
-        expired_at = today + datetime.timedelta(
-            days=config.TEST_ACCOUNT_DURATION_DAY_LIMIT
-        )
-
-        account = AccountCreate(
-            host_zone_id=db_host_zone.id,
+        orders, count = commerce_service.get_orders(
+            db=db,
+            start_date=_get_date(config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS),
             user_id=db_user.id,
-            data_limit=config.TEST_ACCOUNT_DATA_LIMIT,
-            email=config.TEST_ACCOUNT_EMAIL_PREFIX + get_random_string(8),
-            enable=True,
-            expired_at=expired_at,
+            service_id=config.TEST_SERVICE_ID,
         )
-        db_account = account_service.create_account(
-            db=db, db_user=db_user, account=account, db_host_zone=db_host_zone
-        )
-        logger.warn(f"A new test account has been created {account}")
-        return AccountResponse.from_orm(db_account)
 
-
-def get_last_test_account(user_id: int) -> AccountResponse:
-    with GetDB() as db:
-        db_user = user_service.get_user(db=db, user_id=user_id)
-        account = account_service.get_user_last_test_account(db=db, db_user=db_user)
-
-        if account:
-            return AccountResponse.from_orm(account)
+        if count > 0:
+            return False
         else:
-            return None
+            return True
 
 
 def get_readable_size(size: int):
