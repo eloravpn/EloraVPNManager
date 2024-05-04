@@ -140,7 +140,7 @@ def support(message):
 
 
 @bot.message_handler(regexp=captions.PAYMENT, is_subscribed_user=True)
-def support(message):
+def payment(message):
     bot.reply_to(
         message,
         text=messages.PAYMENT_MESSAGE.format(
@@ -176,40 +176,41 @@ def get_test_service(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
-    test_account = utils.get_last_test_account(user_id=user.id)
+    if (
+        utils.allow_to_get_new_test_service(user_id=user.id)
+        and config.TEST_SERVICE_ID > 0
+    ):
 
-    if test_account:
-        created_at = test_account.created_at
+        try:
+            utils.place_paid_order(
+                chat_id=user.telegram_chat_id,
+                account_id=0,
+                service_id=config.TEST_SERVICE_ID,
+            )
 
-        logger.debug(f"Account created at {created_at}")
+            bot.reply_to(
+                message,
+                messages.GET_TEST_SERVICE_SUCCESS.format(
+                    admin_id=config.TELEGRAM_ADMIN_USER_NAME
+                ),
+                parse_mode="html",
+                disable_web_page_preview=True,
+            )
 
-        first_valid_date = datetime.datetime.utcnow() - datetime.timedelta(
-            days=config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS
-        )
+            utils.send_message_to_admin(
+                messages.GET_TEST_SERVICE_ADMIN_ALERT.format(
+                    chat_id=telegram_user.id, full_name=telegram_user.full_name
+                ),
+                disable_notification=True,
+            )
 
-        allow_to_get_new_account = created_at < first_valid_date
-    else:
-        allow_to_get_new_account = True
-
-    if allow_to_get_new_account:
-        utils.add_test_account(user_id=user.id)
-
-        bot.reply_to(
-            message,
-            messages.GET_TEST_SERVICE_SUCCESS.format(
-                admin_id=config.TELEGRAM_ADMIN_USER_NAME
-            ),
-            # reply_markup="Test Service",
-            parse_mode="html",
-            disable_web_page_preview=True,
-        )
-
-        utils.send_message_to_admin(
-            messages.GET_TEST_SERVICE_ADMIN_ALERT.format(
-                chat_id=telegram_user.id, full_name=telegram_user.full_name
-            ),
-            disable_notification=True,
-        )
+        except Exception as error:
+            utils.send_message_to_admin(
+                messages.GET_TEST_SERVICE_ERROR_ADMIN_ALERT.format(
+                    chat_id=telegram_user.id, full_name=telegram_user.full_name
+                ),
+                disable_notification=False,
+            )
 
     else:
         bot.reply_to(
@@ -218,7 +219,6 @@ def get_test_service(message):
                 day=config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS,
                 admin_id=config.TELEGRAM_ADMIN_USER_NAME,
             ),
-            # reply_markup="Test Service",
             parse_mode="html",
             disable_web_page_preview=True,
         )
@@ -352,7 +352,6 @@ def buy_service_step_2(call: types.CallbackQuery):
                 ),
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
                 parse_mode="html",
             )
         else:
@@ -362,7 +361,6 @@ def buy_service_step_2(call: types.CallbackQuery):
                 ),
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                # reply_markup=BotUserKeyboard.buy_service_step_2(data=call.data),
                 parse_mode="html",
             )
     except MaxOpenOrderError as error:

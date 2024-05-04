@@ -434,6 +434,7 @@ def get_orders(
     sort: Optional[List[OrderSortingOptions]] = [OrderSortingOptions["-modified"]],
     return_with_count: bool = True,
     user_id: int = 0,
+    service_id: int = 0,
     account_id: int = 0,
     status: OrderStatus = None,
     q: str = None,
@@ -447,6 +448,9 @@ def get_orders(
 
     if account_id > 0:
         query = query.filter(Order.account_id == account_id)
+
+    if service_id > 0:
+        query = query.filter(Order.service_id == service_id)
 
     if status:
         query = query.filter(Order.status == status)
