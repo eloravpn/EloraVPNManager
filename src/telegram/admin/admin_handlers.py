@@ -34,6 +34,55 @@ class IsAdminUser(custom_filters.SimpleCustomFilter):
 bot.add_custom_filter(IsAdminUser())
 
 
+@bot.message_handler(is_admin=True)
+def handle_froward_message(message: types.Message):
+    telegram_info = ""
+    account_details = ""
+    telegram_chat_id = 0
+
+    payment_details = ""
+
+    if message.forward_from:
+        telegram_chat_id = message.forward_from.id
+        telegram_info = messages.USER_INFO.format(
+            id=message.forward_from.id,
+            full_name=message.forward_from.full_name,
+            username=message.forward_from.username,
+        )
+    elif message.forward_sender_name:
+        telegram_info = messages.USER_INFO.format(
+            id=message.forward_sender_name,
+            full_name=message.forward_sender_name,
+            username=message.forward_sender_name,
+        )
+
+    if telegram_chat_id > 0:
+        user = utils.get_user_by_chat_id(telegram_chat_id=telegram_chat_id)
+        if user:
+            for account in user.accounts:
+                account_details = account_details + messages.ACCOUNT_DETAIL.format(
+                    id=account.id,
+                    email=account.email,
+                    used_traffic_percent=account.used_traffic_percent,
+                    data_limit=utils.get_readable_size(account.data_limit),
+                    enable="✅" if account.enable else "❌",
+                )
+
+            payment_details = messages.USER_PAYMENT_DETAILS.format(
+                balance=utils.get_price_readable(user.balance),
+                total=utils.get_price_readable(
+                    utils.get_total_payment(user_id=user.id)
+                ),
+            )
+
+    bot.send_message(
+        chat_id=message.from_user.id,
+        text=telegram_info + account_details + payment_details,
+        disable_web_page_preview=True,
+        parse_mode="html",
+    )
+
+
 @bot.callback_query_handler(
     func=lambda call: call.data.startswith("approve_notification:")
 )

@@ -52,3 +52,25 @@ TRANSACTIONS_REPORT = """
 *Bonus *: `{total_bonuses}` IRT
 ➖➖➖➖➖➖➖
 """
+
+USER_INFO = """
+* User Info *
+Chat id: <code>{id}</code>
+Full name: <code>{full_name}</code>
+User Name: <code>{username}</code>
+        
+"""
+
+ACCOUNT_DETAIL = """
+<code>{id}</code> | <code>{email}</code> | <code>{used_traffic_percent}%</code>| <code>{data_limit}</code> | <code>{enable}</code>
+"""
+
+
+USER_PAYMENT_DETAILS = """
+➖➖➖➖➖➖➖
+
+* Payments * 
+
+Total Payment: {total}
+Balance: <code>{balance}</code>
+"""

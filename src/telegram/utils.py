@@ -20,7 +20,12 @@ from src.accounts.schemas import (
     AccountUsedTrafficReportResponse,
 )
 from src.commerce.models import Service, Order
-from src.commerce.schemas import OrderCreate, OrderStatus, TransactionType
+from src.commerce.schemas import (
+    OrderCreate,
+    OrderStatus,
+    TransactionType,
+    PaymentStatus,
+)
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.hosts.service import get_host_zone
@@ -170,6 +175,17 @@ def get_user_referral_count(telegram_user) -> UserResponse:
     return 0
 
 
+def get_user_by_chat_id(telegram_chat_id: int) -> UserResponse:
+    with GetDB() as db:
+        db_user = user_service.get_user_by_telegram_chat_id(
+            db=db, telegram_chat_id=telegram_chat_id
+        )
+        if db_user:
+            return UserResponse.from_orm(db_user)
+        else:
+            return None
+
+
 def add_or_get_user(telegram_user, referral_user: User = None) -> UserResponse:
     try:
         with GetDB() as db:
@@ -242,6 +258,19 @@ def get_accounts(enable: bool, test_account: bool):
         return account_service.get_accounts(
             db=db, filter_enable=True, enable=enable, test_account=test_account
         )
+
+
+def get_total_payment(user_id: int):
+    with GetDB() as db:
+        payments, count = commerce_service.get_payments(
+            db=db, status=PaymentStatus.paid, user_id=user_id
+        )
+        total = 0
+
+        for payment in payments:
+            total += payment.total
+
+        return total
 
 
 def get_orders(
