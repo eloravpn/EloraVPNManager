@@ -205,6 +205,7 @@ def get_test_service(message):
             )
 
         except Exception as error:
+            logger.error(error)
             utils.send_message_to_admin(
                 messages.GET_TEST_SERVICE_ERROR_ADMIN_ALERT.format(
                     chat_id=telegram_user.id, full_name=telegram_user.full_name
