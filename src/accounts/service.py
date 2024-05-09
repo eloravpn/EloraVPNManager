@@ -71,6 +71,13 @@ def create_account_used_traffic(
     return db_account_used_traffic
 
 
+def create_bulk_account_used_traffic(
+    db: Session, accounts_used_traffic: List[AccountUsedTraffic]
+):
+    db.bulk_save_objects(accounts_used_traffic)
+    db.commit()
+
+
 def update_account(
     db: Session,
     db_account: Account,
@@ -201,21 +208,21 @@ def get_user_last_test_account(
 
 def get_account_used_traffic(
     db: Session, db_account: Account, delta: int = 3
-) -> AccountUsedTraffic:
+) -> AccountUsedTrafficResponse:
     today = datetime.datetime.now()
     n_days_ago = today - datetime.timedelta(days=delta)
-
-    print("Generate report from " + str(n_days_ago))
 
     query = db.query(
         func.sum(AccountUsedTraffic.download).label("total_download"),
         func.sum(AccountUsedTraffic.upload).label("total_upload"),
     ).filter(
         and_(
-            AccountUsedTraffic.created_at >= n_days_ago,
             AccountUsedTraffic.account_id == db_account.id,
         )
     )
+
+    if delta > 0:
+        query.filter(and_(AccountUsedTraffic.created_at >= n_days_ago))
 
     sum_result = query.one()
 
@@ -327,3 +334,7 @@ def get_account_by_uuid_and_email(db: Session, uuid: str, email: str) -> Account
         .filter(and_(Account.uuid == uuid, Account.email == email))
         .first()
     )
+
+
+def get_account_by_email(db: Session, email: str) -> Account:
+    return db.query(Account).filter(Account.email == email).first()

@@ -1,14 +1,17 @@
+import traceback
 from datetime import datetime, timedelta
 
 from src import scheduler, logger, config
-from src.accounts.models import Account
+from src.accounts.models import Account, AccountUsedTraffic
 from src.accounts.service import (
     get_accounts,
-    update_account_used_traffic,
     update_account_status,
-    create_account_used_traffic,
     remove_account,
     get_account_by_uuid_and_email,
+    get_account_by_email,
+    create_bulk_account_used_traffic,
+    get_account_used_traffic,
+    update_account_used_traffic,
 )
 from src.database import GetDB
 from src.hosts.schemas import HostResponse
@@ -434,80 +437,142 @@ def sync_new_accounts():
 
 def sync_accounts_traffic():
     with GetDB() as db:
+        start = datetime.utcnow().timestamp()
+
         logger.info(
             "Start syncing accounts traffic from all inbounds " + str(datetime.now())
         )
 
         inbounds, count = get_inbounds(db=db, enable=1)
         for inbound in inbounds:
-            logger.info(f"Inbound Remark: {inbound.remark}")
-            logger.info(f"Inbound host ID: {inbound.host_id}")
-
-            host = get_host(db, inbound.host_id)
-
-            if not inbound.enable or not host.enable:
-                logger.info("Skip this inbound because it is disabled.")
-                continue
-
             try:
+
+                host = get_host(db, inbound.host_id)
+
+                logger.info(
+                    f"Calculate client state in inbound {inbound.remark} with key {inbound.key} on {host.name}"
+                )
+
+                if not inbound.enable or not host.enable:
+                    logger.info("Skip this inbound because it is disabled.")
+                    continue
+
                 xui = XUI(host=HostResponse.from_orm(host))
+
+                remote_inbound_client_stats = xui.api.get_inbound_client_stats(
+                    inbound.key
+                )
+
+                db_accounts_used_traffic = []
+
+                if remote_inbound_client_stats and len(remote_inbound_client_stats) > 0:
+                    for client_stat in remote_inbound_client_stats:
+                        client_email = client_stat["email"]
+                        enable = client_stat["enable"]
+                        account_email = _get_account_real_email(client_email)
+
+                        logger.debug(f"Client Email: {client_email}")
+                        logger.debug(f"Account Email: {account_email}")
+                        logger.debug(f"Client Status: {enable}")
+
+                        if account_email is None:
+                            logger.warn(
+                                "This client is not handle with Elora Panel! Skip!"
+                            )
+                            continue
+
+                        db_account = get_account_by_email(db=db, email=account_email)
+
+                        if db_account:
+                            if not db_account.enable:
+                                logger.debug(
+                                    "Account is disable, skipped to update traffic!"
+                                )
+                                continue
+
+                            download = (
+                                int(client_stat["down"]) * config.GLOBAL_TRAFFIC_RATIO
+                            )
+                            upload = (
+                                int(client_stat["up"]) * config.GLOBAL_TRAFFIC_RATIO
+                            )
+
+                            used_traffic = download + upload
+
+                            if used_traffic > 0:
+                                logger.debug(f"Client Upload: {upload}")
+                                logger.debug(f"Client Download: {download}")
+                                logger.debug(
+                                    f"Client total usage: {used_traffic} with ratio {config.GLOBAL_TRAFFIC_RATIO}"
+                                )
+
+                                db_accounts_used_traffic.append(
+                                    AccountUsedTraffic(
+                                        account_id=db_account.id,
+                                        download=download,
+                                        upload=upload,
+                                    )
+                                )
+                        else:
+                            logger.warn(
+                                f"We could not found Account with email {account_email}"
+                            )
+
+                if db_accounts_used_traffic and len(db_accounts_used_traffic) > 0:
+                    create_bulk_account_used_traffic(
+                        db=db, accounts_used_traffic=db_accounts_used_traffic
+                    )
+                    xui.api.reset_clients_traffic(inbound_id=inbound.key)
+
+                    logger.info(
+                        f"Successfully saved all account used traffics with size {len(db_accounts_used_traffic)} for "
+                        f"inbound {inbound.remark} with key {inbound.key}"
+                    )
+                else:
+                    logger.warn(
+                        f"No client state in inbound {inbound.remark} with key {inbound.key} on {host.name}"
+                    )
             except Exception as error:
-                logger.error(f"Could not connect to host {host.name} ")
+                # traceback.print_exception(error)
+                logger.error(error)
+                logger.error(
+                    f"Could not sync traffics in host {host.name} and inbound {inbound.remark} with key {inbound.key}"
+                )
                 continue
 
-            logger.info("Host name: " + host.name)
+        for db_account in get_accounts(db=db, return_with_count=False):
+            try:
+                logger.debug(f"Account uuid: {db_account.uuid}")
+                logger.debug(f"Account email: {db_account.email}")
+                logger.debug(f"Account Expire time: {db_account.expired_at}")
+                logger.debug(f"Account Status: {db_account.enable}")
 
-            for account in get_accounts(db=db, return_with_count=False):
-                # account_expire_time = account.expired_at.timestamp() * 1000
-                logger.debug(f"Account uuid: {account.uuid}")
-                logger.debug(f"Account email: {account.email}")
-                logger.debug(f"Account Expire time: {account.expired_at}")
-                logger.debug(f"Account Status: {account.enable}")
-
-                if not account.enable:
+                if not db_account.enable:
                     logger.debug("Account is disable, skipped to update traffic!")
                     continue
 
-                account_unique_email = _get_account_email_prefix(
-                    host.id, inbound.key, account.email
+                account_sum_used_traffic = get_account_used_traffic(
+                    db=db, db_account=db_account, delta=0
                 )
 
-                client_stat = xui.api.get_client_stat(email=account_unique_email)
-                if client_stat is not None:
-                    download = int(client_stat["down"]) * config.GLOBAL_TRAFFIC_RATIO
-                    upload = int(client_stat["up"]) * config.GLOBAL_TRAFFIC_RATIO
+                if account_sum_used_traffic:
+                    used_traffic = (
+                        account_sum_used_traffic.upload
+                        + account_sum_used_traffic.download
+                    )
 
-                    total_usage = download + upload
+                    update_account_used_traffic(
+                        db=db, db_account=db_account, used_traffic=used_traffic
+                    )
+            except Exception as error:
+                logger.error(error)
+                logger.error(f"Could not sync traffics for account {db_account.email} ")
+                continue
 
-                    if total_usage > 0:
-                        logger.info(f"Client Upload: {upload}")
-                        logger.info(f"Client Download: {download}")
-                        logger.info(
-                            f"Client total usage: {total_usage} with ratio {config.GLOBAL_TRAFFIC_RATIO}"
-                        )
-                        reset = xui.api.reset_client_traffic(
-                            inbound_id=inbound.key, email=account_unique_email
-                        )
-
-                        if reset:
-                            create_account_used_traffic(
-                                db=db,
-                                db_account=account,
-                                upload=upload,
-                                download=download,
-                            )
-                            update_account_used_traffic(
-                                db=db,
-                                db_account=account,
-                                used_traffic=total_usage + account.used_traffic,
-                            )
-                            logger.info(
-                                f"Traffic updated and reset successfully in {inbound.remark}-{inbound.key} for {account_unique_email}"
-                            )
-                        else:
-                            logger.warn(
-                                f"Could not reset traffic in target inbound {inbound.remark}-{inbound.key}"
-                            )
+        end = datetime.utcnow().timestamp()
+        logger.info(
+            f"End syncing accounts traffic from all inbounds in {int(end - start)} Sec"
+        )
 
 
 def review_accounts():

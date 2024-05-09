@@ -110,6 +110,34 @@ class MHSANAEI:
             logger.warn(error)
             return False
 
+    def reset_clients_traffic(self, inbound_id: int):
+        headers = {"Content-type": "application/json", "Accept": "text/plain"}
+
+        url = f"{self._base_api_url}/inbounds/resetAllClientTraffics/{inbound_id}"
+
+        logger.info(f"Final url for reset client traffic is: {url}")
+
+        try:
+            response = requests.post(
+                url,
+                cookies=self._login_cookies,
+                verify=False,
+                headers=headers,
+                timeout=config.X_UI_REQUEST_TIMEOUT,
+            )
+
+            data = response.json()
+            logger.debug(f"Response code: {response.status_code}")
+            logger.debug(f"Response text: {response.text}")
+
+            if response.status_code == 200 and data["success"] == True:
+                return True
+            else:
+                return False
+        except Exception as error:
+            logger.warn(error)
+            return False
+
     def delete_client(self, inbound_id: int, uuid: str):
 
         try:
@@ -276,6 +304,36 @@ class MHSANAEI:
             {"id": inbound_id, "settings": json.dumps(clients_object)}
         )
         return payload_add_client
+
+    def get_inbound_client_stats(
+        self,
+        inbound_id: int,
+    ):
+        try:
+            logger.debug(f"Get clients from {self._host.name} inbound {inbound_id}")
+
+            url = f"{self._base_api_url}/inbounds/list"
+
+            response = requests.get(
+                url,
+                cookies=self._login_cookies,
+                verify=False,
+                timeout=config.X_UI_REQUEST_TIMEOUT,
+            )
+
+            data = response.json()
+
+            remote_inbound_list = data["obj"]
+
+            if remote_inbound_list is not None:
+                for remote_inbound in remote_inbound_list:
+                    if int(remote_inbound["id"]) == inbound_id:
+                        return remote_inbound["clientStats"]
+
+            return None
+        except Exception as error:
+            logger.warn(error)
+            return None
 
     def get_inbound_clients(
         self,
