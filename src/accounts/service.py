@@ -228,7 +228,7 @@ def get_account_used_traffic(
 
     if query:
         return AccountUsedTrafficResponse(
-            account_id=db_account.id, download=sum_result[0], upload=sum_result[1]
+            account_id=db_account.id, download=sum_result[0] or 0, upload=sum_result[1] or 0
         )
 
     else:
