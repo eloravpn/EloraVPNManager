@@ -32,6 +32,7 @@ class Notification(Base):
     details = Column(String(10000))
 
     approve = Column(Boolean, default=True)
+    send_to_admin = Column(Boolean, default=True)
 
     engine = Column(
         Enum(NotificationEngine),

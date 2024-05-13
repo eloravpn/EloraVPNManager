@@ -133,6 +133,7 @@ def process_pending_notifications():
     with GetDB() as db:
         notifications, count = get_notifications(
             db=db,
+            limit=config.SEND_PENDING_NOTIFICATION_LIMIT,
             status=NotificationStatus.pending,
             approve=1,
             sort=[NotificationSortingOptions["modified"]],
@@ -159,11 +160,12 @@ def process_pending_notifications():
                         approve=True,
                     )
 
-                    utils.send_message_to_admin(
-                        message=admin_message,
-                        parse_mode="html",
-                        disable_notification=True,
-                    )
+                    if db_notification.send_to_admin:
+                        utils.send_message_to_admin(
+                            message=admin_message,
+                            parse_mode="html",
+                            disable_notification=True,
+                        )
 
                     utils.send_message_to_user(
                         chat_id=db_user.telegram_chat_id,

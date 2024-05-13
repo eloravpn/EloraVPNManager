@@ -77,6 +77,7 @@ def create_bulk_notification(
             message=notification.message,
             details=notification.details,
             approve=notification.approve,
+            send_to_admin=notification.send_to_admin,
             status=notification.status,
             engine=notification.engine,
             type=notification.type,

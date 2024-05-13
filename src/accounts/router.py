@@ -118,6 +118,7 @@ def modify_account(
             notification=NotificationCreate(
                 user_id=db_account.user.id,
                 approve=True,
+                send_to_admin=False,
                 message=message,
                 level=0,
                 type=NotificationType.account,
