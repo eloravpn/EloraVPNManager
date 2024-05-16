@@ -12,6 +12,7 @@ from src.accounts.service import (
     create_bulk_account_used_traffic,
     get_account_used_traffic,
     update_account_used_traffic,
+    create_account_used_traffic,
 )
 from src.database import GetDB
 from src.hosts.schemas import HostResponse
@@ -463,7 +464,7 @@ def sync_accounts_traffic():
                     inbound.key
                 )
 
-                db_accounts_used_traffic = []
+                # db_accounts_used_traffic = []
 
                 if remote_inbound_client_stats and len(remote_inbound_client_stats) > 0:
                     for client_stat in remote_inbound_client_stats:
@@ -506,32 +507,49 @@ def sync_accounts_traffic():
                                     f"Client total usage: {used_traffic} with ratio {config.GLOBAL_TRAFFIC_RATIO}"
                                 )
 
-                                db_accounts_used_traffic.append(
-                                    AccountUsedTraffic(
-                                        account_id=db_account.id,
-                                        download=download,
-                                        upload=upload,
-                                    )
+                                reset = xui.api.reset_client_traffic(
+                                    inbound_id=inbound.key, email=client_email
                                 )
+
+                                if reset:
+                                    create_account_used_traffic(
+                                        db=db,
+                                        db_account=db_account,
+                                        upload=upload,
+                                        download=download,
+                                    )
+                                    update_account_used_traffic(
+                                        db=db,
+                                        db_account=db_account,
+                                        used_traffic=used_traffic
+                                        + db_account.used_traffic,
+                                    )
+                                    logger.info(
+                                        f"Traffic updated and reset successfully in {inbound.remark}[{inbound.key}] for {account_email}"
+                                    )
+                                else:
+                                    logger.warn(
+                                        f"Could not reset traffic in target inbound {inbound.remark}[{inbound.key}] for {account_email}"
+                                    )
                         else:
                             logger.warn(
                                 f"We could not found Account with email {account_email}"
                             )
 
-                if db_accounts_used_traffic and len(db_accounts_used_traffic) > 0:
-                    create_bulk_account_used_traffic(
-                        db=db, accounts_used_traffic=db_accounts_used_traffic
-                    )
-                    xui.api.reset_clients_traffic(inbound_id=inbound.key)
-
-                    logger.info(
-                        f"Successfully saved all account used traffics with size {len(db_accounts_used_traffic)} for "
-                        f"inbound {inbound.remark} with key {inbound.key}"
-                    )
-                else:
-                    logger.warn(
-                        f"No client state in inbound {inbound.remark} with key {inbound.key} on {host.name}"
-                    )
+                # if db_accounts_used_traffic and len(db_accounts_used_traffic) > 0:
+                #     create_bulk_account_used_traffic(
+                #         db=db, accounts_used_traffic=db_accounts_used_traffic
+                #     )
+                #     xui.api.reset_clients_traffic(inbound_id=inbound.key)
+                #
+                #     logger.info(
+                #         f"Successfully saved all account used traffics with size {len(db_accounts_used_traffic)} for "
+                #         f"inbound {inbound.remark} with key {inbound.key}"
+                #     )
+                # else:
+                #     logger.warn(
+                #         f"No client state in inbound {inbound.remark} with key {inbound.key} on {host.name}"
+                #     )
             except Exception as error:
                 # traceback.print_exception(error)
                 logger.error(error)
@@ -540,34 +558,34 @@ def sync_accounts_traffic():
                 )
                 continue
 
-        for db_account in get_accounts(db=db, return_with_count=False):
-            try:
-                logger.debug(f"Account uuid: {db_account.uuid}")
-                logger.debug(f"Account email: {db_account.email}")
-                logger.debug(f"Account Expire time: {db_account.expired_at}")
-                logger.debug(f"Account Status: {db_account.enable}")
-
-                if not db_account.enable:
-                    logger.debug("Account is disable, skipped to update traffic!")
-                    continue
-
-                account_sum_used_traffic = get_account_used_traffic(
-                    db=db, db_account=db_account, delta=0
-                )
-
-                if account_sum_used_traffic:
-                    used_traffic = (
-                        account_sum_used_traffic.upload
-                        + account_sum_used_traffic.download
-                    )
-
-                    update_account_used_traffic(
-                        db=db, db_account=db_account, used_traffic=used_traffic
-                    )
-            except Exception as error:
-                logger.error(error)
-                logger.error(f"Could not sync traffics for account {db_account.email} ")
-                continue
+        # for db_account in get_accounts(db=db, return_with_count=False):
+        #     try:
+        #         logger.debug(f"Account uuid: {db_account.uuid}")
+        #         logger.debug(f"Account email: {db_account.email}")
+        #         logger.debug(f"Account Expire time: {db_account.expired_at}")
+        #         logger.debug(f"Account Status: {db_account.enable}")
+        #
+        #         if not db_account.enable:
+        #             logger.debug("Account is disable, skipped to update traffic!")
+        #             continue
+        #
+        #         account_sum_used_traffic = get_account_used_traffic(
+        #             db=db, db_account=db_account, delta=0
+        #         )
+        #
+        #         if account_sum_used_traffic:
+        #             used_traffic = (
+        #                 account_sum_used_traffic.upload
+        #                 + account_sum_used_traffic.download
+        #             )
+        #
+        #             update_account_used_traffic(
+        #                 db=db, db_account=db_account, used_traffic=used_traffic
+        #             )
+        #     except Exception as error:
+        #         logger.error(error)
+        #         logger.error(f"Could not sync traffics for account {db_account.email} ")
+        #         continue
 
         end = datetime.utcnow().timestamp()
         logger.info(
