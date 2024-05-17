@@ -200,8 +200,8 @@ def get_accounts_report(
 )
 def get_account_report_used_traffic(
     account_id: int,
-    start_date: datetime.datetime,
-    end_date: datetime.datetime,
+    start_date: datetime.datetime = None,
+    end_date: datetime.datetime = None,
     trunc: AccountUedTrafficTrunc = AccountUedTrafficTrunc.HOUR,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
