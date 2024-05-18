@@ -35,8 +35,11 @@ class AccountBase(BaseModel):
     ip_limit: Optional[int] = 0
     data_limit: int
     email: str
+    service_title: Optional[str] = None
+    user_title: Optional[str] = None
     enable: bool
     expired_at: Union[datetime, str] = None
+    started_at: Union[datetime, str] = None
 
     @validator("uuid")
     def validate_uuid(cls, uuid: str):

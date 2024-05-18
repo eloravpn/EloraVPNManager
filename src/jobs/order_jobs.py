@@ -45,11 +45,14 @@ def process_paid_orders():
                                 user_id=db_account.user_id,
                                 host_zone_id=db_host_zone.id,
                                 uuid=db_account.uuid,
+                                service_title=db_service.name,
+                                user_title=db_account.user_title,
                                 data_limit=db_order.data_limit,
                                 ip_limit=db_order.ip_limit,
                                 email=db_account.email,
                                 enable=True,
                                 expired_at=expired_at,
+                                started_at=today,
                             )
 
                             db_account = update_account(
@@ -75,8 +78,10 @@ def process_paid_orders():
                             ip_limit=db_order.ip_limit,
                             data_limit=db_service.data_limit,
                             email=get_random_string(6),
+                            service_title=db_service.name,
                             enable=True,
                             expired_at=expired_at,
+                            started_at=today,
                         )
 
                         db_account = create_account(

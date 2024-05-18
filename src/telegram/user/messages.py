@@ -30,6 +30,8 @@ PLEASE_SUBSCRIBE_MESSAGE = """
 MY_ACCOUNT_MESSAGE = """
  وضعیت اشتراک: <code>{}</code>
  شناسه سرویس: <code>{}</code>
+ بسته فعلی: <code>{}</code>
+ نام سرویس: <code>{}</code>
 
 ⏰ تاریخ اعتبار : <code>{}</code>
 
