@@ -4,6 +4,8 @@ import random
 import qrcode as qrcode
 from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
+from telebot.custom_filters import IsReplyFilter
+from telebot.types import ForceReply
 
 from src import logger, config
 from src.commerce.exc import (
@@ -15,6 +17,8 @@ from src.telegram import bot, utils
 from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
 from src.users.models import User
+
+change_account_name_message_ids = {}
 
 
 class IsSubscribedUser(custom_filters.SimpleCustomFilter):
@@ -75,6 +79,7 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
 
 
 bot.add_custom_filter(IsSubscribedUser())
+bot.add_custom_filter(IsReplyFilter())
 
 
 # Handle '/start' and '/help'
@@ -396,6 +401,29 @@ def buy_service_step_2(call: types.CallbackQuery):
     bot.answer_callback_query(callback_query_id=call.id)
 
 
+@bot.message_handler(is_reply=True)
+def get_account_name(message: types.Message):
+    key = f"{message.reply_to_message.message_id}:{message.chat.id}"
+    if key in change_account_name_message_ids:
+        db_account = utils.update_account_user_title(
+            account_id=change_account_name_message_ids[key], title=message.text
+        )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("change_account_name:"),
+    is_subscribed_user=True,
+)
+def change_account_name(call: types.CallbackQuery):
+    account_id = call.data.split(":")[1]
+    message = bot.send_message(
+        call.from_user.id, "Enter No.", reply_markup=ForceReply()
+    )
+    change_account_name_message_ids[f"{message.message_id}:{message.chat.id}"] = (
+        account_id
+    )
+
+
 @bot.callback_query_handler(
     func=lambda call: call.data.startswith("qrcode:"), is_subscribed_user=True
 )
@@ -454,6 +482,8 @@ def account_detail(call: types.CallbackQuery):
             text=messages.MY_ACCOUNT_MESSAGE.format(
                 captions.ENABLE if account.enable else captions.DISABLE,
                 account.email,
+                account.service_title,
+                account.user_title,
                 expired_at,
                 utils.get_readable_size(account.used_traffic),
                 utils.get_readable_size(account.data_limit),

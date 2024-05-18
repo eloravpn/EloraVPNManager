@@ -72,6 +72,7 @@ class BotUserKeyboard:
         keyboard = types.InlineKeyboardMarkup()
 
         for account in accounts:
+
             expired_at = (
                 "Unlimited"
                 if not account.expired_at
@@ -83,13 +84,18 @@ class BotUserKeyboard:
                 if account.data_limit > 0
                 else "Unlimited"
             )
+
+            service_name = captions.ACCOUNT_LIST_ITEM.format(
+                data_limit,
+                expired_at,
+                captions.ENABLE if account.enable else captions.DISABLE,
+            )
+
+            if account.user_title:
+                service_name = f"{account.user_title} [{data_limit}]"
             keyboard.add(
                 types.InlineKeyboardButton(
-                    text=captions.ACCOUNT_LIST_ITEM.format(
-                        data_limit,
-                        expired_at,
-                        captions.ENABLE if account.enable else captions.DISABLE,
-                    ),
+                    text=service_name,
                     callback_data=f"account_detail:{account.id}",
                 )
             )
@@ -122,6 +128,9 @@ class BotUserKeyboard:
             ),
             types.InlineKeyboardButton(
                 text="🔄 بروزرسانی", callback_data=f"account_detail:{account.id}"
+            ),
+            types.InlineKeyboardButton(
+                text="✏️ تغییر نام", callback_data=f"change_account_name:{account.id}"
             ),
         )
 

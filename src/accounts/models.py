@@ -34,6 +34,8 @@ class Account(Base):
         "Notification", back_populates="account", cascade="all, delete-orphan"
     )
     orders = relationship("Order", back_populates="account")
+    service_title = Column(String(128), nullable=True)
+    user_title = Column(String(128), nullable=True)
     uuid = Column(String(128), index=True, unique=True, nullable=False)
     email = Column(String(128), index=True, unique=True, nullable=False)
     enable = Column(Boolean, default=True)
@@ -41,6 +43,7 @@ class Account(Base):
     used_traffic = Column(BigInteger, default=0)
     data_limit = Column(BigInteger, nullable=True)
 
+    started_at = Column(DateTime, nullable=True)
     expired_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow)

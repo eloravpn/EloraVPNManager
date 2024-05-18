@@ -46,9 +46,12 @@ def create_account(
         user_id=db_user.id,
         uuid=account.uuid,
         email=account.email,
+        user_title=account.user_title,
+        service_title=account.service_title,
         ip_limit=account.ip_limit,
         data_limit=account.data_limit,
         expired_at=account.expired_at,
+        started_at=account.started_at,
         enable=account.enable,
     )
 
@@ -87,8 +90,11 @@ def update_account(
     db_account.uuid = modify.uuid
     db_account.host_zone_id = (db_host_zone.id,)
     db_account.email = modify.email
+    db_account.user_title = modify.user_title
+    db_account.service_title = modify.service_title
     db_account.data_limit = modify.data_limit
     db_account.ip_limit = modify.ip_limit
+    db_account.started_at = modify.started_at
     db_account.expired_at = modify.expired_at
     db_account.modified_at = datetime.datetime.utcnow()
 
@@ -135,6 +141,14 @@ def update_account_status(db: Session, db_account: Account, enable: bool = True)
     return db_account
 
 
+def update_account_user_title(db: Session, db_account: Account, title: str):
+    db_account.user_title = title
+    db.commit()
+    db.refresh(db_account)
+
+    return db_account
+
+
 def get_accounts(
     db: Session,
     offset: Optional[int] = None,
@@ -164,6 +178,8 @@ def get_accounts(
         query = query.filter(
             or_(
                 Account.email.ilike(f"%{q}%"),
+                Account.user_title.ilike(f"%{q}%"),
+                Account.service_title.ilike(f"%{q}%"),
                 Account.uuid.ilike(f"%{q}%"),
                 User.first_name.ilike(f"%{q}%"),
                 User.last_name.ilike(f"%{q}%"),

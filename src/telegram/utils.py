@@ -314,6 +314,16 @@ def get_account(account_id: int):
         return account
 
 
+def update_account_user_title(account_id: int, title: str):
+    with GetDB() as db:
+        db_account = account_service.get_account(db=db, account_id=account_id)
+        new_db_account = account_service.update_account_user_title(
+            db=db, db_account=db_account, title=title
+        )
+
+        return new_db_account
+
+
 def get_user(user_id=0) -> User:
     with GetDB() as db:
         account = user_service.get_user(db=db, user_id=user_id)
