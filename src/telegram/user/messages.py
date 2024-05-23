@@ -256,3 +256,11 @@ EXPIRE_TIME_NOTIFICATION = """
 
 <a href="https://t.me/{admin_id}">💬 ارتباط با ادمین</a>
 """
+
+PLEASE_ENTER_NEW_SERVICE_NAME = """
+لطفا یک نام جدید برای سرویس وارد نمایید:
+"""
+
+CHANGE_SERVICE_NAME_SUCCESS = """
+نام سرویس شما با موفقیت تغییر یافت.
+"""
