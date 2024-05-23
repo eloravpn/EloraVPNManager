@@ -130,7 +130,7 @@ class BotUserKeyboard:
                 text="🔄 بروزرسانی", callback_data=f"account_detail:{account.id}"
             ),
             types.InlineKeyboardButton(
-                text="✏️ تغییر نام", callback_data=f"change_account_name:{account.id}"
+                text="✏️ تغییر نام", callback_data=f"change_service_name:{account.id}"
             ),
         )
 

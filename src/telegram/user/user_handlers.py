@@ -402,26 +402,31 @@ def buy_service_step_2(call: types.CallbackQuery):
 
 
 @bot.message_handler(is_reply=True)
-def get_account_name(message: types.Message):
+def get_service_name(message: types.Message):
     key = f"{message.reply_to_message.message_id}:{message.chat.id}"
     if key in change_account_name_message_ids:
         db_account = utils.update_account_user_title(
             account_id=change_account_name_message_ids[key], title=message.text
         )
 
+        bot.send_message(
+            message.chat.id, messages.CHANGE_SERVICE_NAME_SUCCESS
+        )
+
 
 @bot.callback_query_handler(
-    func=lambda call: call.data.startswith("change_account_name:"),
+    func=lambda call: call.data.startswith("change_service_name:"),
     is_subscribed_user=True,
 )
-def change_account_name(call: types.CallbackQuery):
+def change_service_name(call: types.CallbackQuery):
     account_id = call.data.split(":")[1]
     message = bot.send_message(
-        call.from_user.id, "Enter No.", reply_markup=ForceReply()
+        call.from_user.id, messages.PLEASE_ENTER_NEW_SERVICE_NAME, reply_markup=ForceReply()
     )
     change_account_name_message_ids[f"{message.message_id}:{message.chat.id}"] = (
         account_id
     )
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(
