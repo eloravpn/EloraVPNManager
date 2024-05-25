@@ -631,7 +631,6 @@ def review_accounts():
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
                         id=account.email,
                         due=captions.EXPIRE_TIME,
-                        admin_id=config.TELEGRAM_ADMIN_USER_NAME,
                     ),
                     type_=NotificationType.account,
                 )
@@ -661,7 +660,6 @@ def review_accounts():
                     message=messages.USER_NOTIFICATION_ACCOUNT_EXPIRED.format(
                         id=account.email,
                         due=captions.EXCEEDED_DATA_LIMIT,
-                        admin_id=config.TELEGRAM_ADMIN_USER_NAME,
                     ),
                     type_=NotificationType.account,
                 )

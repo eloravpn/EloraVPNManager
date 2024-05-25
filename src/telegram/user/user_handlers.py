@@ -5,7 +5,7 @@ import qrcode as qrcode
 from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
 from telebot.custom_filters import IsReplyFilter
-from telebot.types import ForceReply
+from telebot.types import ForceReply, ChatPhoto
 
 from src import logger, config
 from src.commerce.exc import (
@@ -87,7 +87,7 @@ bot.add_custom_filter(IsReplyFilter())
 def send_welcome(message: types.Message):
     bot.send_message(
         chat_id=message.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE,
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",
@@ -127,7 +127,6 @@ def my_profile(message):
             bot_user_name=config.BOT_USER_NAME,
             full_name=user.full_name,
             balance=user.balance_readable if user.balance_readable else 0,
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
             referral_count=utils.get_user_referral_count(telegram_user=telegram_user),
             bonus=config.REFERRAL_BONUS_AMOUNT,
         ),
@@ -139,22 +138,43 @@ def my_profile(message):
 def support(message):
     bot.reply_to(
         message,
-        text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE,
         parse_mode="markdown",
     )
 
 
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("get_payment_receipt:"),
+    is_subscribed_user=True,
+)
+def get_payment_receipt(call: types.CallbackQuery):
+    account_id = call.data.split(":")[1]
+    message = bot.send_message(
+        call.from_user.id,
+        messages.GET_PAYMENT_RECEIPT_MESSAGE,
+        reply_markup=ForceReply(),
+    )
+    change_account_name_message_ids[f"{message.message_id}:{message.chat.id}"] = (
+        account_id
+    )
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
 @bot.message_handler(regexp=captions.PAYMENT, is_subscribed_user=True)
 def payment(message):
+    telegram_user = message.from_user
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
     bot.reply_to(
         message,
         text=messages.PAYMENT_MESSAGE.format(
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+            balance=user.balance_readable,
             card_number=config.CARD_NUMBER,
             card_owner=config.CARD_OWNER,
         ),
         parse_mode="html",
         disable_web_page_preview=True,
+        reply_markup=BotUserKeyboard.payment_card_step_1(account_id=0),
     )
 
 
@@ -195,9 +215,7 @@ def get_test_service(message):
 
             bot.reply_to(
                 message,
-                messages.GET_TEST_SERVICE_SUCCESS.format(
-                    admin_id=config.TELEGRAM_ADMIN_USER_NAME
-                ),
+                messages.GET_TEST_SERVICE_SUCCESS,
                 parse_mode="html",
                 disable_web_page_preview=True,
             )
@@ -223,7 +241,6 @@ def get_test_service(message):
             message,
             messages.GET_TEST_SERVICE_NOT_ALLOWED.format(
                 day=config.TEST_ACCOUNT_LIMIT_INTERVAL_DAYS,
-                admin_id=config.TELEGRAM_ADMIN_USER_NAME,
             ),
             parse_mode="html",
             disable_web_page_preview=True,
@@ -257,7 +274,7 @@ def buy_service(message):
 def main_menu(call: types.CallbackQuery):
     bot.send_message(
         chat_id=call.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE,
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",
@@ -353,18 +370,14 @@ def buy_service_step_2(call: types.CallbackQuery):
 
         if int(account_id) > 0:
             bot.edit_message_text(
-                text=messages.RECHARGE_SERVICE_FINAL.format(
-                    order.id, config.TELEGRAM_ADMIN_USER_NAME
-                ),
+                text=messages.RECHARGE_SERVICE_FINAL.format(order.id),
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 parse_mode="html",
             )
         else:
             bot.edit_message_text(
-                text=messages.BUY_NEW_SERVICE_FINAL.format(
-                    order.id, config.TELEGRAM_ADMIN_USER_NAME
-                ),
+                text=messages.BUY_NEW_SERVICE_FINAL,
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 parse_mode="html",
@@ -373,18 +386,14 @@ def buy_service_step_2(call: types.CallbackQuery):
         bot.edit_message_text(
             message_id=call.message.message_id,
             chat_id=call.message.chat.id,
-            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
-                total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
-            ),
+            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(total="1"),
             parse_mode="html",
         )
     except MaxPendingOrderError as error:
         bot.edit_message_text(
             message_id=call.message.message_id,
             chat_id=call.message.chat.id,
-            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(
-                total="1", admin_id=config.TELEGRAM_ADMIN_USER_NAME
-            ),
+            text=messages.NEW_ORDER_MAX_OPEN_ORDERS.format(total="1"),
             parse_mode="html",
         )
     except NoEnoughBalanceError as error:
@@ -392,13 +401,56 @@ def buy_service_step_2(call: types.CallbackQuery):
         bot.edit_message_text(
             message_id=call.message.message_id,
             chat_id=call.message.chat.id,
-            text=messages.NEW_ORDER_NO_ENOUGH_BALANCE.format(
-                balance=balance, admin_id=config.TELEGRAM_ADMIN_USER_NAME
-            ),
+            text=messages.NEW_ORDER_NO_ENOUGH_BALANCE.format(balance=balance),
             parse_mode="html",
         )
 
     bot.answer_callback_query(callback_query_id=call.id)
+
+
+@bot.message_handler(content_types=["document", "photo"])
+def handle_payment_receipt_docs(message: types.Message):
+
+    try:
+
+        caption = messages.PAYMENT_RECEIPT_DETAIL.format(
+            chat_id=message.from_user.id,
+            full_name=message.from_user.full_name,
+            username=message.from_user.username,
+            caption=f"{message.caption}",
+        )
+
+        if message.photo:
+            bot.send_photo(
+                chat_id=config.TELEGRAM_ADMIN_ID,
+                photo=message.photo[0].file_id,
+                caption=caption,
+                parse_mode="markdown",
+            )
+        elif message.document:
+            document_file = bot.get_file(file_id=message.document.file_id)
+            document_byte = bot.download_file(file_path=document_file.file_path)
+
+            bot.send_document(
+                chat_id=config.TELEGRAM_ADMIN_ID,
+                document=document_byte,
+                caption=caption,
+                parse_mode="markdown",
+            )
+
+        bot.send_message(
+            message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_SUCCESS
+        )
+
+    except Exception:
+        bot.send_message(
+            chat_id=config.TELEGRAM_ADMIN_ID,
+            text=f"#Error in forward repayment receipt from "
+            + f"{message.from_user.full_name} `{message.from_user.id}`",
+            parse_mode="markdown",
+        )
+
+        bot.send_message(message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_ERROR)
 
 
 @bot.message_handler(is_reply=True)
@@ -409,9 +461,7 @@ def get_service_name(message: types.Message):
             account_id=change_account_name_message_ids[key], title=message.text
         )
 
-        bot.send_message(
-            message.chat.id, messages.CHANGE_SERVICE_NAME_SUCCESS
-        )
+        bot.send_message(message.chat.id, messages.CHANGE_SERVICE_NAME_SUCCESS)
 
 
 @bot.callback_query_handler(
@@ -421,7 +471,9 @@ def get_service_name(message: types.Message):
 def change_service_name(call: types.CallbackQuery):
     account_id = call.data.split(":")[1]
     message = bot.send_message(
-        call.from_user.id, messages.PLEASE_ENTER_NEW_SERVICE_NAME, reply_markup=ForceReply()
+        call.from_user.id,
+        messages.PLEASE_ENTER_NEW_SERVICE_NAME,
+        reply_markup=ForceReply(),
     )
     change_account_name_message_ids[f"{message.message_id}:{message.chat.id}"] = (
         account_id
