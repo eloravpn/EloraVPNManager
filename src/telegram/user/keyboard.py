@@ -169,3 +169,16 @@ class BotUserKeyboard:
         )
 
         return keyboard
+
+    @staticmethod
+    def payment_card_step_1(account_id: int):
+        keyboard = types.InlineKeyboardMarkup()
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text="💳 ارسال رسید پرداختی",
+                callback_data=f"get_payment_receipt:{account_id}",
+            )
+        )
+
+        return keyboard

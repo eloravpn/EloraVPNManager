@@ -116,7 +116,6 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
                         notification=NotificationCreate(
                             user_id=account.user.id,
                             message=messages.EXPIRE_TIME_NOTIFICATION.format(
-                                admin_id=config.TELEGRAM_ADMIN_USER_NAME,
                                 account_email=account.email,
                                 days=max_days,
                             ),

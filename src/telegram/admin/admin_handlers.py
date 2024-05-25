@@ -34,7 +34,7 @@ class IsAdminUser(custom_filters.SimpleCustomFilter):
 bot.add_custom_filter(IsAdminUser())
 
 
-@bot.message_handler(is_admin=True)
+@bot.message_handler(is_admin=True, is_forwarded=True)
 def handle_froward_message(message: types.Message):
     telegram_info = ""
     account_details = ""
