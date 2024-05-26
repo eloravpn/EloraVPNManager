@@ -442,7 +442,8 @@ def handle_payment_receipt_docs(message: types.Message):
             message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_SUCCESS
         )
 
-    except Exception:
+    except Exception as error:
+        logger.error(error)
         bot.send_message(
             chat_id=config.TELEGRAM_ADMIN_ID,
             text=f"#Error in forward repayment receipt from "
