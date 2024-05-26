@@ -50,7 +50,7 @@ class BotUserKeyboard:
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                text="آیفون", url="https://t.me/EloraVPNChannel/80"
+                text="آیفون", url="https://t.me/EloraVPNChannel/210"
             ),
             types.InlineKeyboardButton(
                 text="اندروید", url="https://t.me/EloraVPNChannel/72"
