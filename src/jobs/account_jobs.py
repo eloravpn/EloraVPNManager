@@ -349,7 +349,7 @@ def clean_up_inbounds():
                                 flow=inbound.flow,
                             )
 
-                    else:
+                    if account is None or account.host_zone_id != inbound.host.host_zone_id:
                         logger.warn(
                             f"Try to delete client with email {client_email} in this inbound!"
                         )
