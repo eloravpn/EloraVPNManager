@@ -443,6 +443,7 @@ def handle_payment_receipt_docs(message: types.Message):
         )
 
     except Exception as error:
+        logger.error(message)
         logger.error(error)
         bot.send_message(
             chat_id=config.TELEGRAM_ADMIN_ID,
@@ -452,6 +453,12 @@ def handle_payment_receipt_docs(message: types.Message):
         )
 
         bot.send_message(message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_ERROR)
+
+        bot.forward_message(
+            chat_id=message.from_user.id,
+            from_chat_id=message.chat.id,
+            message_id=message.id,
+        )
 
 
 @bot.message_handler(is_reply=True)

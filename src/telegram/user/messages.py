@@ -270,7 +270,7 @@ GET_PAYMENT_RECEIPT_ERROR = """
 
 PAYMENT_RECEIPT_DETAIL = """
 #RECEIPT
-ChatID: `{chat_id}`
+Chat ID: `{chat_id}`
 Name: {full_name}
 User Name: {username}
 User Caption: {caption}
