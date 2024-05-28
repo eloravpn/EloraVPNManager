@@ -1,11 +1,9 @@
-import datetime
-import random
-
 import qrcode as qrcode
 from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
 from telebot.custom_filters import IsReplyFilter
-from telebot.types import ForceReply, ChatPhoto
+from telebot.formatting import escape_markdown
+from telebot.types import ForceReply
 
 from src import logger, config
 from src.commerce.exc import (
@@ -415,8 +413,8 @@ def handle_payment_receipt_docs(message: types.Message):
 
         caption = messages.PAYMENT_RECEIPT_DETAIL.format(
             chat_id=message.from_user.id,
-            full_name=message.from_user.full_name,
-            username=message.from_user.username,
+            full_name=escape_markdown(message.from_user.full_name),
+            username=escape_markdown(message.from_user.username),
             caption=f"{message.caption}",
         )
 
