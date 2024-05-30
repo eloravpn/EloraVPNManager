@@ -252,6 +252,7 @@ def get_services(
     limit: int = None,
     sort: str = None,
     q: str = None,
+    enable: int = -1,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
@@ -267,11 +268,7 @@ def get_services(
                 )
 
     services, count = commerce_service.get_services(
-        db=db,
-        offset=offset,
-        limit=limit,
-        sort=sort,
-        q=q,
+        db=db, offset=offset, limit=limit, sort=sort, q=q, enable=enable
     )
 
     return {"services": services, "total": count}
