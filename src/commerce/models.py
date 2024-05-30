@@ -144,3 +144,20 @@ class Service(Base):
             return f"{self.price :,}"
         else:
             return 0
+
+    @property
+    def price_readable_plain(self):
+        if self.price and self.discount:
+            return f"{self.price - self.discount :,}"
+        elif self.price:
+            return f"{self.price :,}"
+        else:
+            return 0
+
+    @property
+    def discount_percent(self):
+        if self.price and self.discount:
+            percent = round((self.discount / (self.price + self.discount)) * 100)
+            return percent
+        else:
+            return 0

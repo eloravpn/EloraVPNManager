@@ -122,7 +122,10 @@ def get_available_service():
                 limit=20,
                 return_with_count=False,
                 enable=1,
-                sort=[commerce_service.ServiceSortingOptions["name"]],
+                sort=[
+                    commerce_service.ServiceSortingOptions["duration"],
+                    commerce_service.ServiceSortingOptions["data_limit"],
+                ],
             )
     except Exception as err:
         logger.error(err)

@@ -107,7 +107,17 @@ class BotUserKeyboard:
         keyboard = types.InlineKeyboardMarkup(row_width=1)
 
         for available_service in available_services:
-            name = available_service.name
+            discount = ""
+            if available_service.discount_percent > 0:
+                discount = f"({available_service.discount_percent}%)"
+
+            price_readable_plain = ""
+            if available_service.price_readable_plain:
+                price_readable_plain = (
+                    " " + available_service.price_readable_plain + " تومان "
+                )
+
+            name = available_service.name + price_readable_plain + discount
 
             keyboard.add(
                 types.InlineKeyboardButton(
