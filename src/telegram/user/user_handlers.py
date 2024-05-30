@@ -413,8 +413,8 @@ def handle_payment_receipt_docs(message: types.Message):
 
         caption = messages.PAYMENT_RECEIPT_DETAIL.format(
             chat_id=message.from_user.id,
-            full_name=escape_markdown(message.from_user.full_name),
-            username=escape_markdown(message.from_user.username),
+            full_name=escape_markdown(str(message.from_user.full_name)),
+            username=escape_markdown(str(message.from_user.username)),
             caption=f"{message.caption}",
         )
 
@@ -453,7 +453,7 @@ def handle_payment_receipt_docs(message: types.Message):
         bot.send_message(message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_ERROR)
 
         bot.forward_message(
-            chat_id=message.from_user.id,
+            chat_id=config.TELEGRAM_ADMIN_ID,
             from_chat_id=message.chat.id,
             message_id=message.id,
         )
