@@ -11,7 +11,7 @@ from src.commerce.exc import (
     MaxPendingOrderError,
     NoEnoughBalanceError,
 )
-from src.telegram import bot, utils
+from src.telegram import bot, utils, payment_bot
 from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
 from src.users.models import User
@@ -419,20 +419,25 @@ def handle_payment_receipt_docs(message: types.Message):
         )
 
         if message.photo:
-            bot.send_photo(
+            photo_index = len(message.photo)
+            document_file = bot.get_file(file_id=message.photo[photo_index - 1].file_id)
+            document_byte = bot.download_file(file_path=document_file.file_path)
+            payment_bot.send_photo(
                 chat_id=config.TELEGRAM_ADMIN_ID,
-                photo=message.photo[0].file_id,
+                photo=document_byte,
                 caption=caption,
+                disable_notification=False,
                 parse_mode="markdown",
             )
         elif message.document:
             document_file = bot.get_file(file_id=message.document.file_id)
             document_byte = bot.download_file(file_path=document_file.file_path)
 
-            bot.send_document(
+            payment_bot.send_document(
                 chat_id=config.TELEGRAM_ADMIN_ID,
                 document=document_byte,
                 caption=caption,
+                disable_notification=False,
                 parse_mode="markdown",
             )
 

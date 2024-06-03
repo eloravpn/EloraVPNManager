@@ -6,16 +6,20 @@ from threading import Thread
 from telebot import TeleBot, apihelper
 
 from src import app, logger
-from src.config import TELEGRAM_API_TOKEN, TELEGRAM_PROXY_URL
+from src.config import (
+    TELEGRAM_API_TOKEN,
+    TELEGRAM_PROXY_URL,
+    TELEGRAM_PAYMENT_API_TOKEN,
+)
 
 bot = None
+payment_bot = None
+
+if TELEGRAM_API_TOKEN or TELEGRAM_PAYMENT_API_TOKEN:
+    apihelper.proxy = {"http": TELEGRAM_PROXY_URL, "https": TELEGRAM_PROXY_URL}
 
 if TELEGRAM_API_TOKEN:
-    apihelper.proxy = {"http": TELEGRAM_PROXY_URL, "https": TELEGRAM_PROXY_URL}
     bot = TeleBot(TELEGRAM_API_TOKEN)
-
-    #
-    # handler_names = ["admin", "report", "user"]
 
     @app.on_event("startup")
     def start_bot():
@@ -34,3 +38,16 @@ if TELEGRAM_API_TOKEN:
 
 else:
     logger.warn("Telegram Bot not set!")
+
+if TELEGRAM_PAYMENT_API_TOKEN:
+    payment_bot = TeleBot(TELEGRAM_PAYMENT_API_TOKEN)
+
+    @app.on_event("startup")
+    def start_bot():
+        logger.info("Start payment telegram bot")
+
+        thread = Thread(target=payment_bot.infinity_polling, daemon=True)
+        thread.start()
+
+else:
+    logger.warn("Telegram Payment Bot not set!")
