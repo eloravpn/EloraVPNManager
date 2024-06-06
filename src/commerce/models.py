@@ -158,7 +158,7 @@ class Service(Base):
     @property
     def discount_percent(self):
         if self.price and self.discount:
-            percent = math.ceil((self.discount / (self.price - self.discount)) * 100)
+            percent = math.ceil((self.discount / self.price) * 100)
             return percent
         else:
             return 0
