@@ -34,6 +34,7 @@ from src.hosts.models import HostZone
 from src.messages import PAYMENT_METHODS
 from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
+from src.hosts import service as host_service
 from src.users.models import User
 
 TransactionSortingOptions = Enum(
@@ -260,9 +261,8 @@ def get_transaction(db: Session, transaction_id: int):
 
 
 # Service CRUDs
-def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone = None):
+def create_service(db: Session, service: ServiceCreate):
     db_service = Service(
-        host_zone_id=1 if db_host_zone is None else db_host_zone.id,
         name=service.name,
         duration=service.duration,
         data_limit=service.data_limit,
@@ -272,6 +272,13 @@ def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone =
         enable=service.enable,
     )
 
+    for host_zone_id in service.host_zone_ids:
+        db_service.host_zones.append(
+            host_service.get_host_zone(db=db, host_zone_id=host_zone_id)
+        )
+
+    print(db_service)
+
     db.add(db_service)
     db.commit()
     db.refresh(db_service)
@@ -280,7 +287,13 @@ def create_service(db: Session, service: ServiceCreate, db_host_zone: HostZone =
 
 
 def update_service(db: Session, db_service: Service, modify: ServiceCreate):
-    db_service.host_zone_id = modify.host_zone_id
+    db_service.host_zones = []
+
+    for host_zone_id in modify.host_zone_ids:
+        db_service.host_zones.append(
+            host_service.get_host_zone(db=db, host_zone_id=host_zone_id)
+        )
+
     db_service.name = modify.name
     db_service.duration = modify.duration
     db_service.data_limit = modify.data_limit

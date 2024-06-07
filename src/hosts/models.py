@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 
 from src.database import Base
 from src.hosts.schemas import HostType
+from src.commerce.models import service_host_zone
 
 
 class Host(Base):
@@ -48,7 +49,9 @@ class HostZone(Base):
         "Host", back_populates="host_zone", cascade="all, delete-orphan"
     )
     accounts = relationship("Account", back_populates="host_zone")
-    services = relationship("Service", back_populates="host_zone")
+    services = relationship(
+        "Service", secondary=service_host_zone, back_populates="host_zones"
+    )
     orders = relationship("Order", back_populates="host_zone")
 
     id = Column(Integer, primary_key=True, index=True)

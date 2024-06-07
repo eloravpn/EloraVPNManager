@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from src.accounts.schemas import AccountResponse
+from src.hosts.schemas import HostZoneResponse
 from src.users.schemas import UserResponse
 
 
@@ -80,7 +81,7 @@ class PaymentBase(PaymentBase):
 
 
 class ServiceBase(BaseModel):
-    host_zone_id: int
+    host_zone_ids: Optional[List[int]] = None
     name: str
     duration: int = 1
     data_limit: int = 0
@@ -100,6 +101,7 @@ class ServiceModify(ServiceBase):
 
 class ServiceResponse(ServiceBase):
     id: int
+    host_zones: Optional[List[HostZoneResponse]]
     created_at: datetime
     modified_at: datetime
 
