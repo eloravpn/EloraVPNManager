@@ -51,7 +51,7 @@ class NotificationBase(BaseModel):
     details: str = None
 
     approve: bool = False
-    send_to_admin: Optional[bool] = True
+    send_to_admin: Optional[bool] = False
 
     engine: Optional[NotificationEngine] = NotificationEngine.telegram
     status: Optional[NotificationStatus] = NotificationStatus.pending
