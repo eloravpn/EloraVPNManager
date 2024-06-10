@@ -132,6 +132,7 @@ def create_transaction(
                 amount=transaction.amount_readable, description=transaction.description
             )
             + messages.USER_BALANCE.format(balance=db_user.balance_readable),
+            send_to_admin=True,
         )
     elif db_transaction.amount < 0:
         _send_notification(
@@ -142,6 +143,7 @@ def create_transaction(
                 amount=transaction.amount_readable, description=transaction.description
             )
             + messages.USER_BALANCE.format(balance=db_user.balance_readable),
+            send_to_admin=True,
         )
 
     return db_transaction
@@ -359,7 +361,6 @@ def create_order(
             user_id=db_user.id,
             account_id=None if db_account is None else db_account.id,
             service_id=db_service.id,
-            host_zone_id=db_service.host_zone_id,
             status=order.status,
             duration=db_service.duration,
             data_limit=db_service.data_limit,
@@ -523,6 +524,7 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             message=messages.ORDER_PAID_NOTIFICATION.format(
                 title=order_title, id=db_order.id
             ),
+            send_to_admin=True,
         )
 
     if db_order.status == OrderStatus.completed:
@@ -533,6 +535,7 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
             message=messages.ORDER_COMPLETE_NOTIFICATION.format(
                 title=order_title, id=db_order.id
             ),
+            send_to_admin=True,
         )
 
 
@@ -716,7 +719,12 @@ def _get_query_result(limit, offset, query, return_with_count, sort):
 
 
 def _send_notification(
-    db, db_user: User, message: str, type_: NotificationType, level: int = 0
+    db,
+    db_user: User,
+    message: str,
+    type_: NotificationType,
+    level: int = 0,
+    send_to_admin: bool = False,
 ):
     create_notification(
         db=db,
@@ -724,6 +732,7 @@ def _send_notification(
         notification=NotificationCreate(
             user_id=db_user.id,
             approve=True,
+            send_to_admin=send_to_admin,
             message=message,
             level=level,
             type=type_,
