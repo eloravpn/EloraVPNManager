@@ -1,4 +1,8 @@
+import random
 from datetime import datetime, timedelta
+from typing import List
+
+from sqlalchemy.orm import Session
 
 from src import scheduler, logger, config
 from src.accounts.schemas import AccountCreate, AccountModify
@@ -6,12 +10,33 @@ from src.accounts.service import (
     create_account,
     reset_traffic,
     update_account,
+    get_accounts,
 )
 from src.commerce.schemas import OrderStatus
 from src.commerce.service import get_orders, update_order_status
 from src.database import GetDB
+from src.hosts.models import HostZone
 from src.telegram import utils
 from src.telegram.utils import get_random_string
+
+
+def _get_random_available_host_zone(
+    db: Session, host_zones: List[HostZone]
+) -> HostZone:
+    random.shuffle(host_zones)
+
+    for db_host_zone in host_zones:
+        db_accounts, count = get_accounts(
+            db=db, filter_enable=True, enable=True, host_zone_id=db_host_zone.id
+        )
+        if count < db_host_zone.max_account:
+            return db_host_zone
+        else:
+            logger.warn(
+                f"Host zone {db_host_zone.name} is Full! {count} accounts are this zone!"
+            )
+
+    return None
 
 
 def process_paid_orders():
@@ -24,10 +49,23 @@ def process_paid_orders():
             try:
                 logger.info(f"Process order with id: {db_order.id}")
                 if db_order.service_id:
+
                     db_service = db_order.service
+
+                    if db_service.host_zones is None:
+                        logger.error(f"Host zone is empty in service {db_service.name}")
+
+                    db_host_zone = _get_random_available_host_zone(
+                        db=db, host_zones=db_service.host_zones
+                    )
+                    if db_host_zone is None:
+                        logger.error(
+                            f"All host zones in service {db_service.name} are Full!"
+                        )
+                        continue
+
                     db_account = db_order.account
                     db_user = db_order.user
-                    db_host_zone = db_order.host_zone
 
                     today = datetime.now()
                     expired_at = today + timedelta(days=db_order.duration)
