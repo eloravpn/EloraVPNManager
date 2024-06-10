@@ -156,6 +156,7 @@ def get_accounts(
     sort: Optional[List[AccountSortingOptions]] = None,
     filter_enable: bool = False,
     enable: bool = True,
+    host_zone_id: Optional[int] = 0,
     test_account: bool = True,
     user_id: int = 0,
     return_with_count: bool = True,
@@ -191,6 +192,9 @@ def get_accounts(
 
     if user_id > 0:
         query = query.filter(Account.user_id == user_id)
+
+    if host_zone_id > 0:
+        query = query.filter(Account.host_zone_id == host_zone_id)
 
     count = query.count()
 

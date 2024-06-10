@@ -183,17 +183,9 @@ def add_service(
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
-    db_host_zone = get_host_zone(db, host_zone_id=service.host_zone_id)
-    if not db_host_zone:
-        raise HTTPException(
-            status_code=404,
-            detail="Hose Zone not found with id " + service.host_zone_id,
-        )
 
     try:
-        db_service = commerce_service.create_service(
-            db=db, service=service, db_host_zone=db_host_zone
-        )
+        db_service = commerce_service.create_service(db=db, service=service)
     except IntegrityError as error:
         logger.error(error)
         raise HTTPException(status_code=409, detail="Service already exists")

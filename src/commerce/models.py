@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     BigInteger,
     ForeignKey,
+    Table,
 )
 
 from sqlalchemy.orm import relationship
@@ -114,6 +115,14 @@ class Order(Base):
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+service_host_zone = Table(
+    "service_host_zone",
+    Base.metadata,
+    Column("service_id", ForeignKey("service.id"), primary_key=True),
+    Column("host_zone_id", ForeignKey("host_zone.id"), primary_key=True),
+)
+
+
 class Service(Base):
     __tablename__ = "service"
 
@@ -121,8 +130,9 @@ class Service(Base):
 
     orders = relationship("Order", back_populates="service")
 
-    host_zone_id = Column(Integer, ForeignKey("host_zone.id"), nullable=False)
-    host_zone = relationship("HostZone", back_populates="services")
+    host_zones = relationship(
+        "HostZone", secondary=service_host_zone, back_populates="services"
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(128), nullable=True)
