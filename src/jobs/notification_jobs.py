@@ -141,9 +141,6 @@ def process_pending_notifications():
         for db_notification in notifications:
             if db_notification.user_id:
                 db_user = get_user(db=db, user_id=db_notification.user_id)
-                # utils.send_approval_message_to_admin_by_user(
-                #     db_user=db_user, db_notification=db_notification
-                # )
 
                 try:
                     admin_message = messages.ADMIN_NOTIFICATION.format(

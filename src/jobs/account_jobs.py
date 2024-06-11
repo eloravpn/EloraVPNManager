@@ -616,17 +616,7 @@ def review_accounts():
                 logger.info(f"Account email: {account.email}")
                 logger.info(f"Account Expire time: {account.expired_at}")
                 logger.info(f"Account status: {account.enable}")
-                # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
                 update_account_status(db=db, db_account=account, enable=False)
-                # utils.send_message_to_admin(
-                #     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
-                #         email=account.email,
-                #         due=captions.EXPIRE_TIME,
-                #         user_markup=account.user.telegram_profile_full,
-                #         full_name=account.user.full_name,
-                #         telegram_user_name=telegram_user_name,
-                #     )
-                # )
 
                 _send_notification(
                     db=db,
@@ -636,6 +626,7 @@ def review_accounts():
                         due=captions.EXPIRE_TIME,
                     ),
                     type_=NotificationType.account,
+                    send_to_admin=True,
                 )
 
             elif account.used_traffic >= account.data_limit > 0 and account.enable:
@@ -646,17 +637,9 @@ def review_accounts():
                 logger.info(f"Account email: {account.email}")
                 logger.info(f"Account Expire time: {account.expired_at}")
                 logger.info(f"Account status: {account.enable}")
-                # update_client_in_all_inbounds(db=db, db_account=account, enable=False)
+
                 update_account_status(db=db, db_account=account, enable=False)
-                # utils.send_message_to_admin(
-                #     message=messages.ADMIN_NOTIFICATION_USER_EXPIRED.format(
-                #         email=account.email,
-                #         due=captions.EXCEEDED_DATA_LIMIT,
-                #         user_markup=account.user.telegram_profile_full,
-                #         full_name=account.user.full_name,
-                #         telegram_user_name=telegram_user_name,
-                #     )
-                # )
+
                 _send_notification(
                     db=db,
                     db_user=account.user,
@@ -665,6 +648,7 @@ def review_accounts():
                         due=captions.EXCEEDED_DATA_LIMIT,
                     ),
                     type_=NotificationType.account,
+                    send_to_admin=True,
                 )
     logger.info("End Review Accounts")
 
@@ -762,7 +746,12 @@ def remove_unused_test_accounts(last_days: int):
 
 
 def _send_notification(
-    db, db_user: User, message: str, type_: NotificationType, level: int = 0
+    db,
+    db_user: User,
+    message: str,
+    type_: NotificationType,
+    level: int = 0,
+    send_to_admin: bool = False,
 ):
     create_notification(
         db=db,
@@ -773,6 +762,7 @@ def _send_notification(
             message=message,
             level=level,
             type=type_,
+            send_to_admin=send_to_admin,
         ),
     )
 
