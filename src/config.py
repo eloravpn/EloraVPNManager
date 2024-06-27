@@ -114,10 +114,16 @@ SYNC_ACCOUNTS_TRAFFIC_INTERVAL = config(
 )
 GLOBAL_TRAFFIC_RATIO = config("GLOBAL_TRAFFIC_RATIO", cast=float, default=1.0)
 
-REFERRAL_BONUS_AMOUNT = config("REFERRAL_BONUS_AMOUNT", cast=int, default=1000)
-
 ENABLE_ORDER_JOBS = config("ENABLE_ORDER_JOBS", cast=bool, default=False)
 
 PROCESS_PAID_ORDERS_INTERVAL = config(
     "PROCESS_PAID_ORDERS_INTERVAL", cast=int, default=60
 )
+
+CLUB_SCORE_PRICE = config("CLUB_SCORE_PRICE", cast=int, default=1000)
+
+REFERRAL_SCORE_0_TO_30 = config("REFERRAL_SCORE_0_TO_30", cast=int, default=5)
+REFERRAL_SCORE_30_TO_80 = config("REFERRAL_SCORE_30_TO_80", cast=int, default=15)
+REFERRAL_SCORE_80_TO_1000 = config("REFERRAL_SCORE_80_TO_1000", cast=int, default=25)
+
+CLUB_CAMPAIGN_RUN_CRON = config("CLUB_CAMPAIGN_RUN_CRON", cast=str, default="0 * * * *")

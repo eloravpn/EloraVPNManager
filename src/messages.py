@@ -13,7 +13,10 @@ ORDER_PAID_DESCRIPTION = """
 """
 
 REFERRAL_BONUS_DESCRIPTION = """
-🎉از طریق دعوت از دوستان
+
+🎁 هدیه دعوت از کاربر {full_name} برای پیوستن به جمع ما.
+
+✳️ کافیه ما رو به دوستان بیشتری معرفی کنی تا هدیه های بیشتری دریافت کنی!
 """
 
 PAYMENT_METHODS = {
@@ -23,7 +26,9 @@ PAYMENT_METHODS = {
 }
 
 TRANSACTION_DEPOSIT_NOTIFICATION = """
-➕ افزایش موجودی حساب به مبلغ <code>{amount}</code> تومان {description}"""
+➕ افزایش موجودی حساب به مبلغ <code>{amount}</code> تومان
+ 
+{description}"""
 
 TRANSACTION_WITHDRAW_NOTIFICATION = """
 ➖ برداشت از حساب به مبلغ <code>{amount}</code> تومان {description}"""

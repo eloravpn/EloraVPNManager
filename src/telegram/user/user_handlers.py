@@ -126,7 +126,6 @@ def my_profile(message):
             full_name=user.full_name,
             balance=user.balance_readable if user.balance_readable else 0,
             referral_count=utils.get_user_referral_count(telegram_user=telegram_user),
-            bonus=config.REFERRAL_BONUS_AMOUNT,
         ),
         parse_mode="html",
     )
@@ -375,7 +374,7 @@ def buy_service_step_2(call: types.CallbackQuery):
             )
         else:
             bot.edit_message_text(
-                text=messages.BUY_NEW_SERVICE_FINAL,
+                text=messages.BUY_NEW_SERVICE_FINAL.format(order.id),
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 parse_mode="html",

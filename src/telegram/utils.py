@@ -12,11 +12,10 @@ from telebot.apihelper import ApiTelegramException
 import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
+import src.club.service as club_service
 from src import logger, config
 from src.accounts.models import Account
 from src.accounts.schemas import (
-    AccountCreate,
-    AccountResponse,
     AccountUsedTrafficReportResponse,
 )
 from src.commerce.models import Service, Order
@@ -28,7 +27,6 @@ from src.commerce.schemas import (
 )
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
-from src.hosts.service import get_host_zone
 from src.notification.models import Notification
 from src.telegram import bot
 from src.users.models import User
@@ -165,13 +163,16 @@ def place_paid_order(chat_id: int, account_id: int, service_id: int) -> Order:
         )
 
 
-def get_user_referral_count(telegram_user) -> UserResponse:
+def get_user_referral_count(telegram_user) -> int:
     try:
         with GetDB() as db:
             db_user = user_service.get_user_by_telegram_chat_id(
                 db=db, telegram_chat_id=telegram_user.id
             )
-            return user_service.get_user_referral_count(db=db, user_id=db_user.id)
+
+            db_club_profile = club_service.get_club_profile(db, db_user.id)
+
+            return db_club_profile.total_subset
     except Exception as error:
         logger.error(error)
 

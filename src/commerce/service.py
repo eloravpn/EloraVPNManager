@@ -1,4 +1,5 @@
 import datetime
+import traceback
 from enum import Enum
 from typing import List, Tuple, Optional
 
@@ -115,13 +116,13 @@ def create_transaction(
 
     balance = db_user.balance if db_user.balance else 0
 
+    db_user.balance = balance + db_transaction.amount
+
     db.add(db_transaction)
     db.commit()
-    db.refresh(db_transaction)
 
-    db_user = user_service.update_user_balance(
-        db=db, db_user=db_user, new_balance=balance + db_transaction.amount
-    )
+    db.refresh(db_transaction)
+    db.refresh(db_user)
 
     if db_transaction.amount > 0:
         _send_notification(
@@ -726,15 +727,18 @@ def _send_notification(
     level: int = 0,
     send_to_admin: bool = False,
 ):
-    create_notification(
-        db=db,
-        db_user=db_user,
-        notification=NotificationCreate(
-            user_id=db_user.id,
-            approve=True,
-            send_to_admin=send_to_admin,
-            message=message,
-            level=level,
-            type=type_,
-        ),
-    )
+    try:
+        create_notification(
+            db=db,
+            db_user=db_user,
+            notification=NotificationCreate(
+                user_id=db_user.id,
+                approve=True,
+                send_to_admin=send_to_admin,
+                message=message,
+                level=level,
+                type=type_,
+            ),
+        )
+    except Exception as ex:
+        traceback.print_exception(type(ex), ex, ex.__traceback__)

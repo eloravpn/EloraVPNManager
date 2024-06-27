@@ -83,6 +83,7 @@ app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 
 
 from src import jobs, telegram  # noqa
+from src.club import jobs  # noqa
 
 
 @app.on_event("startup")

@@ -8,7 +8,6 @@ from src import messages, config
 from src.accounts.models import Account
 from src.commerce.schemas import TransactionCreate, TransactionType
 from src.commerce.service import create_transaction
-from src.inbounds.models import Inbound
 from src.users.models import User
 from src.users.schemas import UserCreate, UserModify
 
@@ -49,9 +48,6 @@ def create_user(db: Session, user: UserCreate):
     db.commit()
     db.refresh(db_user)
 
-    if db_user.referral_user_id:
-        handle_referral_user(db=db, referral_user_id=db_user.referral_user_id)
-
     return db_user
 
 
@@ -80,19 +76,6 @@ def update_user_balance(db: Session, db_user: User, new_balance: int = 0):
     db.refresh(db_user)
 
     return db_user
-
-
-def handle_referral_user(db, referral_user_id: int):
-    db_user = get_user(db=db, user_id=referral_user_id)
-
-    if db_user:
-        transaction = TransactionCreate(
-            user_id=db_user.id,
-            description=messages.REFERRAL_BONUS_DESCRIPTION,
-            amount=config.REFERRAL_BONUS_AMOUNT,
-            type=TransactionType.bonus,
-        )
-        create_transaction(db=db, db_user=db_user, transaction=transaction)
 
 
 def update_user_info(
@@ -168,6 +151,10 @@ def get_user(db: Session, user_id: int) -> User:
 
 def get_user_referral_count(db: Session, user_id: int) -> int:
     return db.query(User).filter(User.referral_user_id == user_id).count()
+
+
+def get_user_referral_users(db: Session, user_id: int) -> List[User]:
+    return db.query(User).filter(User.referral_user_id == user_id).all()
 
 
 def get_user_by_telegram_chat_id(db: Session, telegram_chat_id: int):

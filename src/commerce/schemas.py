@@ -37,7 +37,7 @@ class OrderStatus(str, Enum):
 
 class TransactionBase(BaseModel):
     description: str
-    user_id: int
+    user_id: Optional[int] = None
     payment_id: Optional[int] = None
     order_id: Optional[int] = None
     amount: int
@@ -60,7 +60,7 @@ class TransactionModify(TransactionBase):
 
 
 class PaymentBase(BaseModel):
-    user_id: int
+    user_id: Optional[int] = None
     order_id: Optional[int] = None
     total: int
 
@@ -118,7 +118,7 @@ class ServicesResponse(BaseModel):
 
 
 class OrderBase(BaseModel):
-    user_id: int
+    user_id: Optional[int] = None
     account_id: Optional[int] = None
     service_id: Optional[int] = None
     duration: Optional[int] = None
@@ -140,7 +140,7 @@ class OrderModify(OrderBase):
 
 class OrderResponse(OrderBase):
     id: int
-    user: UserResponse
+    user: Optional[UserResponse]
     account: Optional[AccountResponse]
     service: Optional[ServiceResponse]
     created_at: datetime
@@ -155,7 +155,7 @@ class OrderResponse(OrderBase):
 
 class TransactionResponse(TransactionBase):
     id: int
-    user: UserResponse
+    user: Optional[UserResponse]
     order: Optional[OrderResponse]
     service: Optional[ServiceResponse]
     created_at: datetime
@@ -170,7 +170,7 @@ class TransactionResponse(TransactionBase):
 
 class PaymentResponse(PaymentBase):
     id: int
-    user: UserResponse
+    user: Optional[UserResponse]
     order: Optional[OrderResponse]
     created_at: datetime
     modified_at: datetime

@@ -10,6 +10,7 @@ from sqlalchemy import (
     BigInteger,
 )
 from sqlalchemy.orm import relationship, validates
+from telebot.formatting import escape_markdown
 
 from src.database import Base
 
@@ -29,6 +30,15 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user")
     notification = relationship(
         "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
+    club_scores = relationship(
+        "ClubScore", back_populates="user", cascade="all, delete-orphan"
+    )
+    club_profile = relationship(
+        "ClubProfile",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
     )
     username = Column(String(128), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128))
@@ -64,7 +74,7 @@ class User(Base):
         full_name = self.first_name
         if self.last_name:
             full_name += " {0}".format(self.last_name)
-        return full_name
+        return escape_markdown(full_name)
 
     @property
     def telegram_profile_full(self):

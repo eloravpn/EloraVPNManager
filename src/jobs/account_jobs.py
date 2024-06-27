@@ -1,16 +1,13 @@
-import traceback
 from datetime import datetime, timedelta
 
 from src import scheduler, logger, config
-from src.accounts.models import Account, AccountUsedTraffic
+from src.accounts.models import Account
 from src.accounts.service import (
     get_accounts,
     update_account_status,
     remove_account,
     get_account_by_uuid_and_email,
     get_account_by_email,
-    create_bulk_account_used_traffic,
-    get_account_used_traffic,
     update_account_used_traffic,
     create_account_used_traffic,
 )
