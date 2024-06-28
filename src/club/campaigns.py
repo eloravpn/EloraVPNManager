@@ -7,8 +7,11 @@ from telebot.apihelper import ApiTelegramException
 from src import config, logger, messages
 from src.club import service as club_service
 from src.club.schemas import ClubScoreCreate
+from src.commerce.schemas import OrderStatus
+from src.commerce.service import OrderSortingOptions
 from src.telegram import bot
 from src.users import service as user_service
+from src.commerce import service as commerce_service
 from src.users.models import User
 from src.users.service import UserSortingOptions
 
@@ -39,6 +42,70 @@ class CampaignRegistryBaseClass(metaclass=CampaignRegistryBase):
 
     def run_campaign(self, db: Session):
         pass
+
+
+class OrderCampaign(CampaignRegistryBaseClass):
+
+    def run_campaign(self, db: Session, total=None):
+        logger.info(f"Run {self.__class__.__name__}")
+
+        db_orders = commerce_service.get_orders(
+            db=db,
+            sort=[OrderSortingOptions["-created"]],
+            status=OrderStatus.completed,
+            return_with_count=False,
+        )
+
+        for db_order in db_orders:
+            try:
+
+                total = db_order.total - db_order.total_discount_amount
+
+                if total > 0:
+                    club_score = club_service.get_club_score_by_unique_id(
+                        db=db,
+                        unique_id=str(db_order.id),
+                        campaign_key=self.__class__.__name__,
+                    )
+
+                    if (
+                        club_score is None
+                        and db_order.user.referral_user_id is not None
+                        and db_order.user.referral_user_id > 0
+                    ):
+
+                        score = math.ceil(
+                            (total * (config.REFERRAL_ORDER_SCORE_PERCENT / 100))
+                            / config.CLUB_SCORE_PRICE
+                        )
+
+                        referral_user = user_service.get_user(
+                            db=db, user_id=db_order.user.referral_user_id
+                        )
+
+                        if referral_user is not None:
+                            logger.info(
+                                f"User {referral_user.full_name} "
+                                f"winn {score} score "
+                                f"form order {db_order.id} by {db_order.user.full_name} "
+                            )
+
+                            club_score = ClubScoreCreate(
+                                unique_id=str(db_order.id),
+                                score=score,
+                                campaign_key=self.__class__.__name__,
+                                description=messages.REFERRAL_ORDER_BONUS_DESCRIPTION.format(
+                                    full_name=db_order.user.full_name,
+                                    percent=config.REFERRAL_ORDER_SCORE_PERCENT,
+                                ),
+                            )
+
+                            club_service.create_score(
+                                db=db, db_user=referral_user, club_score=club_score
+                            )
+
+            except Exception as error:
+                logger.error(error)
 
 
 class ReferralCampaign(CampaignRegistryBaseClass):

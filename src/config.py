@@ -126,4 +126,8 @@ REFERRAL_SCORE_0_TO_30 = config("REFERRAL_SCORE_0_TO_30", cast=int, default=5)
 REFERRAL_SCORE_30_TO_80 = config("REFERRAL_SCORE_30_TO_80", cast=int, default=15)
 REFERRAL_SCORE_80_TO_1000 = config("REFERRAL_SCORE_80_TO_1000", cast=int, default=25)
 
+REFERRAL_ORDER_SCORE_PERCENT = config(
+    "REFERRAL_ORDER_SCORE_PERCENT", cast=int, default=5
+)
+
 CLUB_CAMPAIGN_RUN_CRON = config("CLUB_CAMPAIGN_RUN_CRON", cast=str, default="0 * * * *")
