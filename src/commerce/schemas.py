@@ -131,6 +131,7 @@ class OrderBase(BaseModel):
 
 
 class OrderCreate(OrderBase):
+    extra_discount: Optional[int] = None
     pass
 
 

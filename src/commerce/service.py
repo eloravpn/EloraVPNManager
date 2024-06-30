@@ -367,7 +367,7 @@ def create_order(
             data_limit=db_service.data_limit,
             ip_limit=db_service.ip_limit,
             total=db_service.price,
-            total_discount_amount=db_service.discount,
+            total_discount_amount=db_service.discount + order.extra_discount,
         )
     else:
         db_order = Order(
@@ -379,7 +379,7 @@ def create_order(
             data_limit=order.data_limit,
             ip_limit=order.ip_limit,
             total=order.total,
-            total_discount_amount=order.total_discount_amount,
+            total_discount_amount=order.total_discount_amount + order.extra_discount,
         )
 
     _validate_order(db=db, db_user=db_user, db_order=db_order)
