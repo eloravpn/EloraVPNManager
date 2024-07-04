@@ -87,11 +87,16 @@ def update_account(
     modify: AccountModify,
     db_host_zone: HostZone = None,
 ):
+
     db_account.uuid = modify.uuid
     db_account.host_zone_id = (db_host_zone.id,)
     db_account.email = modify.email
     db_account.user_title = modify.user_title
-    db_account.service_title = db_account.service_title
+    db_account.service_title = (
+        db_account.service_title
+        if modify.service_title is None
+        else db_account.service_tile
+    )
     db_account.data_limit = modify.data_limit
     db_account.ip_limit = modify.ip_limit
     db_account.started_at = modify.started_at

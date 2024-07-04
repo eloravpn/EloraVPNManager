@@ -91,6 +91,8 @@ def modify_account(
             host_zone_id=db_account.host_zone_id,
             uuid=db_account.uuid,
             data_limit=extended_data_limit,
+            service_title=db_account.service_title,
+            user_title=db_account.user_title,
             used_traffic=db_account.used_traffic,
             ip_limit=db_account.ip_limit,
             email=db_account.email,
