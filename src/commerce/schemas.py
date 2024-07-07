@@ -132,10 +132,13 @@ class OrderBase(BaseModel):
 
 class OrderCreate(OrderBase):
     extra_discount: Optional[int] = 0
+    is_debt: Optional[bool] = False
     pass
 
 
 class OrderModify(OrderBase):
+    extra_discount: Optional[int] = 0
+    is_debt: Optional[bool] = False
     pass
 
 

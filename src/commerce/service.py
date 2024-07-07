@@ -382,7 +382,7 @@ def create_order(
             total_discount_amount=order.total_discount_amount + order.extra_discount,
         )
 
-    _validate_order(db=db, db_user=db_user, db_order=db_order)
+    _validate_order(db=db, db_user=db_user, db_order=db_order, allow_debt=order.is_debt)
 
     db.add(db_order)
     db.commit()
@@ -541,7 +541,11 @@ def _process_order(db: Session, db_order: Order, db_user: User, db_service: Serv
 
 
 def _validate_order(
-    db: Session, db_user: User, db_order: Order, modify: Optional[OrderModify] = None
+    db: Session,
+    db_user: User,
+    db_order: Order,
+    modify: Optional[OrderModify] = None,
+    allow_debt: Optional[bool] = False,
 ):
     if db_order.status in [OrderStatus.completed] or (
         modify
@@ -580,7 +584,9 @@ def _validate_order(
     ):
         total = db_order.total - db_order.total_discount_amount
 
-        if db_user.balance is None or db_user.balance < total:
+        if (db_user.balance is None or db_user.balance < total) and (
+            (modify and not modify.is_debt) or not allow_debt
+        ):
             raise NoEnoughBalanceError(total=total)
 
 

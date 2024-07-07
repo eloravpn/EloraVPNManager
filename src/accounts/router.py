@@ -5,8 +5,6 @@ from typing import List
 
 import humanize
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.openapi.models import Response
-from pyasn1.type.univ import Integer
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -299,7 +297,7 @@ def get_accounts(
     offset: int = None,
     limit: int = None,
     sort: str = None,
-    enable: bool = True,
+    enable: bool = None,
     user_id: int = 0,
     q: str = None,
     db: Session = Depends(get_db),
@@ -316,8 +314,13 @@ def get_accounts(
                     status_code=400, detail=f'"{opt}" is not a valid sort option'
                 )
 
+    if enable is None:
+        filter_enable = False
+    else:
+        filter_enable = True
+
     accounts, count = service.get_accounts(
-        filter_enable=True,
+        filter_enable=filter_enable,
         db=db,
         enable=enable,
         user_id=user_id,

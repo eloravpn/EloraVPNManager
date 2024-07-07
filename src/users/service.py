@@ -104,6 +104,7 @@ def get_users(
     sort: Optional[List[UserSortingOptions]] = None,
     q: str = None,
     enable: int = -1,
+    is_debt: bool = False,
     return_with_count: bool = True,
 ) -> Tuple[List[User], int]:
     query = db.query(User)
@@ -113,6 +114,9 @@ def get_users(
 
     if enable >= 0:
         query = query.filter(User.enable == (True if enable > 0 else False))
+
+    if is_debt:
+        query = query.filter(User.balance < 0)
 
     if q:
         query = query.join(Account, User.id == Account.user_id, isouter=True)

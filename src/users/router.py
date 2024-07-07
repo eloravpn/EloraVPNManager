@@ -72,6 +72,7 @@ def get_users(
     limit: int = None,
     sort: str = None,
     enable: int = -1,
+    is_debt: bool = False,
     q: str = None,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
@@ -88,7 +89,13 @@ def get_users(
                 )
 
     users, count = service.get_users(
-        db=db, limit=limit, offset=offset, q=q, sort=sort, enable=enable
+        db=db,
+        limit=limit,
+        offset=offset,
+        q=q,
+        sort=sort,
+        enable=enable,
+        is_debt=is_debt,
     )
 
     return {"users": users, "total": count}
