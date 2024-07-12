@@ -23,6 +23,7 @@ from src.notification.service import (
 )
 from src.telegram import utils
 from src.telegram.user import messages
+from src.telegram.user.keyboard import BotUserKeyboard
 from src.users.service import get_user
 
 
@@ -167,6 +168,7 @@ def process_pending_notifications():
                         chat_id=db_user.telegram_chat_id,
                         message=db_notification.message,
                         parse_mode="html",
+                        keyboard=BotUserKeyboard.main_menu(),
                     )
 
                 except Exception as error:

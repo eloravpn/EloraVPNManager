@@ -593,7 +593,9 @@ def handle_payment_receipt_docs(message: types.Message):
             )
 
         bot.send_message(
-            message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_SUCCESS
+            message.from_user.id,
+            text=messages.GET_PAYMENT_RECEIPT_SUCCESS,
+            reply_markup=BotUserKeyboard.main_menu(),
         )
 
     except Exception as error:
@@ -606,7 +608,11 @@ def handle_payment_receipt_docs(message: types.Message):
             parse_mode="markdown",
         )
 
-        bot.send_message(message.from_user.id, text=messages.GET_PAYMENT_RECEIPT_ERROR)
+        bot.send_message(
+            message.from_user.id,
+            text=messages.GET_PAYMENT_RECEIPT_ERROR,
+            reply_markup=BotUserKeyboard.main_menu(),
+        )
 
         bot.forward_message(
             chat_id=config.TELEGRAM_ADMIN_ID,
