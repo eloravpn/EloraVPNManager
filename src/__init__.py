@@ -24,6 +24,7 @@ from src.commerce.router import (
 )
 
 from src.notification.router import notification_router
+from src.club.user_router import club_user_router
 from src.users.schemas import UserResponse
 
 # logging_config = dict(
@@ -78,6 +79,7 @@ app.include_router(payment_router, prefix="/api", tags=["Payment"])
 app.include_router(transaction_router, prefix="/api", tags=["Transaction"])
 app.include_router(notification_router, prefix="/api", tags=["Notification"])
 app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
+app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 
 # from src import hosts, admins
 
