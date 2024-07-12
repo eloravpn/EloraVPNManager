@@ -95,7 +95,7 @@ def update_account(
     db_account.service_title = (
         db_account.service_title
         if modify.service_title is None
-        else db_account.service_title
+        else modify.service_title
     )
     db_account.data_limit = modify.data_limit
     db_account.ip_limit = modify.ip_limit
