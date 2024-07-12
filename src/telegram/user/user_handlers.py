@@ -569,6 +569,8 @@ def handle_payment_receipt_docs(message: types.Message):
             caption=f"{message.caption}",
         )
 
+        caption = caption + utils.get_user_payment_history(message.from_user.id)
+
         if message.photo:
             photo_index = len(message.photo)
             document_file = bot.get_file(file_id=message.photo[photo_index - 1].file_id)

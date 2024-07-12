@@ -29,6 +29,7 @@ from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.notification.models import Notification
 from src.telegram import bot
+from src.telegram.admin import messages
 from src.telegram.user import captions
 from src.users.models import User
 from src.users.schemas import UserCreate, UserResponse
@@ -210,6 +211,23 @@ def get_user_by_chat_id(telegram_chat_id: int) -> UserResponse:
             return UserResponse.from_orm(db_user)
         else:
             return None
+
+
+def get_user_payment_history(telegram_chat_id: int):
+    with GetDB() as db:
+        db_user = user_service.get_user_by_telegram_chat_id(
+            db=db, telegram_chat_id=telegram_chat_id
+        )
+
+        payment_details = messages.USER_PAYMENT_DETAILS.format(
+            balance=get_price_readable(db_user.balance),
+            total=get_price_readable(get_total_payment(user_id=db_user.id)),
+        )
+
+        if db_user:
+            return payment_details
+        else:
+            return ""
 
 
 def add_or_get_user(telegram_user, referral_user: User = None) -> UserResponse:

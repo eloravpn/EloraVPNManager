@@ -68,12 +68,7 @@ def handle_froward_message(message: types.Message):
                     enable="✅" if account.enable else "❌",
                 )
 
-            payment_details = messages.USER_PAYMENT_DETAILS.format(
-                balance=utils.get_price_readable(user.balance),
-                total=utils.get_price_readable(
-                    utils.get_total_payment(user_id=user.id)
-                ),
-            )
+            payment_details = utils.get_user_payment_history(user.telegram_chat_id)
 
     bot.send_message(
         chat_id=message.from_user.id,
