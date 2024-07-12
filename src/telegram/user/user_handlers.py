@@ -580,7 +580,7 @@ def handle_payment_receipt_docs(message: types.Message):
                 photo=document_byte,
                 caption=caption,
                 disable_notification=False,
-                parse_mode="markdown",
+                parse_mode="html",
             )
         elif message.document:
             document_file = bot.get_file(file_id=message.document.file_id)
@@ -591,7 +591,7 @@ def handle_payment_receipt_docs(message: types.Message):
                 document=document_byte,
                 caption=caption,
                 disable_notification=False,
-                parse_mode="markdown",
+                parse_mode="html",
             )
 
         bot.send_message(

@@ -298,9 +298,8 @@ GET_PAYMENT_RECEIPT_ERROR = """
 
 PAYMENT_RECEIPT_DETAIL = """
 #RECEIPT
-Chat ID: `{chat_id}`
+Chat ID: <code>{chat_id}</code>
 Name: {full_name}
 User Name: {username}
 User Caption: {caption}
-
 """

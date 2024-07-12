@@ -67,9 +67,7 @@ ACCOUNT_DETAIL = """
 
 
 USER_PAYMENT_DETAILS = """
-
 ➖➖➖➖➖➖➖
-
 * Payments * 
 
 Total Payment: {total}
