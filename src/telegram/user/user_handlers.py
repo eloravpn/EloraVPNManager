@@ -629,7 +629,11 @@ def get_service_name(message: types.Message):
             account_id=change_account_name_message_ids[key], title=message.text
         )
 
-        bot.send_message(message.chat.id, messages.CHANGE_SERVICE_NAME_SUCCESS)
+        bot.send_message(
+            message.chat.id,
+            messages.CHANGE_SERVICE_NAME_SUCCESS,
+            reply_markup=BotUserKeyboard.main_menu()),
+        )
 
 
 @bot.callback_query_handler(
