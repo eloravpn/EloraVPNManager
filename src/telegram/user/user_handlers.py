@@ -632,7 +632,7 @@ def get_service_name(message: types.Message):
         bot.send_message(
             message.chat.id,
             messages.CHANGE_SERVICE_NAME_SUCCESS,
-            reply_markup=BotUserKeyboard.main_menu()),
+            reply_markup=BotUserKeyboard.main_menu(),
         )
 
 
