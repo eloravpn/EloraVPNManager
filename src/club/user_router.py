@@ -8,8 +8,8 @@ club_user_router = APIRouter()
 
 
 @club_user_router.post("/club/profile", tags=["ClubUser"])
-def profile(request: Request):
-    data = request.json
+async def profile(request: Request):
+    data = await request.json()
 
     init_data = parse_init_data(
         token=config.TELEGRAM_API_TOKEN, raw_init_data=data["initData"]
