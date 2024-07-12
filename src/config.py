@@ -131,3 +131,5 @@ REFERRAL_ORDER_SCORE_PERCENT = config(
 )
 
 CLUB_CAMPAIGN_RUN_CRON = config("CLUB_CAMPAIGN_RUN_CRON", cast=str, default="0 * * * *")
+
+WEB_APP_URL = config("WEB_APP_URL", cast=str, default="")

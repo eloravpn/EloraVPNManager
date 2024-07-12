@@ -1,6 +1,7 @@
 from telebot import types  # noqa
 
 from src.accounts.models import Account
+from src.commerce.schemas import OrderStatus
 from src.telegram import utils
 from src.telegram.user import captions
 
@@ -16,7 +17,7 @@ class BotUserKeyboard:
         )
 
         keyboard.add(
-            types.InlineKeyboardButton(text=captions.BUY_NEW_SERVICE),
+            types.InlineKeyboardButton(text=captions.BUY_OR_RECHARGE_SERVICE),
             types.InlineKeyboardButton(text=captions.PAYMENT),
         )
         keyboard.add(
@@ -73,26 +74,8 @@ class BotUserKeyboard:
 
         for account in accounts:
 
-            expired_at = (
-                "Unlimited"
-                if not account.expired_at
-                else utils.get_jalali_date(account.expired_at.timestamp())
-            )
+            service_name = utils.service_detail(account)
 
-            data_limit = (
-                utils.get_readable_size_short(account.data_limit)
-                if account.data_limit > 0
-                else "Unlimited"
-            )
-
-            service_name = captions.ACCOUNT_LIST_ITEM.format(
-                data_limit,
-                expired_at,
-                captions.ENABLE if account.enable else captions.DISABLE,
-            )
-
-            if account.user_title:
-                service_name = f"{account.user_title} [{data_limit}]"
             keyboard.add(
                 types.InlineKeyboardButton(
                     text=service_name,
@@ -103,8 +86,65 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
+    def select_account_to_recharge(accounts):
+        keyboard = types.InlineKeyboardMarkup()
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text=captions.RETURN,
+                callback_data=f"buy_or_recharge_service:",
+            )
+        )
+
+        for account in accounts:
+
+            db_orders = utils.get_orders(
+                account_id=account.id, status=OrderStatus.paid, return_with_count=False
+            )
+
+            if db_orders is not None and len(db_orders) > 0:
+                continue
+
+            service_name = utils.service_detail(account)
+            keyboard.add(
+                types.InlineKeyboardButton(
+                    text=service_name,
+                    callback_data=f"recharge_service_1:{account.id}",
+                )
+            )
+
+        return keyboard
+
+    @staticmethod
+    def buy_or_recharge_services(available_services, account_id: int = 0):
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text=captions.BUY_NEW_SERVICE,
+                callback_data=f"buy_service",
+            )
+        )
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text=captions.RECHARGE_SERVICE,
+                callback_data=f"recharge_service",
+            )
+        )
+
+        return keyboard
+
+    @staticmethod
     def available_services(available_services, account_id: int = 0):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text=captions.RETURN,
+                callback_data=f"buy_or_recharge_service:",
+            )
+        )
 
         for available_service in available_services:
             discount = ""
@@ -129,7 +169,7 @@ class BotUserKeyboard:
         return keyboard
 
     @staticmethod
-    def my_account(account: Account):
+    def my_account(account: Account, has_reserved_service: bool = False):
         keyboard = types.InlineKeyboardMarkup()
 
         keyboard.add(
@@ -137,20 +177,27 @@ class BotUserKeyboard:
                 text="دریافت QR کد", callback_data=f"qrcode:{account.id}"
             ),
             types.InlineKeyboardButton(
-                text="🔄 بروزرسانی", callback_data=f"account_detail:{account.id}"
-            ),
-            types.InlineKeyboardButton(
-                text="✏️ تغییر نام", callback_data=f"change_service_name:{account.id}"
+                text="🔄 بروزرسانی میزان مصرف",
+                callback_data=f"account_detail:{account.id}",
             ),
         )
 
-        if not account.is_test:
+        if not account.is_test and not has_reserved_service:
             keyboard.add(
                 types.InlineKeyboardButton(
-                    text="🛍 تمدید سرویس",
+                    text="🛍 شارژ مجدد یا رزرو بسته",
                     callback_data=f"recharge_service_1:{account.id}",
                 )
             )
+
+        keyboard.add(
+            types.InlineKeyboardButton(
+                text="✏️ تغییر نام", callback_data=f"change_service_name:{account.id}"
+            ),
+            types.InlineKeyboardButton(
+                text=captions.RETURN, callback_data=f"my_services:"
+            ),
+        )
 
         return keyboard
 

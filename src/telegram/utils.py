@@ -29,6 +29,7 @@ from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
 from src.notification.models import Notification
 from src.telegram import bot
+from src.telegram.user import captions
 from src.users.models import User
 from src.users.schemas import UserCreate, UserResponse
 
@@ -50,6 +51,27 @@ def send_message_to_admin(
             )
         except ApiTelegramException as e:
             logger.error(e)
+
+
+def service_detail(account):
+    expired_at = (
+        "Unlimited"
+        if not account.expired_at
+        else get_jalali_date(account.expired_at.timestamp())
+    )
+    data_limit = (
+        get_readable_size_short(account.data_limit)
+        if account.data_limit > 0
+        else "Unlimited"
+    )
+    service_name = captions.ACCOUNT_LIST_ITEM.format(
+        data_limit,
+        expired_at,
+        captions.ENABLE if account.enable else captions.DISABLE,
+    )
+    if account.user_title:
+        service_name = f"{account.user_title} [{data_limit}]"
+    return service_name
 
 
 def send_message_to_user(
@@ -278,12 +300,23 @@ def get_total_payment(user_id: int):
 
 
 def get_orders(
-    delta: int,
+    delta: int = 0,
     status: OrderStatus = None,
+    account_id: int = 0,
+    return_with_count: bool = True,
 ):
     with GetDB() as db:
+        start_date = None
+
+        if delta > 0:
+            start_date = _get_date(delta=delta)
+
         return commerce_service.get_orders(
-            db=db, start_date=_get_date(delta=delta), status=status
+            db=db,
+            start_date=start_date,
+            status=status,
+            account_id=account_id,
+            return_with_count=return_with_count,
         )
 
 

@@ -11,12 +11,19 @@ from src.commerce.exc import (
     MaxPendingOrderError,
     NoEnoughBalanceError,
 )
+from src.commerce.schemas import OrderStatus
 from src.telegram import bot, utils, payment_bot
 from src.telegram.user import captions, messages
 from src.telegram.user.keyboard import BotUserKeyboard
 from src.users.models import User
 
 change_account_name_message_ids = {}
+
+
+@bot.message_handler(content_types=["web_app_data"])
+def echo_yall(message):
+    logger.info(message)
+    bot.send_message(message.chat.id, "Thank you!")
 
 
 class IsSubscribedUser(custom_filters.SimpleCustomFilter):
@@ -78,6 +85,25 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
 
 bot.add_custom_filter(IsSubscribedUser())
 bot.add_custom_filter(IsReplyFilter())
+
+
+@bot.message_handler(commands=["game"], is_subscribed_user=True)
+def start_game(message: types.Message):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+
+    keyboard.add(
+        types.InlineKeyboardButton(
+            text="Lets go!", web_app=types.WebAppInfo(url=config.WEB_APP_URL)
+        )
+    )
+
+    bot.send_message(
+        chat_id=message.from_user.id,
+        text="Play!",
+        disable_web_page_preview=True,
+        reply_markup=keyboard,
+        parse_mode="markdown",
+    )
 
 
 # Handle '/start' and '/help'
@@ -146,14 +172,17 @@ def support(message):
 )
 def get_payment_receipt(call: types.CallbackQuery):
     account_id = call.data.split(":")[1]
+
     message = bot.send_message(
         call.from_user.id,
         messages.GET_PAYMENT_RECEIPT_MESSAGE,
         reply_markup=ForceReply(),
     )
+
     change_account_name_message_ids[f"{message.message_id}:{message.chat.id}"] = (
         account_id
     )
+
     bot.answer_callback_query(callback_query_id=call.id)
 
 
@@ -175,22 +204,57 @@ def payment(message):
     )
 
 
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("my_services:"), is_subscribed_user=True
+)
+def my_services_call(call: types.CallbackQuery):
+
+    bot.delete_message(chat_id=call.from_user.id, message_id=call.message.id)
+
+    _my_services(call=call)
+
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
 @bot.message_handler(regexp=captions.MY_SERVICES, is_subscribed_user=True)
-def my_services(message):
-    telegram_user = message.from_user
+def my_services(message: types.Message):
+
+    _my_services(message=message)
+
+
+def _my_services(message: types.Message = None, call: types.CallbackQuery = None):
+    if message:
+        telegram_user = message.from_user
+    else:
+        telegram_user = call.from_user
+
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
     my_accounts = sorted(user.accounts, key=lambda x: x.modified_at, reverse=True)
 
     if not my_accounts:
-        bot.reply_to(message, messages.NO_ACCOUNT_MESSAGE)
+        if call:
+            bot.send_message(
+                chat_id=call.from_user.id, text=messages.NO_ACCOUNT_MESSAGE
+            )
+        else:
+            bot.reply_to(message, messages.NO_ACCOUNT_MESSAGE)
+
     else:
-        bot.reply_to(
-            message,
-            messages.ACCOUNT_LIST_MESSAGE,
-            reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),
-            parse_mode="markdown",
-        )
+        if call:
+            bot.send_message(
+                chat_id=call.from_user.id,
+                text=messages.ACCOUNT_LIST_MESSAGE,
+                reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),
+                parse_mode="markdown",
+            )
+        else:
+            bot.reply_to(
+                message=message,
+                text=messages.ACCOUNT_LIST_MESSAGE,
+                reply_markup=BotUserKeyboard.my_accounts(accounts=my_accounts),
+                parse_mode="markdown",
+            )
 
 
 @bot.message_handler(regexp=captions.GET_TEST_SERVICE, is_subscribed_user=True)
@@ -244,31 +308,66 @@ def get_test_service(message):
         )
 
 
-@bot.message_handler(regexp=captions.BUY_NEW_SERVICE, is_subscribed_user=True)
-def buy_service(message):
-    telegram_user = message.from_user
-    user = utils.add_or_get_user(telegram_user=telegram_user)
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("buy_or_recharge_service:"),
+    is_subscribed_user=True,
+)
+def buy_or_recharge_service_call(call: types.CallbackQuery):
 
+    bot.delete_message(chat_id=call.from_user.id, message_id=call.message.id)
+
+    _buy_or_recharge_service(call=call)
+
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
+@bot.message_handler(regexp=captions.BUY_OR_RECHARGE_SERVICE, is_subscribed_user=True)
+def buy_or_recharge_service_message(message):
+
+    _buy_or_recharge_service(message)
+
+
+def _buy_or_recharge_service(
+    message: types.Message = None, call: types.CallbackQuery = None
+):
     available_services = utils.get_available_service()
-
     if not available_services:
-        bot.reply_to(message, messages.BUY_NEW_SERVICE_HELP)
+        if call:
+            bot.send_message(
+                chat_id=call.from_user.id, text=messages.BUY_OR_RECHARGE_SERVICE
+            )
+        else:
+            bot.reply_to(message, messages.BUY_OR_RECHARGE_SERVICE)
     else:
-        bot.reply_to(
-            message,
-            messages.BUY_NEW_SERVICE_HELP,
-            reply_markup=BotUserKeyboard.available_services(
-                available_services=available_services
-            ),
-            parse_mode="html",
-            disable_web_page_preview=True,
-        )
+        if call:
+            bot.send_message(
+                chat_id=call.from_user.id,
+                text=messages.BUY_OR_RECHARGE_SERVICE,
+                reply_markup=BotUserKeyboard.buy_or_recharge_services(
+                    available_services=available_services
+                ),
+                parse_mode="html",
+                disable_web_page_preview=True,
+            )
+        else:
+            bot.reply_to(
+                message,
+                messages.BUY_OR_RECHARGE_SERVICE,
+                reply_markup=BotUserKeyboard.buy_or_recharge_services(
+                    available_services=available_services
+                ),
+                parse_mode="html",
+                disable_web_page_preview=True,
+            )
 
 
 @bot.callback_query_handler(
     func=lambda call: call.data.startswith("main_menu:"), is_subscribed_user=True
 )
 def main_menu(call: types.CallbackQuery):
+
+    bot.delete_message(chat_id=call.from_user.id, message_id=call.message.id)
+
     bot.send_message(
         chat_id=call.from_user.id,
         text=messages.WELCOME_MESSAGE,
@@ -277,11 +376,13 @@ def main_menu(call: types.CallbackQuery):
         parse_mode="markdown",
     )
 
+    bot.answer_callback_query(callback_query_id=call.id)
+
 
 @bot.callback_query_handler(
     func=lambda call: call.data.startswith("online_payment:"), is_subscribed_user=True
 )
-def buy_service_step_1(call: types.CallbackQuery):
+def online_payment(call: types.CallbackQuery):
     bot.answer_callback_query(
         callback_query_id=call.id,
         show_alert=True,
@@ -298,6 +399,10 @@ def recharge_service_1(call: types.CallbackQuery):
 
     account_id = call.data.split(":")[1]
 
+    account = utils.get_account(int(account_id))
+
+    service_detail = utils.service_detail(account)
+
     available_services = utils.get_available_service()
 
     if not available_services:
@@ -306,14 +411,37 @@ def recharge_service_1(call: types.CallbackQuery):
         )
     bot.reply_to(
         message=call.message,
-        text=messages.RECHARGE_SERVICE_HELP,
-        # chat_id=call.message.chat.id,
+        text=messages.RECHARGE_SERVICE_HELP.format(service_detail=service_detail),
         reply_markup=BotUserKeyboard.available_services(
             available_services=available_services, account_id=account_id
         ),
         parse_mode="html",
         disable_web_page_preview=True,
     )
+
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("recharge_service"),
+    is_subscribed_user=True,
+)
+def recharge_service(call: types.CallbackQuery):
+    user = utils.add_or_get_user(telegram_user=call.from_user)
+
+    my_accounts = sorted(user.accounts, key=lambda x: x.modified_at, reverse=True)
+
+    if not my_accounts:
+        bot.reply_to(call.message, messages.NO_ACCOUNT_MESSAGE)
+    else:
+        bot.reply_to(
+            call.message,
+            messages.SELECT_ACCOUNT_TO_RECHARGE_MESSAGE,
+            reply_markup=BotUserKeyboard.select_account_to_recharge(
+                accounts=my_accounts
+            ),
+            parse_mode="markdown",
+        )
 
     bot.answer_callback_query(callback_query_id=call.id)
 
@@ -342,6 +470,8 @@ def buy_service_step_1(call: types.CallbackQuery):
         ),
         parse_mode="html",
     )
+
+    bot.answer_callback_query(callback_query_id=call.id)
 
 
 @bot.callback_query_handler(
@@ -405,9 +535,31 @@ def buy_service_step_2(call: types.CallbackQuery):
     bot.answer_callback_query(callback_query_id=call.id)
 
 
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("buy_service"),
+    is_subscribed_user=True,
+)
+def buy_service(call: types.CallbackQuery):
+    available_services = utils.get_available_service()
+
+    if not available_services:
+        bot.reply_to(call.message, messages.BUY_NEW_SERVICE_HELP)
+    else:
+        bot.reply_to(
+            call.message,
+            messages.BUY_NEW_SERVICE_HELP,
+            reply_markup=BotUserKeyboard.available_services(
+                available_services=available_services
+            ),
+            parse_mode="html",
+            disable_web_page_preview=True,
+        )
+
+    bot.answer_callback_query(callback_query_id=call.id)
+
+
 @bot.message_handler(content_types=["document", "photo"])
 def handle_payment_receipt_docs(message: types.Message):
-
     try:
 
         caption = messages.PAYMENT_RECEIPT_DETAIL.format(
@@ -543,6 +695,21 @@ def account_detail(call: types.CallbackQuery):
         else utils.get_jalali_date(account.expired_at.timestamp())
     )
 
+    db_orders = utils.get_orders(
+        account_id=account.id, status=OrderStatus.paid, return_with_count=False
+    )
+
+    reserved_service_detail = messages.NO_RESERVED_SERVICE
+    has_reserved_service = False
+
+    if db_orders is not None and len(db_orders) > 0:
+        has_reserved_service = True
+        db_order = db_orders[0]
+        if db_order.service_id > 0:
+            db_service = utils.get_service(service_id=db_order.service_id)
+            if db_service:
+                reserved_service_detail = db_service.name
+
     try:
         bot.edit_message_text(
             message_id=call.message.message_id,
@@ -551,6 +718,7 @@ def account_detail(call: types.CallbackQuery):
                 account.email,
                 account.service_title,
                 account.user_title,
+                reserved_service_detail,
                 expired_at,
                 utils.get_readable_size(account.used_traffic),
                 utils.get_readable_size(account.data_limit),
@@ -559,7 +727,9 @@ def account_detail(call: types.CallbackQuery):
                 account.uuid,
             ),
             chat_id=telegram_user.id,
-            reply_markup=BotUserKeyboard.my_account(account),
+            reply_markup=BotUserKeyboard.my_account(
+                account=account, has_reserved_service=has_reserved_service
+            ),
             parse_mode="html",
         )
     except ApiTelegramException as error:
