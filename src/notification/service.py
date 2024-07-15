@@ -1,14 +1,13 @@
+import json
 from enum import Enum
 from typing import List, Tuple, Optional
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-
-import src.users.service as user_service
 import src.accounts.service as account_service
+import src.users.service as user_service
 from src.accounts.models import Account
-from src.exc import EloraApplicationError
 from src.notification.models import Notification
 from src.notification.schemas import (
     NotificationStatus,
@@ -56,6 +55,12 @@ def create_notification(
         status=notification.status,
         engine=notification.engine,
         type=notification.type,
+        keyboard=(
+            json.loads(notification.keyboard)
+            if notification.keyboard is not None
+            else None
+        ),
+        photo_url=notification.photo_url,
     )
 
     db.add(db_notification)
@@ -70,7 +75,6 @@ def create_bulk_notification(
     notification: NotificationCreate,
 ):
     for user_id in user_ids:
-
         db_notification = Notification(
             account_id=None,
             user_id=user_id,
@@ -82,6 +86,12 @@ def create_bulk_notification(
             status=notification.status,
             engine=notification.engine,
             type=notification.type,
+            keyboard=(
+                json.loads(notification.keyboard)
+                if notification.keyboard is not None
+                else None
+            ),
+            photo_url=notification.photo_url,
         )
 
         db.add(db_notification)
@@ -170,7 +180,6 @@ def _validate_notification(
     db_notification: Notification,
     modify: NotificationModify,
 ):
-
     db_account = account_service.get_account(db=db, account_id=modify.account_id)
 
     if db_account and db_account.user_id != db_user.id:
@@ -195,6 +204,11 @@ def update_notification(
     db_notification.engine = modify.engine
     db_notification.status = modify.status
     db_notification.type = modify.type
+
+    db_notification.keyboard = (
+        json.loads(modify.keyboard) if modify.keyboard is not None else None
+    )
+    db_notification.photo_url = modify.photo_url
 
     db.commit()
     db.refresh(db_notification)

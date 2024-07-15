@@ -95,6 +95,28 @@ def send_message_to_user(
             logger.error(e)
 
 
+def send_photo_to_user(
+    caption: str,
+    photo_url: str,
+    parse_mode="html",
+    keyboard=None,
+    disable_notification: bot = False,
+    chat_id=int,
+):
+    if bot and TELEGRAM_ADMIN_ID:
+        try:
+            bot.send_photo(
+                chat_id=chat_id,
+                caption=caption,
+                photo=photo_url,
+                parse_mode=parse_mode,
+                reply_markup=keyboard,
+                disable_notification=disable_notification,
+            )
+        except ApiTelegramException as e:
+            logger.error(e)
+
+
 def send_approval_message(account: Account, db_notification: Notification):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(

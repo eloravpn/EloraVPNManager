@@ -1,8 +1,9 @@
+import json
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class NotificationEngine(str, Enum):
@@ -49,6 +50,8 @@ class NotificationBase(BaseModel):
     level: int
     message: str = None
     details: str = None
+    keyboard: Optional[Any] = None
+    photo_url: Optional[str] = None
 
     approve: bool = False
     send_to_admin: Optional[bool] = False
@@ -73,6 +76,13 @@ class NotificationResponse(NotificationBase):
 
     created_at: datetime
     modified_at: datetime
+
+    @validator("keyboard")
+    def validate_keyboard(cls, keyboard: str):
+        if keyboard is not None:
+            return json.dumps(keyboard)
+        else:
+            None
 
     def dict(cls, *args, **kwargs):
         return super().dict(*args, **kwargs)

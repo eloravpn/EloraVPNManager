@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+import src.accounts.service as account_service
 import src.notification.service as notification_service
+import src.users.service as user_service
 from src.admins.schemas import Admin
 from src.database import get_db
 from src.exc import EloraApplicationError
@@ -17,9 +19,6 @@ from src.notification.schemas import (
     NotificationCreate,
     NotificationModify,
 )
-
-import src.users.service as user_service
-import src.accounts.service as account_service
 
 notification_router = APIRouter()
 
@@ -76,7 +75,6 @@ def bulk_send_notification(
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
-
     try:
         notification_service.create_bulk_notification(
             db=db,

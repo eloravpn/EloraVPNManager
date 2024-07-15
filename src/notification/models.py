@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     Boolean,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from src.database import Base
@@ -17,6 +18,8 @@ from src.notification.schemas import (
     NotificationStatus,
     NotificationType,
 )
+
+from sqlalchemy_json import mutable_json_type
 
 
 class Notification(Base):
@@ -29,6 +32,8 @@ class Notification(Base):
     account = relationship("Account", back_populates="notification")
     level = Column(Integer, index=True)
     message = Column(String(4096))
+    keyboard = Column(mutable_json_type(dbtype=JSONB, nested=True), nullable=True)
+    photo_url = Column(String(400), nullable=True)
     details = Column(String(10000))
 
     approve = Column(Boolean, default=True)

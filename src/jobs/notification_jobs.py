@@ -25,6 +25,7 @@ from src.telegram import utils
 from src.telegram.user import messages
 from src.telegram.user.keyboard import BotUserKeyboard
 from src.users.service import get_user
+from src.utils.telebot import KeyboardFactory
 
 
 def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
@@ -163,13 +164,36 @@ def process_pending_notifications():
                             parse_mode="html",
                             disable_notification=True,
                         )
+                    keyboard = None
 
-                    utils.send_message_to_user(
-                        chat_id=db_user.telegram_chat_id,
-                        message=db_notification.message,
-                        parse_mode="html",
-                        keyboard=BotUserKeyboard.main_menu(),
-                    )
+                    if db_notification.keyboard is not None:
+                        keyboard = KeyboardFactory.from_json_string(
+                            db_notification.keyboard
+                        )
+
+                    if db_notification.photo_url is not None:
+                        utils.send_photo_to_user(
+                            chat_id=db_user.telegram_chat_id,
+                            caption=db_notification.message,
+                            photo_url=db_notification.photo_url,
+                            parse_mode="html",
+                            keyboard=(
+                                BotUserKeyboard.main_menu()
+                                if keyboard is None
+                                else keyboard
+                            ),
+                        )
+                    else:
+                        utils.send_message_to_user(
+                            chat_id=db_user.telegram_chat_id,
+                            message=db_notification.message,
+                            parse_mode="html",
+                            keyboard=(
+                                BotUserKeyboard.main_menu()
+                                if keyboard is None
+                                else keyboard
+                            ),
+                        )
 
                 except Exception as error:
                     logging.error(error)
