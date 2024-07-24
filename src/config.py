@@ -40,6 +40,11 @@ TELEGRAM_ADMIN_USER_NAME = config("TELEGRAM_ADMIN_USER_NAME", default=None)
 BOT_USER_NAME = config("BOT_USER_NAME", default="")
 TELEGRAM_CHANNEL = config("TELEGRAM_CHANNEL", default=None)
 TELEGRAM_PROXY_URL = config("TELEGRAM_PROXY_URL", default=None)
+MINIMUM_PAYMENT_TO_TRUST_USER = config(
+    "MINIMUM_PAYMENT_TO_TRUST_USER", cast=int, default=200000
+)
+TRUST_CARD_NUMBER = config("TRUST_CARD_NUMBER", default="")
+TRUST_CARD_OWNER = config("TRUST_CARD_OWNER", default="")
 CARD_NUMBER = config("CARD_NUMBER", default="")
 CARD_OWNER = config("CARD_OWNER", default="")
 

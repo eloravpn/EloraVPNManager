@@ -191,13 +191,24 @@ def payment(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
+    total_payment = utils.get_total_payment(user_id=user.id)
+
+    text = messages.PAYMENT_MESSAGE.format(
+        balance=user.balance_readable,
+        card_number=config.CARD_NUMBER,
+        card_owner=config.CARD_OWNER,
+    )
+
+    if total_payment > config.MINIMUM_PAYMENT_TO_TRUST_USER:
+        text = messages.PAYMENT_MESSAGE.format(
+            balance=user.balance_readable,
+            card_number=config.TRUST_CARD_NUMBER,
+            card_owner=config.TRUST_CARD_OWNER,
+        )
+
     bot.reply_to(
         message,
-        text=messages.PAYMENT_MESSAGE.format(
-            balance=user.balance_readable,
-            card_number=config.CARD_NUMBER,
-            card_owner=config.CARD_OWNER,
-        ),
+        text=text,
         parse_mode="html",
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.payment_card_step_1(account_id=0),
