@@ -18,7 +18,7 @@ from src.commerce.exc import (
     OrderNotEditableError,
     OrderStatusConflictError,
 )
-from src.commerce.models import Transaction, Order, Payment, Service
+from src.commerce.models import Transaction, Order, Payment, Service, Currency
 from src.commerce.schemas import (
     TransactionCreate,
     ServiceCreate,
@@ -30,6 +30,7 @@ from src.commerce.schemas import (
     PaymentStatus,
     OrderStatus,
     TransactionType,
+    CurrencyCreate,
 )
 from src.hosts.models import HostZone
 from src.messages import PAYMENT_METHODS
@@ -93,6 +94,30 @@ PaymentSortingOptions = Enum(
         "-status": Payment.status.desc(),
     },
 )
+
+
+class CurrencySymbol(Enum):
+    USDTRLS = "usdtrls"
+
+
+# Currency CRUDS
+
+
+def create_currency(
+    db: Session,
+    currency: CurrencyCreate,
+):
+    db_currency = Currency(
+        rate=currency.rate,
+        symbol=currency.symbol,
+    )
+
+    db.add(db_currency)
+    db.commit()
+
+    db.refresh(db_currency)
+
+    return db_currency
 
 
 # Transaction CRUDs

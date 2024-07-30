@@ -51,6 +51,16 @@ class Transaction(Base):
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class Currency(Base):
+    __tablename__ = "currency"
+    id = Column(Integer, primary_key=True, index=True)
+    rate = Column(BigInteger, default=0)
+    symbol = Column(String(128), nullable=False, unique=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class Payment(Base):
     __tablename__ = "payment"
 

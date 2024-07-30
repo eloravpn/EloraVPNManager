@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from src.accounts.schemas import AccountResponse
+from src.commerce.service import CurrencySymbol
 from src.hosts.schemas import HostZoneResponse
 from src.users.schemas import UserResponse
 
@@ -56,6 +57,19 @@ class TransactionCreate(TransactionBase):
 
 
 class TransactionModify(TransactionBase):
+    pass
+
+
+class CurrencyBase(BaseModel):
+    rate: int
+    symbol: CurrencySymbol
+
+
+class CurrencyCreate(CurrencyBase):
+    pass
+
+
+class CurrencyModify(CurrencyBase):
     pass
 
 
