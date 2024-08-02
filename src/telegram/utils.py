@@ -24,6 +24,7 @@ from src.commerce.schemas import (
     OrderStatus,
     TransactionType,
     PaymentStatus,
+    CurrencySymbol,
 )
 from src.config import TELEGRAM_ADMIN_ID
 from src.database import GetDB
@@ -358,6 +359,15 @@ def get_orders(
             account_id=account_id,
             return_with_count=return_with_count,
         )
+
+
+def get_currency_price(
+    symbol: CurrencySymbol,
+) -> int:
+    with GetDB() as db:
+        db_currency = commerce_service.get_currency(db=db, symbol=symbol)
+
+        return db_currency.rate
 
 
 def get_transaction_sum(

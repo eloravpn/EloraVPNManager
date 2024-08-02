@@ -215,7 +215,7 @@ def payment(message):
         text=text,
         parse_mode="html",
         disable_web_page_preview=True,
-        reply_markup=BotUserKeyboard.payment_card_step_1(account_id=0),
+        reply_markup=BotUserKeyboard.payment_choose(account_id=0),
     )
 
 
@@ -392,6 +392,15 @@ def main_menu(call: types.CallbackQuery):
     )
 
     bot.answer_callback_query(callback_query_id=call.id)
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("payment_crypto_step_1:"),
+    is_subscribed_user=True,
+)
+def payment_crypto_step_1(call: types.CallbackQuery):
+    account_id = call.data.split(":")[1]
+    print(account_id)
 
 
 @bot.callback_query_handler(

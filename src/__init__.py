@@ -86,6 +86,7 @@ app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 
 from src import jobs, telegram  # noqa
 from src.club import jobs  # noqa
+from src.commerce import jobs  # noqa
 
 
 @app.on_event("startup")

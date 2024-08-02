@@ -31,12 +31,12 @@ from src.commerce.schemas import (
     OrderStatus,
     TransactionType,
     CurrencyCreate,
+    CurrencySymbol,
 )
-from src.hosts.models import HostZone
+from src.hosts import service as host_service
 from src.messages import PAYMENT_METHODS
 from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
-from src.hosts import service as host_service
 from src.users.models import User
 
 TransactionSortingOptions = Enum(
@@ -96,10 +96,6 @@ PaymentSortingOptions = Enum(
 )
 
 
-class CurrencySymbol(Enum):
-    USDTRLS = "usdtrls"
-
-
 # Currency CRUDS
 
 
@@ -109,7 +105,7 @@ def create_currency(
 ):
     db_currency = Currency(
         rate=currency.rate,
-        symbol=currency.symbol,
+        symbol=currency.symbol.value,
     )
 
     db.add(db_currency)
@@ -118,6 +114,20 @@ def create_currency(
     db.refresh(db_currency)
 
     return db_currency
+
+
+def update_currency_price(db: Session, db_currency: Currency, rate: int):
+
+    db_currency.rate = rate
+
+    db.commit()
+    db.refresh(db_currency)
+
+    return db_currency
+
+
+def get_currency(db: Session, symbol: CurrencySymbol):
+    return db.query(Currency).filter(Currency.symbol == symbol.value).first()
 
 
 # Transaction CRUDs
@@ -304,8 +314,6 @@ def create_service(db: Session, service: ServiceCreate):
         db_service.host_zones.append(
             host_service.get_host_zone(db=db, host_zone_id=host_zone_id)
         )
-
-    print(db_service)
 
     db.add(db_service)
     db.commit()

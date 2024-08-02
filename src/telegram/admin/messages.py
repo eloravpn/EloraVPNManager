@@ -51,6 +51,9 @@ TRANSACTIONS_REPORT = """
 *Order *: `{total_orders}` IRT
 *Bonus *: `{total_bonuses}` IRT
 ➖➖➖➖➖➖➖
+
+* USDT Price * : `{usdt_rate}`
+
 """
 
 USER_INFO = """

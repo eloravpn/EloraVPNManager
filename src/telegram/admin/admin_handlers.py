@@ -7,7 +7,7 @@ from telebot.apihelper import ApiTelegramException
 
 from src import config
 from src.accounts.service import get_account
-from src.commerce.schemas import OrderStatus, TransactionType
+from src.commerce.schemas import OrderStatus, TransactionType, CurrencySymbol
 from src.database import GetDB
 from src.notification.schemas import NotificationStatus
 from src.notification.service import get_notification, update_status
@@ -259,6 +259,9 @@ def report_orders(call: types.CallbackQuery):
 )
 def report_transaction(call: types.CallbackQuery):
     try:
+
+        usdt_price = utils.get_currency_price(CurrencySymbol.USDTRLS)
+
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -299,6 +302,7 @@ def report_transaction(call: types.CallbackQuery):
                 total_bonuses=utils.get_price_readable(
                     utils.get_transaction_sum(type_=TransactionType.bonus)
                 ),
+                usdt_rate=usdt_price,
             ),
             reply_markup=BotAdminKeyboard.main_menu(),
             parse_mode="MarkdownV2",
