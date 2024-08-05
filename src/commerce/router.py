@@ -244,7 +244,7 @@ def get_services(
     limit: int = None,
     sort: str = None,
     q: str = None,
-    enable: int = -1,
+    enable: int = 1,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):

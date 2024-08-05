@@ -113,9 +113,7 @@ def start_game(message: types.Message):
 def send_welcome(message: types.Message):
     bot.send_message(
         chat_id=message.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME
-        ),
+        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",
@@ -165,9 +163,7 @@ def my_profile(message):
 def support(message):
     bot.reply_to(
         message,
-        text=messages.WELCOME_MESSAGE.format(
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME
-        ),
+        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
         parse_mode="markdown",
     )
 
@@ -211,7 +207,7 @@ def payment(message):
             balance=user.balance_readable,
             card_number=config.TRUST_CARD_NUMBER,
             card_owner=config.TRUST_CARD_OWNER,
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
         )
 
     bot.reply_to(
@@ -389,9 +385,7 @@ def main_menu(call: types.CallbackQuery):
 
     bot.send_message(
         chat_id=call.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME
-        ),
+        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",
