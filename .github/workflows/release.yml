@@ -1,0 +1,84 @@
+name: Release Python Backend
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Download Latest Frontend Build
+      - name: Download frontend release
+        run: |
+          # Get latest release info from the frontend repository
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManagerPanel/releases/latest)
+          DOWNLOAD_URL=$(echo $LATEST_RELEASE | jq -r '.assets[0].browser_download_url')
+          
+          # Download the frontend build
+          curl -L -o frontend.zip "$DOWNLOAD_URL"
+          
+          # Create static directory and extract frontend files
+          mkdir -p static
+          unzip frontend.zip -d static/
+
+      # Create archive
+      - name: Create archive
+        run: |
+          zip -r elora-vpn-backend.zip \
+            static/ \
+            main.py \
+            requirements.txt \
+            src/
+
+      - name: Attach build to release
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} elora-vpn-backend.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release notes
+        run: |
+          gh release edit ${{ github.event.release.tag_name }} --notes "$(cat << 'EOT'
+          Release ${{ github.event.release.tag_name }} of Elora VPN Manager Backend
+
+          ### Quick Setup
+
+          1. Download and extract:
+             ```bash
+             unzip elora-vpn-backend.zip
+             ```
+
+          2. Download the installation script:
+             ```bash
+             wget https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh
+             chmod +x install.sh
+             ```
+
+          3. Run installation:
+             ```bash
+             # For production
+             sudo ./install.sh --domain your-domain.com --protocol https
+
+             # For local development
+             sudo ./install.sh
+             ```
+
+          ### Service Management
+          ```bash
+          # Check status
+          sudo systemctl status elora-vpn
+
+          # View logs
+          sudo journalctl -u elora-vpn -f
+          ```
+          EOT
+          )"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
