@@ -33,6 +33,16 @@ warning() {
     echo -e "${YELLOW}[WARNING] $1${NC}" >&2
 }
 
+# Generate random password for database
+generate_db_password() {
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
+}
+
+# Generate random string for JWT secret
+generate_jwt_secret() {
+    tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 50
+}
+
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
     error "Please run as root or with sudo"
@@ -68,6 +78,88 @@ source /etc/os-release
 if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
     error "This script is only for Ubuntu and Debian systems"
 fi
+
+
+# Function to download and extract latest release
+download_latest_release() {
+    log "Downloading latest release..."
+
+    # Create temporary directory
+    local temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+
+    # Download latest release information
+    log "Fetching latest release information..."
+    LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManager/releases/latest)
+    DOWNLOAD_URL=$(echo $LATEST_RELEASE | jq -r '.assets[0].browser_download_url')
+    VERSION=$(echo $LATEST_RELEASE | jq -r '.tag_name')
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+        error "Could not find release download URL"
+    fi
+
+    log "Downloading version ${VERSION}..."
+    curl -L -o release.zip "$DOWNLOAD_URL" || error "Failed to download release"
+
+    # Extract files
+    log "Extracting files..."
+    unzip -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
+
+    # Clean up
+    cd - > /dev/null
+    rm -rf "$temp_dir"
+
+    log "Successfully downloaded and extracted version ${VERSION}"
+}
+
+# Check if required tools are available
+check_download_tools() {
+    log "Checking required tools..."
+    local required_tools=("curl" "jq" "unzip")
+
+    for tool in "${required_tools[@]}"; do
+        if ! command -v "$tool" &> /dev/null; then
+            log "Installing ${tool}..."
+            apt-get install -y "$tool" || error "Failed to install ${tool}"
+        fi
+    done
+}
+
+# Update environment configuration
+update_env() {
+    log "Updating .env configuration..."
+    local env_file="$INSTALL_DIR/.env"
+
+    # Generate JWT secret if not provided
+    JWT_SECRET=${JWT_SECRET:-$(generate_jwt_secret)}
+
+    # Create .env file
+    cat > "$env_file" << EOL
+# Server Configuration
+DEBUG=false
+DOCS=false
+UVICORN_HOST=0.0.0.0
+UVICORN_PORT=${PORT}
+UVICORN_UDS=
+UVICORN_SSL_CERTFILE=
+UVICORN_SSL_KEYFILE=
+
+# Database Configuration
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}
+
+# JWT Settings
+JWT_SECRET_KEY=${JWT_SECRET}
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Other Settings
+LOG_LEVEL=INFO
+EOL
+
+    # Set proper permissions
+    chmod 600 "$env_file"
+    log "Environment configuration updated successfully"
+}
 
 
 # Function to setup and activate virtual environment
@@ -128,37 +220,55 @@ check_dependencies() {
     done
 }
 
+# Check if PostgreSQL is running and accessible
+check_postgresql() {
+    log "Checking PostgreSQL status..."
+    if ! systemctl is-active --quiet postgresql; then
+        log "Starting PostgreSQL..."
+        systemctl start postgresql
+        systemctl enable postgresql
+    fi
+
+    # Wait for PostgreSQL to be ready
+    for i in {1..30}; do
+        if su - postgres -c "psql -l" &>/dev/null; then
+            log "PostgreSQL is running and accessible"
+            return 0
+        fi
+        sleep 1
+    done
+    error "PostgreSQL is not responding after 30 seconds"
+}
+
 # Setup PostgreSQL database
 setup_database() {
-    log "Setting up PostgreSQL database..."
+   log "Setting up PostgreSQL database..."
 
-    # Generate random password
-    DB_PASSWORD=$(generate_db_password)
-    DB_NAME="elora_db"
-    DB_USER="elora"
-
-    # Store the password temporarily
-    echo "${DB_PASSWORD}" > /tmp/db_pass.tmp
+    # Generate random password if not set
+    DB_PASSWORD=${DB_PASSWORD:-$(generate_db_password)}
 
     # Ensure PostgreSQL is running
-    systemctl start postgresql
-    systemctl enable postgresql
+    check_postgresql
 
-    # Create user and database
-    su - postgres -c "psql -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
-    su - postgres -c "psql -c \"CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};\""
+    # Check if user exists
+    if ! su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'\"" | grep -q 1; then
+        log "Creating database user ${DB_USER}..."
+        su - postgres -c "psql -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
+    else
+        log "User ${DB_USER} already exists, updating password..."
+        su - postgres -c "psql -c \"ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
+    fi
 
-    # Update DATABASE_URL in .env
-    modify_env "DATABASE_URL" "postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}"
+    # Check if database exists
+    if ! su - postgres -c "psql -lqt" | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
+        log "Creating database ${DB_NAME}..."
+        su - postgres -c "psql -c \"CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};\""
+    else
+        log "Database ${DB_NAME} already exists, updating owner..."
+        su - postgres -c "psql -c \"ALTER DATABASE ${DB_NAME} OWNER TO ${DB_USER};\""
+    fi
 
-    # Remove temporary password file
-    rm -f /tmp/db_pass.tmp
-
-    log "Database setup completed:"
-    log "- Database: ${DB_NAME}"
-    log "- User: ${DB_USER}"
-    log "- Password: ${DB_PASSWORD}"
-    log "- Connection URL: postgresql://${DB_USER}:****@localhost/${DB_NAME}"
+    log "Database setup completed successfully"
 }
 
 # Run database migrations
@@ -172,10 +282,10 @@ run_migrations() {
     # Check if alembic.ini exists
     if [ ! -f "alembic.ini" ]; then
         error "alembic.ini not found in installation directory"
-    }
+    fi
 
     # Run migrations using venv python
-    export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+    # export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
     log "Running Alembic migrations..."
     "${INSTALL_DIR}/venv/bin/alembic" upgrade head || error "Failed to run database migrations"
@@ -317,21 +427,23 @@ main() {
     # Setup installation directory
     setup_install_dir
 
-    # Copy files to installation directory
-    log "Copying files..."
-    cp -r * "$INSTALL_DIR/" || error "Failed to copy files"
+    # Setup database
+    setup_database
 
-    # Create virtual environment
-    log "Setting up Python virtual environment..."
-    python3 -m venv "$INSTALL_DIR/venv" || error "Failed to create virtual environment"
-    source "$INSTALL_DIR/venv/bin/activate" || error "Failed to activate virtual environment"
+    # Download and extract latest release
+    download_latest_release
 
-    # Upgrade pip
-    log "Upgrading pip..."
-    pip install --upgrade pip || error "Failed to upgrade pip"
+    # Setup virtual environment first
+    setup_virtualenv
 
-    # Install Python requirements
+    # Then install requirements in the venv
     install_python_requirements
+
+    # Update configurations
+    update_env
+
+    # Run database migrations
+    run_migrations
 
     # Update configuration
     update_config
