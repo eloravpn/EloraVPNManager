@@ -2,9 +2,9 @@ import logging
 import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_responses import custom_openapi
 
@@ -28,6 +28,7 @@ from src.notification.router import notification_router
 from src.subscription.router import router as subscription_router
 from src.users.router import router as user_router
 from src.users.schemas import UserResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # logging_config = dict(
 #     version=1,
@@ -55,35 +56,13 @@ app = FastAPI(
     debug=DEBUG,
 )
 
-# Mount static files and setup SPA handling
-static_path = os.path.join(os.path.dirname(__file__), "../static")
-
-# Ensure the app has static files handling
-
-# Check if static folder exists
-if os.path.exists(static_path) and os.path.isdir(static_path):
-    # Mount static files if directory exists
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
-
-
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    # Don't serve frontend for API routes
-    if full_path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="Not found")
-
-    # Serve index.html for all other routes
-    index_path = os.path.join(static_path, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    raise HTTPException(status_code=404, detail="Frontend not installed")
-
-
-app.openapi = custom_openapi(app)
 scheduler = BackgroundScheduler(
     {"apscheduler.job_defaults.max_instances": 1}, timezone="UTC"
 )
+
 logger = logging.getLogger("uvicorn.default")
+
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -91,6 +70,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+static_path = os.path.join(os.path.dirname(__file__), "../static")
 
 app.include_router(subscription_router, prefix="/api", tags=["Subscription"])
 app.include_router(host_router, prefix="/api", tags=["Host"])
@@ -108,8 +89,41 @@ app.include_router(notification_router, prefix="/api", tags=["Notification"])
 app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 
-# from src import hosts, admins
+# Check if static folder exists
+if os.path.exists(static_path) and os.path.isdir(static_path):
+    # Mount static files if directory exists
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
 
+# Mount static files for specific paths
+if os.path.exists(static_path) and os.path.isdir(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+
+# Custom exception handler for 404 errors
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        # If path starts with /api, return 404 API error
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(
+                status_code=404, content={"detail": "API endpoint not found"}
+            )
+
+        # For all other paths, serve index.html
+        index_path = os.path.join(static_path, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+
+    return JSONResponse(
+        status_code=exc.status_code, content={"detail": str(exc.detail)}
+    )
+
+
+# OpenAPI customization
+app.openapi = custom_openapi(app)
+
+
+# from src import hosts, admins
 
 from src import jobs, telegram  # noqa
 from src.club import jobs  # noqa
@@ -126,6 +140,16 @@ def on_startup():
 @app.on_event("shutdown")
 def on_shutdown():
     scheduler.shutdown()
+
+
+# Root path handler
+@app.get("/")
+async def root():
+    index_path = os.path.join(static_path, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    raise HTTPException(status_code=404, detail="Frontend not installed")
+
 
 # @app.exception_handler(RequestValidationError)
 # def validation_exception_handler(request: Request, exc: RequestValidationError):
