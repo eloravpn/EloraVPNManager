@@ -105,11 +105,21 @@ download_latest_release() {
     log "Extracting files..."
     unzip -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
 
+    # Verify required files
+    log "Verifying installation files..."
+    required_files=("requirements.txt" "main.py" "alembic.ini")
+    for file in "${required_files[@]}"; do
+        if [ ! -f "${INSTALL_DIR}/${file}" ]; then
+            error "Required file ${file} not found after extraction"
+        fi
+    done
+
     # Clean up
     cd - > /dev/null
     rm -rf "$temp_dir"
 
     log "Successfully downloaded and extracted version ${VERSION}"
+    log "All required files verified"
 }
 
 # Check if required tools are available
@@ -349,12 +359,23 @@ setup_install_dir() {
 install_python_requirements() {
     log "Installing Python requirements in virtual environment..."
 
+    # Change to installation directory
+    cd "${INSTALL_DIR}" || error "Failed to change to installation directory"
+
+    # Check if requirements.txt exists
+    if [ ! -f "requirements.txt" ]; then
+        error "requirements.txt not found in ${INSTALL_DIR}"
+    fi
+
     # Ensure we're in the virtual environment
     source "${INSTALL_DIR}/venv/bin/activate" || error "Failed to activate virtual environment"
 
     # Try using psycopg2-binary if psycopg2 fails
     if ! "${INSTALL_DIR}/venv/bin/pip" install -r requirements.txt; then
         warning "Failed to install psycopg2, trying psycopg2-binary instead..."
+        # Create a backup of original requirements
+        cp requirements.txt requirements.txt.bak
+        # Replace psycopg2 with psycopg2-binary
         sed -i 's/psycopg2==/psycopg2-binary==/g' requirements.txt
         "${INSTALL_DIR}/venv/bin/pip" install -r requirements.txt || error "Failed to install Python requirements"
     fi
@@ -365,6 +386,8 @@ install_python_requirements() {
         log "Installing Alembic in virtual environment..."
         "${INSTALL_DIR}/venv/bin/pip" install alembic || error "Failed to install Alembic"
     fi
+
+    log "Python requirements installed successfully"
 }
 
 # Create systemd service
