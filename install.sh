@@ -160,7 +160,7 @@ UVICORN_SSL_CERTFILE=
 UVICORN_SSL_KEYFILE=
 
 # Database Configuration
-DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}
+SQLALCHEMY_DATABASE_URL="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}"
 
 # JWT Settings
 JWT_SECRET_KEY=${JWT_SECRET}
