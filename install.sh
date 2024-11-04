@@ -207,6 +207,7 @@ check_dependencies() {
         "python3-pip"
         "python3-venv"
         "python3-dev"  # Required for some Python packages
+        "jq"
         "unzip"
         "wget"
         "systemd"
@@ -465,6 +466,8 @@ main() {
     setup_database
 
     # Download and extract latest release
+    check_download_tools
+
     download_latest_release
 
     # Setup virtual environment first
