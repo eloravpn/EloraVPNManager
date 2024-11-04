@@ -79,6 +79,11 @@ if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
     error "This script is only for Ubuntu and Debian systems"
 fi
 
+# Function to install packages non-interactively
+apt_install() {
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y -q -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$@"
+}
 
 # Function to download and extract latest release
 download_latest_release() {
@@ -130,7 +135,7 @@ check_download_tools() {
     for tool in "${required_tools[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
             log "Installing ${tool}..."
-            apt-get install -y "$tool" || error "Failed to install ${tool}"
+            apt_install "$tool" || error "Failed to install ${tool}"
         fi
     done
 }
@@ -194,7 +199,7 @@ check_dependencies() {
     log "Checking and installing dependencies..."
 
     # Update package list
-    apt-get update || error "Failed to update package list"
+    apt-get update -qq || error "Failed to update package list"
 
     # List of required packages
     local packages=(
@@ -214,10 +219,10 @@ check_dependencies() {
     )
 
 
-     # Ensure PostgreSQL is installed
+    # Ensure PostgreSQL is installed
     if ! command -v psql &> /dev/null; then
         log "Installing PostgreSQL..."
-        DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgresql-contrib
+        apt_install postgresql postgresql-contrib
     fi
 
 
@@ -225,7 +230,7 @@ check_dependencies() {
     for pkg in "${packages[@]}"; do
         if ! dpkg -l | grep -q "^ii  $pkg "; then
             log "Installing $pkg..."
-            apt-get install -y "$pkg" || error "Failed to install $pkg"
+            apt_install "$pkg" || error "Failed to install $pkg"
         fi
     done
 }
