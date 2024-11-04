@@ -63,6 +63,10 @@ while [[ $# -gt 0 ]]; do
             PROTOCOL="$2"
             shift 2
             ;;
+        --port)
+            PORT="$2"
+            shift 2
+            ;;
         *)
             error "Unknown option: $1"
             ;;
