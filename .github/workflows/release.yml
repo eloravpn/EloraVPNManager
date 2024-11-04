@@ -34,6 +34,8 @@ jobs:
           zip -r elora-vpn-backend.zip \
             static/ \
             main.py \
+            .env.example \
+            alembic.ini \
             requirements.txt \
             src/
 
