@@ -242,10 +242,12 @@ check_postgresql() {
 
 # Setup PostgreSQL database
 setup_database() {
-   log "Setting up PostgreSQL database..."
+    log "Setting up PostgreSQL database..."
 
     # Generate random password if not set
     DB_PASSWORD=${DB_PASSWORD:-$(generate_db_password)}
+    DB_NAME=${DB_NAME:-"elora_db"}
+    DB_USER=${DB_USER:-"elora"}
 
     # Ensure PostgreSQL is running
     check_postgresql
@@ -253,7 +255,7 @@ setup_database() {
     # Check if user exists
     if ! su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'\"" | grep -q 1; then
         log "Creating database user ${DB_USER}..."
-        su - postgres -c "psql -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
+        su - postgres -c "psql -c \"CREATE USER ${DB_USER} WITH LOGIN PASSWORD '${DB_PASSWORD}';\""
     else
         log "User ${DB_USER} already exists, updating password..."
         su - postgres -c "psql -c \"ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
@@ -267,6 +269,10 @@ setup_database() {
         log "Database ${DB_NAME} already exists, updating owner..."
         su - postgres -c "psql -c \"ALTER DATABASE ${DB_NAME} OWNER TO ${DB_USER};\""
     fi
+
+    # Grant privileges
+    log "Setting up database privileges..."
+    su - postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};\""
 
     log "Database setup completed successfully"
 }
