@@ -55,6 +55,32 @@ apt_install() {
     apt-get install -y -q -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$@"
 }
 
+# Function to get public IP
+get_public_ip() {
+    log "Detecting public IP address..."
+    # Try different services to get public IP
+    local public_ip=""
+    local services=(
+        "https://api.ipify.org"
+        "https://ipinfo.io/ip"
+        "https://icanhazip.com"
+        "https://ifconfig.me"
+    )
+
+    for service in "${services[@]}"; do
+        public_ip=$(curl -s --max-time 5 "$service")
+        if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            log "Public IP detected: $public_ip"
+            echo "$public_ip"
+            return 0
+        fi
+    done
+
+    warning "Could not detect public IP, falling back to localhost"
+    echo "localhost"
+    return 1
+}
+
 # Function to download and extract latest release
 download_latest_release() {
     log "Downloading latest release..."
@@ -482,6 +508,14 @@ main() {
     if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
         error "This script is only for Ubuntu and Debian systems"
     fi
+
+    # If domain is not set or is localhost, try to get public IP
+    if [ "$DOMAIN" = "localhost" ] || [ -z "$DOMAIN" ]; then
+        DOMAIN=$(get_public_ip)
+    fi
+
+    # Continue with rest of installation...
+    log "Using domain/IP: $DOMAIN"
 
     log "Starting Elora VPN Manager installation..."
 
