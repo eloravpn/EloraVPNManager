@@ -48,7 +48,6 @@ The installation script will automatically install these dependencies, but for r
 ### One-Line Installation
 Auto-detects your public IP address
 ```bash
-# Auto-detects your public IP address
 curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash
 ```
 
