@@ -1,23 +1,193 @@
 # Elora VPN Manager
-A central solution to manage accounts in a Cluster enviroment of VPN Servers.
 
-## Overview
-By this application you can manage multi x-ui host and multi inbounds.  
-all accounts that created in panel, automatically created and managed in all hosts and inbounds.  
-you have a telgram bot for users to view thier accounts sub scription url and used traffic.  
-a simple order workfllow for new customers are avialable in telgram bot.
+> A comprehensive VPN management solution with multi-zone support, automated account management, and real-time monitoring.
 
-### Contact US in Telegram
-[Elora VPN](https://t.me/eloravpn)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## 🚀 Features
 
-### Supported:
-- [3x-ui](https://github.com/MHSanaei/3x-ui)
+### 🌍 Multi-Zone Management
+- Distributed server management across multiple zones
+- Automatic configuration synchronization
+- Load balancing and failover support
+- Centralized control panel
 
-### Features
-- Web based panel Manage users and accounts
-- Web based panel to manage hosts, inbounds, inbound configs
-- Telegram Bot for Users
+### 👥 Account Management
+- Automated account creation and deployment
+- Shopping system integration
+- Traffic monitoring and usage tracking
+- Flexible subscription management
+
+### 🔄 Integration
+- X-UI panel synchronization
+- Telegram bot interface
+- Subscription URL system
+- Multiple client support
+
+## 📋 System Overview
+
+The system manages VPN services through three main components:
+
+```mermaid
+graph TB
+    %% Main Components
+    CP((Control<br>Panel))
+    
+    %% Zones with rounded rectangles
+    subgraph "Zones"
+        Z1[Zone A - Europe]
+        Z2[Zone B - Asia]
+    end
+
+    %% Servers as circles
+    S1((Server<br>Germany))
+    S2((Server<br>France))
+    S3((Server<br>Singapore))
+
+    %% User Access as hexagons
+    U1{VPN Client}
+    U2{Telegram Bot}
+
+    %% Simple Connections
+    CP --> Z1 & Z2
+    Z1 --> S1 & S2
+    Z2 --> S3
+    U1 & U2 --> CP
+
+    %% Clean Modern Colors
+    classDef panel fill:#6366F1,stroke:#4338CA,stroke-width:2px,color:#fff
+    classDef zone fill:#34D399,stroke:#059669,stroke-width:2px,color:#fff
+    classDef server fill:#F472B6,stroke:#DB2777,stroke-width:2px,color:#fff
+    classDef user fill:#60A5FA,stroke:#2563EB,stroke-width:2px,color:#fff
+
+    class CP panel
+    class Z1,Z2 zone
+    class S1,S2,S3 server
+    class U1,U2 user
+
+    %% Add Labels
+    linkStyle default stroke:#6B7280,stroke-width:2px
+```
+
+### Core Functions
+- Account creation and management
+- Traffic monitoring and control
+- Server synchronization
+- User access management
+
+## 🛠️ Setup Requirements
+
+### Server Side
+- SSL certificate
+- Domain configuration
+- X-UI panel installation
+- Database system
+
+### Client Side
+- X-ray compatible client
+- Telegram account (for bot access)
+- Valid subscription URL
+
+## 📱 Access Methods
+
+### 1. Subscription URL
+- One-click configuration
+- Automatic updates
+- Multiple client support
+
+### 2. Telegram Bot
+- Account management
+- Usage monitoring
+- Support access
+- Instant notifications
+
+### 3. VPN Clients
+- Cross-platform support
+- Auto-configuration
+- Server selection
+
+## ⚙️ How It Works
+
+1. **Account Creation**
+   - Manual or automatic creation
+   - Zone assignment
+   - Server configuration
+
+2. **Server Sync**
+   - Configuration deployment
+   - Traffic monitoring
+   - Status updates
+
+3. **User Access**
+   - Subscription URL generation
+   - Client configuration
+   - Usage tracking
+
+## 📊 Monitoring Features
+
+- Real-time traffic statistics
+- Server status monitoring
+- User activity tracking
+- System health checks
+
+## 🔐 Security Features
+
+- SSL encryption
+- Domain validation
+- Access control
+- Traffic encryption
+- Secure protocols
+
+## 📖 Usage Guidelines
+
+### Administrator Tasks
+1. Enable SSL and configure domains
+2. Set up zones and servers
+3. Monitor system health
+4. Manage user accounts
+
+### User Tasks
+1. Purchase/activate account
+2. Get subscription URL
+3. Configure VPN client
+4. Monitor usage via bot
+
+## ⚡ Quick Start
+
+1. **System Setup**
+   ```bash
+   # Install required components
+   # Configure SSL
+   # Set up domains
+   ```
+
+2. **Zone Configuration**
+   ```bash
+   # Configure zones
+   # Set up servers
+   # Enable synchronization
+   ```
+
+3. **Account Management**
+   ```bash
+   # Create accounts
+   # Monitor usage
+   # Manage subscriptions
+   ```
+
+## ✨ Key Benefits
+
+### For Users
+- Easy account management
+- Multiple access methods
+- Real-time monitoring
+- Automatic configuration
+
+### For Administrators
+- Centralized management
+- Automated operations
+- Comprehensive monitoring
+- Revenue tracking
 
 
 # Installation Guide
@@ -90,6 +260,72 @@ curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/insta
 - The detected or specified domain/IP will be used in the configuration for API endpoints
 
 ## Post-Installation
+
+### SSL Certificate Setup
+
+SSL certificates are essential for:
+- Secure subscription links for V2Ray clients
+- Encrypted API communications
+- Secure web interface access
+
+#### 1. Install Certbot
+
+```bash
+# Install Certbot and Nginx plugin
+sudo apt update
+sudo apt install -y certbot 
+```
+
+```bash
+# Stop any service using port 80
+sudo systemctl stop elora-vpn
+
+# Get certificate
+sudo certbot certonly --standalone --agree-tos --register-unsafely-without-email -d your-domain.com
+
+```
+
+#### 2. Certificate Locations
+After successful certification, your certificates will be located at:
+```
+/etc/letsencrypt/live/your-domain.com/fullchain.pem  # Certificate
+/etc/letsencrypt/live/your-domain.com/privkey.pem    # Private Key
+```
+
+#### 3. Update Configuration
+
+Update .env File
+
+```bash
+sudo nano /opt/elora-vpn/.env
+
+# Update these lines:
+UVICORN_SSL_CERTFILE=/etc/letsencrypt/live/your-domain.com/fullchain.pem
+UVICORN_SSL_KEYFILE=/etc/letsencrypt/live/your-domain.com/privkey.pem
+SUBSCRIPTION_BASE_URL=https://your-domain.com:your-port/api/
+```
+Update .config File
+
+```bash
+sudo nano /opt/elora-vpn/static/config.js
+
+# Update these line:
+"BASE_URL": "https://your-domain.com:your-port/api/",
+```
+
+#### 4. Enable Auto-Renewal
+```bash
+# Test auto-renewal
+sudo certbot renew --dry-run
+
+# Certbot automatically adds a renewal cron job at
+# /etc/cron.d/certbot
+```
+
+#### 5. Restart Service
+```bash
+sudo systemctl restart elora-vpn
+```
 
 ### Service Management
 ```bash
@@ -282,5 +518,22 @@ The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
 Follow the Readme in [Elora VPN Manager Panel](https://github.com/eloravpn/EloraVPNManagerPanel)
 
 
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Support
+
+For support, please:
+- Join our Telegram channel
+- Check documentation
+- Submit issues via GitHub
 
 
+
+### Contact US in Telegram
+[Elora VPN](https://t.me/eloravpn)
+
+---
+
+_Made with ❤️ for better VPN management_
