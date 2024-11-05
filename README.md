@@ -277,7 +277,7 @@ Default sudoer username and password is `admin`.
 
 The environment varaibles is SUDO_USERNAME and SUDO_PASSWORD
 
-#### The Web Pannel Repository
+#### The Web Panel Repository
 
 Follow the Readme in [Elora VPN Manager Panel](https://github.com/eloravpn/EloraVPNManagerPanel)
 
