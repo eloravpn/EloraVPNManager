@@ -91,8 +91,8 @@ jobs:
           ${{ env.CHANGELOG }}
 
           ### Quick Installation
+          
           ```bash
-          # Auto-detects your public IP
           curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash
           ```
 
@@ -101,7 +101,7 @@ jobs:
           # With specific domain and port
           curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
             --domain your-domain.com \
-            --port 8000
+            --port 8080
           ```
 
           For more installation options and documentation, please visit our GitHub repository.
