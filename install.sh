@@ -16,6 +16,10 @@ DOMAIN="localhost:8000"
 PROTOCOL="http"
 SERVICE_NAME="elora-vpn"
 PYTHON_MIN_VERSION="3.8"
+DB_NAME="elora_db"
+DB_USER="elora"
+DB_HOST="localhost"
+JWT_SECRET=""
 
 # Log function
 log() {
@@ -42,46 +46,6 @@ generate_db_password() {
 generate_jwt_secret() {
     tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 50
 }
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    error "Please run as root or with sudo"
-fi
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --env)
-            ENV="$2"
-            shift 2
-            ;;
-        --domain)
-            DOMAIN="$2"
-            shift 2
-            ;;
-        --protocol)
-            PROTOCOL="$2"
-            shift 2
-            ;;
-        --port)
-            PORT="$2"
-            shift 2
-            ;;
-        *)
-            error "Unknown option: $1"
-            ;;
-    esac
-done
-
-# Check OS
-if [ ! -f /etc/os-release ]; then
-    error "Cannot detect operating system"
-fi
-
-source /etc/os-release
-if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
-    error "This script is only for Ubuntu and Debian systems"
-fi
 
 # Function to install packages non-interactively
 apt_install() {
@@ -164,7 +128,7 @@ UVICORN_SSL_CERTFILE=
 UVICORN_SSL_KEYFILE=
 
 # Database Configuration
-SQLALCHEMY_DATABASE_URL="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}"
+SQLALCHEMY_DATABASE_URL="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"
 
 # JWT Settings
 JWT_SECRET_KEY=${JWT_SECRET}
@@ -379,16 +343,6 @@ install_python_requirements() {
     # Ensure we're in the virtual environment
     source "${INSTALL_DIR}/venv/bin/activate" || error "Failed to activate virtual environment"
 
-    # Try using psycopg2-binary if psycopg2 fails
-    if ! "${INSTALL_DIR}/venv/bin/pip" install -r requirements.txt; then
-        warning "Failed to install psycopg2, trying psycopg2-binary instead..."
-        # Create a backup of original requirements
-        cp requirements.txt requirements.txt.bak
-        # Replace psycopg2 with psycopg2-binary
-        sed -i 's/psycopg2==/psycopg2-binary==/g' requirements.txt
-        "${INSTALL_DIR}/venv/bin/pip" install -r requirements.txt || error "Failed to install Python requirements"
-    fi
-
     # Ensure alembic is installed in venv
     log "Verifying Alembic installation in virtual environment..."
     if ! "${INSTALL_DIR}/venv/bin/pip" show alembic > /dev/null; then
@@ -453,6 +407,59 @@ EOL
 
 # Main installation process
 main() {
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --domain)
+                DOMAIN="$2"
+                shift 2
+                ;;
+            --port)
+                PORT="$2"
+                shift 2
+                ;;
+            --protocol)
+                PROTOCOL="$2"
+                shift 2
+                ;;
+            --db-name)
+                DB_NAME="$2"
+                shift 2
+                ;;
+            --db-user)
+                DB_USER="$2"
+                shift 2
+                ;;
+            --db-pass)
+                DB_PASSWORD="$2"
+                shift 2
+                ;;
+            --jwt-secret)
+                JWT_SECRET="$2"
+                shift 2
+                ;;
+            *)
+                error "Unknown option: $1"
+                ;;
+        esac
+    done
+
+
+    # Check if running as root
+    if [ "$EUID" -ne 0 ]; then
+        error "Please run as root or with sudo"
+    fi
+
+    # Check OS
+    if [ ! -f /etc/os-release ]; then
+        error "Cannot detect operating system"
+    fi
+
+    source /etc/os-release
+    if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
+        error "This script is only for Ubuntu and Debian systems"
+    fi
+
     log "Starting Elora VPN Manager installation..."
 
     # Check system and dependencies
@@ -496,20 +503,19 @@ main() {
 
     # Final status check
     if systemctl is-active --quiet "$SERVICE_NAME"; then
-        log "Installation completed successfully!"
-        log "Service status:"
-        systemctl status "$SERVICE_NAME"
-
+        # Print installation summary
+        log "\nInstallation completed successfully!"
         log "\nInstallation Details:"
-        log "- Environment: $ENV"
-        log "- API URL: ${PROTOCOL}://${DOMAIN}/api/"
-        log "- Logs: /var/log/${SERVICE_NAME}/${SERVICE_NAME}.log"
-        log "- Config: $INSTALL_DIR/static/config.json"
+        log "- Panel URL: ${PROTOCOL}${DOMAIN}${PORT}"
+        log "- Database: ${DB_NAME}"
+        log "- Database User: ${DB_USER}"
+        log "- Installation Directory: ${INSTALL_DIR}"
+        log "- Service Name: ${SERVICE_NAME}"
 
-        log "\nUseful commands:"
-        log "- Check status: systemctl status $SERVICE_NAME"
-        log "- View logs: journalctl -u $SERVICE_NAME -f"
-        log "- Restart service: systemctl restart $SERVICE_NAME"
+        log "\nService Management Commands:"
+        log "- Check status: systemctl status ${SERVICE_NAME}"
+        log "- View logs: journalctl -u ${SERVICE_NAME} -f"
+        log "- Restart service: systemctl restart ${SERVICE_NAME}"
     else
         warning "Service installation completed but service is not running"
         warning "Please check the logs: journalctl -u $SERVICE_NAME -n 50"
