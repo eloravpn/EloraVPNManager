@@ -12,7 +12,6 @@ NC='\033[0m' # No Color
 # Default values
 INSTALL_DIR="/opt/elora-vpn"
 ENV="production"
-DOMAIN="localhost:8000"
 PROTOCOL="http"
 SERVICE_NAME="elora-vpn"
 PYTHON_MIN_VERSION="3.8"
