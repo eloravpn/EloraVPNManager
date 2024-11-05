@@ -310,7 +310,7 @@ Update .config File
 sudo nano /opt/elora-vpn/static/config.js
 
 # Update these line:
-"BASE_URL": "https://your-domain.com:your-port/api/",
+"BASE_URL": "https://your-domain.com:your-port/api/sub",
 ```
 
 #### 4. Enable Auto-Renewal
