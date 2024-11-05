@@ -20,12 +20,15 @@ if __name__ == "__main__":
         "fmt"
     ] = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s"
     log_config["loggers"]["uvicorn"]["level"] = config.LOG_LEVEL
+
+    uds_path = UVICORN_UDS if UVICORN_UDS and len(UVICORN_UDS.strip()) > 0 else None
+
     try:
         uvicorn.run(
             "main:app",
             host=("127.0.0.1" if DEBUG else UVICORN_HOST),
             port=UVICORN_PORT,
-            uds=(None if DEBUG else UVICORN_UDS),
+            uds=uds_path,
             ssl_certfile=UVICORN_SSL_CERTFILE,
             ssl_keyfile=UVICORN_SSL_KEYFILE,
             forwarded_allow_ips="*",
