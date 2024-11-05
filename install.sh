@@ -527,12 +527,16 @@ main() {
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         # Print installation summary
         log "\nInstallation completed successfully!"
+
         log "\nInstallation Details:"
         log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
         log "- Admin User Name: ${USER_NAME}"
         log "- Admin Password: ${PASSWORD}"
-        log "\n- Database: ${DB_NAME}"
+
+        log "\nConfigurations:"
+        log "- Database: ${DB_NAME}"
         log "- Database User: ${DB_USER}"
+        log "- Database Password: ${DB_PASSWORD}"
         log "- Installation Directory: ${INSTALL_DIR}"
         log "- Python Configuration File: ${INSTALL_DIR}/.env"
         log "- Front-end Configuration File: ${INSTALL_DIR}/static/config.json"
