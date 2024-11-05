@@ -14,6 +14,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # If this is the first tag, get all commits
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            # Get commits between previous tag and current
+            COMMITS=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD --no-merges)
+          fi
+          
+          # Create changelog content with sections
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "### Changelog" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          
+          # Features
+          echo "#### 🚀 Features" >> $GITHUB_ENV
+          echo "$COMMITS" | grep -i '^- feat\|^- add\|^- new' || true
+          echo "" >> $GITHUB_ENV
+          
+          # Bug Fixes
+          echo "#### 🐛 Bug Fixes" >> $GITHUB_ENV
+          echo "$COMMITS" | grep -i '^- fix\|^- bug\|^- hotfix' || true
+          echo "" >> $GITHUB_ENV
+          
+          # Improvements
+          echo "#### 📈 Improvements" >> $GITHUB_ENV
+          echo "$COMMITS" | grep -i '^- improve\|^- update\|^- enhance' || true
+          echo "" >> $GITHUB_ENV
+          
+          # Other Changes
+          echo "#### 🔄 Other Changes" >> $GITHUB_ENV
+          echo "$COMMITS" | grep -v -i '^- feat\|^- add\|^- new\|^- fix\|^- bug\|^- hotfix\|^- improve\|^- update\|^- enhance' || true
+          echo "" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       # Download Latest Frontend Build
       - name: Download frontend release
         run: |
@@ -49,6 +87,8 @@ jobs:
         run: |
           gh release edit ${{ github.event.release.tag_name }} --notes "$(cat << 'EOT'
           Release ${{ github.event.release.tag_name }} of Elora VPN Manager Backend
+          
+          ${{ env.CHANGELOG }}
 
           ### Quick Installation
           ```bash
