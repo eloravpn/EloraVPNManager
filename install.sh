@@ -20,6 +20,8 @@ DB_NAME="elora_db"
 DB_USER="elora"
 DB_HOST="localhost"
 JWT_SECRET=""
+USER_NAME="admin"
+PASSWORD=""
 
 # Log function
 log() {
@@ -38,7 +40,7 @@ warning() {
 }
 
 # Generate random password for database
-generate_db_password() {
+generate_password() {
     tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
 }
 
@@ -115,15 +117,21 @@ update_env() {
 
     # Generate JWT secret if not provided
     JWT_SECRET=${JWT_SECRET:-$(generate_jwt_secret)}
+    PASSWORD=${PASSWORD:-$(generate_password)}
 
     # Create .env file
     cat > "$env_file" << EOL
+SUDO_USERNAME = "${USER_NAME}"
+SUDO_PASSWORD = "${PASSWORD}"
+
 # Server Configuration
 DEBUG=false
 DOCS=false
 UVICORN_HOST=0.0.0.0
 UVICORN_PORT=${PORT}
 UVICORN_UDS=
+
+#SSL Configuration
 UVICORN_SSL_CERTFILE=
 UVICORN_SSL_KEYFILE=
 
@@ -133,9 +141,22 @@ SQLALCHEMY_DATABASE_URL="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HO
 # JWT Settings
 JWT_SECRET_KEY=${JWT_SECRET}
 JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Telegram Settings
+TELEGRAM_PAYMENT_API_TOKEN=
+BOT_USER_NAME=
+TELEGRAM_API_TOKEN=
+TELEGRAM_ADMIN_ID=
+TELEGRAM_ADMIN_USER_NAME=
+TELEGRAM_CHANNEL=
+SUBSCRIPTION_BASE_URL=${PROTOCOL}://${DOMAIN}:${PORT}/api/
 
 # Other Settings
+ENABLE_NOTIFICATION_SEND_PENDING_JOBS=True
+ENABLE_SYNC_ACCOUNTS=True
+ENABLE_NOTIFICATION_JOBS= True
+
 EOL
 
     # Set proper permissions
@@ -228,7 +249,7 @@ setup_database() {
     log "Setting up PostgreSQL database..."
 
     # Generate random password if not set
-    DB_PASSWORD=${DB_PASSWORD:-$(generate_db_password)}
+    DB_PASSWORD=${DB_PASSWORD:-$(generate_password)}
     DB_NAME=${DB_NAME:-"elora_db"}
     DB_USER=${DB_USER:-"elora"}
 
@@ -479,7 +500,6 @@ main() {
 
     # Download and extract latest release
     check_download_tools
-
     download_latest_release
 
     # Setup virtual environment first
@@ -509,9 +529,13 @@ main() {
         log "\nInstallation completed successfully!"
         log "\nInstallation Details:"
         log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
-        log "- Database: ${DB_NAME}"
+        log "- Admin User Name: ${USER_NAME}"
+        log "- Admin Password: ${PASSWORD}"
+        log "\n- Database: ${DB_NAME}"
         log "- Database User: ${DB_USER}"
         log "- Installation Directory: ${INSTALL_DIR}"
+        log "- Python Configuration File: ${INSTALL_DIR}/.env"
+        log "- Front-end Configuration File: ${INSTALL_DIR}/static/config.json"
         log "- Service Name: ${SERVICE_NAME}"
 
         log "\nService Management Commands:"
