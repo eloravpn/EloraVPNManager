@@ -13,6 +13,7 @@ NC='\033[0m' # No Color
 INSTALL_DIR="/opt/elora-vpn"
 ENV="production"
 PROTOCOL="http"
+PORT=8080
 SERVICE_NAME="elora-vpn"
 PYTHON_MIN_VERSION="3.8"
 DB_NAME="elora_db"
