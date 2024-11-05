@@ -302,7 +302,7 @@ sudo nano /opt/elora-vpn/.env
 # Update these lines:
 UVICORN_SSL_CERTFILE=/etc/letsencrypt/live/your-domain.com/fullchain.pem
 UVICORN_SSL_KEYFILE=/etc/letsencrypt/live/your-domain.com/privkey.pem
-SUBSCRIPTION_BASE_URL=https://your-domain.com:your-port/api/
+SUBSCRIPTION_BASE_URL=https://your-domain.com:your-port/api/sub
 ```
 Update .config File
 
@@ -310,7 +310,7 @@ Update .config File
 sudo nano /opt/elora-vpn/static/config.js
 
 # Update these line:
-"BASE_URL": "https://your-domain.com:your-port/api/sub",
+"BASE_URL": "https://your-domain.com:your-port/api",
 ```
 
 #### 4. Enable Auto-Renewal
