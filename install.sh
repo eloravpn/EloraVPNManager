@@ -55,30 +55,44 @@ apt_install() {
     apt-get install -y -q -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$@"
 }
 
+# Function to validate IP address
+is_valid_ip() {
+    local ip=$1
+    local stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        IFS='.' read -r -a ip_array <<< "$ip"
+        [[ ${ip_array[0]} -le 255 && ${ip_array[1]} -le 255 && \
+           ${ip_array[2]} -le 255 && ${ip_array[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
 # Function to get public IP
 get_public_ip() {
-    log "Detecting public IP address..."
-    # Try different services to get public IP
     local public_ip=""
-    local services=(
-        "https://api.ipify.org"
-        "https://ipinfo.io/ip"
-        "https://icanhazip.com"
-        "https://ifconfig.me"
-    )
 
-    for service in "${services[@]}"; do
-        public_ip=$(curl -s --max-time 5 "$service")
-        if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            log "Public IP detected: $public_ip"
-            echo "$public_ip"
-            return 0
-        fi
-    done
+    # Try curl with different services
+    public_ip=$(curl -s -4 ifconfig.me | tr -d '[:space:]')
+    if ! is_valid_ip "$public_ip"; then
+        public_ip=$(curl -s -4 icanhazip.com | tr -d '[:space:]')
+    fi
 
-    warning "Could not detect public IP, falling back to localhost"
-    echo "localhost"
-    return 1
+    if ! is_valid_ip "$public_ip"; then
+        public_ip=$(curl -s -4 ipv4.icanhazip.com | tr -d '[:space:]')
+    fi
+
+    if ! is_valid_ip "$public_ip"; then
+        public_ip=$(curl -s -4 api.ipify.org | tr -d '[:space:]')
+    fi
+
+    # Return IP or localhost
+    if is_valid_ip "$public_ip"; then
+        echo "$public_ip"
+    else
+        echo "localhost"
+    fi
 }
 
 # Function to download and extract latest release
@@ -511,7 +525,15 @@ main() {
 
     # If domain is not set or is localhost, try to get public IP
     if [ "$DOMAIN" = "localhost" ] || [ -z "$DOMAIN" ]; then
+        log "Detecting public IP address..."
         DOMAIN=$(get_public_ip)
+        if [ "$DOMAIN" = "localhost" ]; then
+            warning "Could not detect public IP, using localhost. The service might not be accessible from other machines."
+        else
+            log "Using auto-detected IP: $DOMAIN"
+        fi
+    else
+        log "Using specified domain: $DOMAIN"
     fi
 
     # Continue with rest of installation...
