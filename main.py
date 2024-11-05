@@ -29,7 +29,7 @@ if __name__ == "__main__":
             ssl_certfile=UVICORN_SSL_CERTFILE,
             ssl_keyfile=UVICORN_SSL_KEYFILE,
             forwarded_allow_ips="*",
-            workers=2,
+            workers=1,
             reload=DEBUG,
             use_colors=True,
             log_config=log_config,
