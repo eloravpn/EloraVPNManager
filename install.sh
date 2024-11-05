@@ -343,6 +343,8 @@ install_python_requirements() {
     # Ensure we're in the virtual environment
     source "${INSTALL_DIR}/venv/bin/activate" || error "Failed to activate virtual environment"
 
+    "${INSTALL_DIR}/venv/bin/pip" install -r requirements.txt || error "Failed to install Python requirements"
+
     # Ensure alembic is installed in venv
     log "Verifying Alembic installation in virtual environment..."
     if ! "${INSTALL_DIR}/venv/bin/pip" show alembic > /dev/null; then
