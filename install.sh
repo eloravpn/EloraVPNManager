@@ -399,7 +399,7 @@ update_config() {
     "BASE_NAME": "Elora",
     "BASE_DESCRIPTION": "Elora Panel",
     "BASE_PREFIX": "elora",
-    "BASE_URL": "${PROTOCOL}://${DOMAIN}/api/",
+    "BASE_URL": "${PROTOCOL}://${DOMAIN}:${PORT}/api/",
     "NAME_MANIFEST": "manifest.json",
     "EXPIRE_AT": 30,
     "PATH_TO_LOGIN": "/accounts"
@@ -508,7 +508,7 @@ main() {
         # Print installation summary
         log "\nInstallation completed successfully!"
         log "\nInstallation Details:"
-        log "- Panel URL: ${PROTOCOL}${DOMAIN}${PORT}"
+        log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
         log "- Database: ${DB_NAME}"
         log "- Database User: ${DB_USER}"
         log "- Installation Directory: ${INSTALL_DIR}"
