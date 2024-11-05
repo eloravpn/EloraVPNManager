@@ -536,9 +536,6 @@ main() {
         log "Using specified domain: $DOMAIN"
     fi
 
-    # Continue with rest of installation...
-    log "Using domain/IP: $DOMAIN"
-
     log "Starting Elora VPN Manager installation..."
 
     # Check system and dependencies
