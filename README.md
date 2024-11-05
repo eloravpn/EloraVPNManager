@@ -27,8 +27,8 @@ a simple order workfllow for new customers are avialable in telgram bot.
 ### Supported Operating Systems
 - Ubuntu 20.04 LTS (Focal Fossa)
 - Ubuntu 22.04 LTS (Jammy Jellyfish)
-- Debian 10 (Buster)
 - Debian 11 (Bullseye)
+- Debian 12 (Bookworm)
 
 ### Minimum Hardware Requirements
 - CPU: 1 core
@@ -46,6 +46,7 @@ The installation script will automatically install these dependencies, but for r
 ## Quick Installation
 
 ### One-Line Installation
+Auto-detects your public IP address
 ```bash
 # Auto-detects your public IP address
 curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash
@@ -55,14 +56,14 @@ curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/insta
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
   --domain your-domain.com \
-  --port 8000
+  --port 8080
 ```
 
 ### Full Custom Installation
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
   --domain your-domain.com \
-  --port 8000 \
+  --port 8080 \
   --protocol https \
   --db-name custom_db \
   --db-user custom_user \
@@ -75,7 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/insta
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--domain` | Domain name for the application | localhost |
-| `--port` | Port number for the application | 8000 |
+| `--port` | Port number for the application | 8080 |
 | `--protocol` | Protocol (http/https) | http |
 | `--db-name` | PostgreSQL database name | elora_db |
 | `--db-user` | PostgreSQL user name | elora |
@@ -127,14 +128,14 @@ The main configuration file is located at:
 1. **Port Already in Use**
 ```bash
 # Check if port is already in use
-sudo lsof -i :8000
-sudo netstat -tulpn | grep 8000
+sudo lsof -i :8080
+sudo netstat -tulpn | grep 8080
 
 # Test port accessibility
-nc -zv localhost 8000
+nc -zv localhost 8080
 
 # Configure firewall for port
-sudo ufw allow 8000/tcp
+sudo ufw allow 8080/tcp
 sudo ufw status
 ```
 
