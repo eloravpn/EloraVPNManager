@@ -22,6 +22,7 @@ DB_HOST="localhost"
 JWT_SECRET=""
 USER_NAME="admin"
 PASSWORD=""
+IS_UPDATE=false
 
 # Log function
 log() {
@@ -152,8 +153,14 @@ check_download_tools() {
 
 # Update environment configuration
 update_env() {
-    log "Updating .env configuration..."
+    log "Checking .env configuration..."
     local env_file="$INSTALL_DIR/.env"
+
+    # If this is an update and .env exists, skip updating it
+    if [ "$IS_UPDATE" = true ] && [ -f "$env_file" ]; then
+        log "Update mode: Preserving existing .env configuration"
+        return
+    fi
 
     # Generate JWT secret if not provided
     JWT_SECRET=${JWT_SECRET:-$(generate_jwt_secret)}
@@ -374,7 +381,36 @@ backup_existing() {
     if [ -d "$INSTALL_DIR" ]; then
         local backup_dir="${INSTALL_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
         log "Creating backup of existing installation to $backup_dir"
-        mv "$INSTALL_DIR" "$backup_dir" || error "Failed to create backup"
+
+        # Create backup directory
+        mkdir -p "$backup_dir"
+
+        # Backup everything except .env and config.json if this is an update
+        if [ "$IS_UPDATE" = true ]; then
+            # Temporarily move .env and config.json
+            if [ -f "$INSTALL_DIR/.env" ]; then
+                mv "$INSTALL_DIR/.env" "$INSTALL_DIR/.env.temp"
+            fi
+            if [ -f "$INSTALL_DIR/static/config.json" ]; then
+                mkdir -p "$INSTALL_DIR/static.temp"
+                mv "$INSTALL_DIR/static/config.json" "$INSTALL_DIR/static.temp/config.json"
+            fi
+
+            # Copy everything to backup
+            cp -r "$INSTALL_DIR"/* "$backup_dir/" || error "Failed to create backup"
+
+            # Move .env and config.json back
+            if [ -f "$INSTALL_DIR/.env.temp" ]; then
+                mv "$INSTALL_DIR/.env.temp" "$INSTALL_DIR/.env"
+            fi
+            if [ -f "$INSTALL_DIR/static.temp/config.json" ]; then
+                mv "$INSTALL_DIR/static.temp/config.json" "$INSTALL_DIR/static/config.json"
+                rm -rf "$INSTALL_DIR/static.temp"
+            fi
+        else
+            # For fresh installation, backup everything
+            mv "$INSTALL_DIR" "$backup_dir" || error "Failed to create backup"
+        fi
     fi
 }
 
@@ -473,6 +509,10 @@ main() {
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --update)
+                IS_UPDATE=true
+                shift
+                ;;
             --domain)
                 DOMAIN="$2"
                 shift 2
