@@ -251,6 +251,7 @@ curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/insta
 | `--db-user` | PostgreSQL user name | elora |
 | `--db-pass` | PostgreSQL password | Random generated |
 | `--jwt-secret` | JWT secret key | Random generated |
+| `--version` | Specific version to install | Latest version |
 
 
 ### Domain/IP Configuration
@@ -486,10 +487,15 @@ If you encounter any issues:
 - Default database user has limited permissions to only the necessary database
 
 ## Updating
-To update to the latest version, run the installation script again. It will:
-- Backup your existing configuration
-- Install the latest version
-- Migrate the database
+To update the application, use one of these commands:
+
+```bash
+# Update to latest version
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update
+
+# Update to specific version
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update --version v1.2.3
+```
 - Restart the service
 
 ## Uninstallation
