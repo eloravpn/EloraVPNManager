@@ -57,7 +57,7 @@ def create_notification(
         type=notification.type,
         keyboard=(
             json.loads(notification.keyboard)
-            if notification.keyboard is not None
+            if notification.keyboard
             else None
         ),
         photo_url=notification.photo_url,

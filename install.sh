@@ -22,6 +22,8 @@ DB_HOST="localhost"
 JWT_SECRET=""
 USER_NAME="admin"
 PASSWORD=""
+IS_UPDATE=false
+VERSION_TAG=""
 
 # Log function
 log() {
@@ -97,15 +99,23 @@ get_public_ip() {
 
 # Function to download and extract latest release
 download_latest_release() {
-    log "Downloading latest release..."
+    log "Downloading release..."
 
     # Create temporary directory
     local temp_dir=$(mktemp -d)
     cd "$temp_dir"
 
     # Download latest release information
-    log "Fetching latest release information..."
-    LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManager/releases/latest)
+    log "Fetching release information..."
+    if [ -n "$VERSION_TAG" ]; then
+        LATEST_RELEASE=$(curl -s "https://api.github.com/repos/eloravpn/EloraVPNManager/releases/tags/${VERSION_TAG}")
+        if [ "$(echo $LATEST_RELEASE | jq -r '.message')" = "Not Found" ]; then
+            error "Version ${VERSION_TAG} not found"
+        fi
+    else
+        LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManager/releases/latest)
+    fi
+
     DOWNLOAD_URL=$(echo $LATEST_RELEASE | jq -r '.assets[0].browser_download_url')
     VERSION=$(echo $LATEST_RELEASE | jq -r '.tag_name')
 
@@ -116,9 +126,9 @@ download_latest_release() {
     log "Downloading version ${VERSION}..."
     curl -L -o release.zip "$DOWNLOAD_URL" || error "Failed to download release"
 
-    # Extract files
+    # Extract files with overwrite
     log "Extracting files..."
-    unzip -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
+    unzip -o -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
 
     # Verify required files
     log "Verifying installation files..."
@@ -152,8 +162,14 @@ check_download_tools() {
 
 # Update environment configuration
 update_env() {
-    log "Updating .env configuration..."
+    log "Checking .env configuration..."
     local env_file="$INSTALL_DIR/.env"
+
+    # If this is an update and .env exists, skip updating it
+    if [ "$IS_UPDATE" = true ] && [ -f "$env_file" ]; then
+        log "Update mode: Preserving existing .env configuration"
+        return
+    fi
 
     # Generate JWT secret if not provided
     JWT_SECRET=${JWT_SECRET:-$(generate_jwt_secret)}
@@ -374,7 +390,36 @@ backup_existing() {
     if [ -d "$INSTALL_DIR" ]; then
         local backup_dir="${INSTALL_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
         log "Creating backup of existing installation to $backup_dir"
-        mv "$INSTALL_DIR" "$backup_dir" || error "Failed to create backup"
+
+        # Create backup directory
+        mkdir -p "$backup_dir"
+
+        # Backup everything except .env and config.json if this is an update
+        if [ "$IS_UPDATE" = true ]; then
+            # Temporarily move .env and config.json
+            if [ -f "$INSTALL_DIR/.env" ]; then
+                mv "$INSTALL_DIR/.env" "$INSTALL_DIR/.env.temp"
+            fi
+            if [ -f "$INSTALL_DIR/static/config.json" ]; then
+                mkdir -p "$INSTALL_DIR/static.temp"
+                mv "$INSTALL_DIR/static/config.json" "$INSTALL_DIR/static.temp/config.json"
+            fi
+
+            # Copy everything to backup
+            cp -r "$INSTALL_DIR"/* "$backup_dir/" || error "Failed to create backup"
+
+            # Move .env and config.json back
+            if [ -f "$INSTALL_DIR/.env.temp" ]; then
+                mv "$INSTALL_DIR/.env.temp" "$INSTALL_DIR/.env"
+            fi
+            if [ -f "$INSTALL_DIR/static.temp/config.json" ]; then
+                mv "$INSTALL_DIR/static.temp/config.json" "$INSTALL_DIR/static/config.json"
+                rm -rf "$INSTALL_DIR/static.temp"
+            fi
+        else
+            # For fresh installation, backup everything
+            mv "$INSTALL_DIR" "$backup_dir" || error "Failed to create backup"
+        fi
     fi
 }
 
@@ -473,6 +518,14 @@ main() {
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --update)
+                IS_UPDATE=true
+                shift
+                ;;
+            --version)
+                VERSION_TAG="$2"
+                shift 2
+                ;;
             --domain)
                 DOMAIN="$2"
                 shift 2
@@ -536,7 +589,7 @@ main() {
         log "Using specified domain: $DOMAIN"
     fi
 
-    log "Starting Elora VPN Manager installation..."
+    log "Starting Elora VPN Manager ${IS_UPDATE:+update } installation..."
 
     # Check system and dependencies
     check_dependencies
@@ -549,7 +602,9 @@ main() {
     setup_install_dir
 
     # Setup database
-    setup_database
+    if [ "$IS_UPDATE" = false ]; then
+        setup_database
+    fi
 
     # Download and extract latest release
     check_download_tools
@@ -579,23 +634,30 @@ main() {
     # Final status check
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         # Print installation summary
-        log "\nInstallation completed successfully!"
+        log "\nInstallation ${IS_UPDATE:+update }completed successfully!"
 
-        log "\nInstallation Details:"
-        log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
-        log "- Admin User Name: ${USER_NAME}"
-        log "- Admin Password: ${PASSWORD}"
+        if [ "$IS_UPDATE" = false ]; then
+            # Only show credentials for fresh installations
+            log "\nInstallation Details:"
+            log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
+            log "- Admin User Name: ${USER_NAME}"
+            log "- Admin Password: ${PASSWORD}"
+
+            log "\nConfigurations:"
+            log "- Database: ${DB_NAME}"
+            log "- Database User: ${DB_USER}"
+            log "- Database Password: ${DB_PASSWORD}"
+        fi
 
         log "\nConfigurations:"
-        log "- Database: ${DB_NAME}"
-        log "- Database User: ${DB_USER}"
-        log "- Database Password: ${DB_PASSWORD}"
+
         log "- Installation Directory: ${INSTALL_DIR}"
         log "- Python Configuration File: ${INSTALL_DIR}/.env"
         log "- Front-end Configuration File: ${INSTALL_DIR}/static/config.json"
         log "- Service Name: ${SERVICE_NAME}"
 
         log "\nService Management Commands:"
+
         log "- Check status: systemctl status ${SERVICE_NAME}"
         log "- View logs: journalctl -u ${SERVICE_NAME} -f"
         log "- Restart service: systemctl restart ${SERVICE_NAME}"
