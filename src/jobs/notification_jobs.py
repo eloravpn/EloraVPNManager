@@ -171,7 +171,7 @@ def process_pending_notifications():
                             db_notification.keyboard
                         )
 
-                    if db_notification.photo_url is not None:
+                    if db_notification.photo_url:
                         utils.send_photo_to_user(
                             chat_id=db_user.telegram_chat_id,
                             caption=db_notification.message,
