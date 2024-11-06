@@ -126,9 +126,9 @@ download_latest_release() {
     log "Downloading version ${VERSION}..."
     curl -L -o release.zip "$DOWNLOAD_URL" || error "Failed to download release"
 
-    # Extract files
+    # Extract files with overwrite
     log "Extracting files..."
-    unzip -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
+    unzip -o -q release.zip -d "$INSTALL_DIR" || error "Failed to extract files"
 
     # Verify required files
     log "Verifying installation files..."
