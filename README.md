@@ -307,7 +307,7 @@ SUBSCRIPTION_BASE_URL=https://your-domain.com:your-port/api/sub
 Update .config File
 
 ```bash
-sudo nano /opt/elora-vpn/static/config.js
+sudo nano /opt/elora-vpn/static/config.json
 
 # Update these line:
 "BASE_URL": "https://your-domain.com:your-port/api",
