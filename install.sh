@@ -23,6 +23,7 @@ JWT_SECRET=""
 USER_NAME="admin"
 PASSWORD=""
 IS_UPDATE=false
+VERSION_TAG=""
 
 # Log function
 log() {
@@ -98,15 +99,23 @@ get_public_ip() {
 
 # Function to download and extract latest release
 download_latest_release() {
-    log "Downloading latest release..."
+    log "Downloading release..."
 
     # Create temporary directory
     local temp_dir=$(mktemp -d)
     cd "$temp_dir"
 
     # Download latest release information
-    log "Fetching latest release information..."
-    LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManager/releases/latest)
+    log "Fetching release information..."
+    if [ -n "$VERSION_TAG" ]; then
+        LATEST_RELEASE=$(curl -s "https://api.github.com/repos/eloravpn/EloraVPNManager/releases/tags/${VERSION_TAG}")
+        if [ "$(echo $LATEST_RELEASE | jq -r '.message')" = "Not Found" ]; then
+            error "Version ${VERSION_TAG} not found"
+        fi
+    else
+        LATEST_RELEASE=$(curl -s https://api.github.com/repos/eloravpn/EloraVPNManager/releases/latest)
+    fi
+
     DOWNLOAD_URL=$(echo $LATEST_RELEASE | jq -r '.assets[0].browser_download_url')
     VERSION=$(echo $LATEST_RELEASE | jq -r '.tag_name')
 
@@ -513,6 +522,10 @@ main() {
                 IS_UPDATE=true
                 shift
                 ;;
+            --version)
+                VERSION_TAG="$2"
+                shift 2
+                ;;
             --domain)
                 DOMAIN="$2"
                 shift 2
@@ -576,7 +589,7 @@ main() {
         log "Using specified domain: $DOMAIN"
     fi
 
-    log "Starting Elora VPN Manager installation..."
+    log "Starting Elora VPN Manager ${IS_UPDATE:+update } installation..."
 
     # Check system and dependencies
     check_dependencies
@@ -589,7 +602,9 @@ main() {
     setup_install_dir
 
     # Setup database
-    setup_database
+    if [ "$IS_UPDATE" = false ]; then
+        setup_database
+    fi
 
     # Download and extract latest release
     check_download_tools
@@ -619,23 +634,30 @@ main() {
     # Final status check
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         # Print installation summary
-        log "\nInstallation completed successfully!"
+        log "\nInstallation ${IS_UPDATE:+update }completed successfully!"
 
-        log "\nInstallation Details:"
-        log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
-        log "- Admin User Name: ${USER_NAME}"
-        log "- Admin Password: ${PASSWORD}"
+        if [ "$IS_UPDATE" = false ]; then
+            # Only show credentials for fresh installations
+            log "\nInstallation Details:"
+            log "- Panel URL: ${PROTOCOL}://${DOMAIN}:${PORT}"
+            log "- Admin User Name: ${USER_NAME}"
+            log "- Admin Password: ${PASSWORD}"
+
+            log "\nConfigurations:"
+            log "- Database: ${DB_NAME}"
+            log "- Database User: ${DB_USER}"
+            log "- Database Password: ${DB_PASSWORD}"
+        fi
 
         log "\nConfigurations:"
-        log "- Database: ${DB_NAME}"
-        log "- Database User: ${DB_USER}"
-        log "- Database Password: ${DB_PASSWORD}"
+
         log "- Installation Directory: ${INSTALL_DIR}"
         log "- Python Configuration File: ${INSTALL_DIR}/.env"
         log "- Front-end Configuration File: ${INSTALL_DIR}/static/config.json"
         log "- Service Name: ${SERVICE_NAME}"
 
         log "\nService Management Commands:"
+
         log "- Check status: systemctl status ${SERVICE_NAME}"
         log "- View logs: journalctl -u ${SERVICE_NAME} -f"
         log "- Restart service: systemctl restart ${SERVICE_NAME}"
