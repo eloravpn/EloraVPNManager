@@ -27,6 +27,18 @@ jobs:
           fi
           
           # Create changelog content with sections
+          ## For features
+          # git commit -m "feat: Add new feature"
+          # git commit -m "add: New component"
+          #
+          ## For bug fixes
+          # git commit -m "fix: Resolve issue"
+          # git commit -m "hotfix: Critical fix"
+          #
+          ## For improvements
+          # git commit -m "improve: Better performance"
+          # git commit -m "update: Enhanced feature"
+          
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "### Changelog" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
