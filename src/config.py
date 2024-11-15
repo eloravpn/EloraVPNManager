@@ -119,7 +119,7 @@ SYNC_ACCOUNTS_TRAFFIC_INTERVAL = config(
 )
 GLOBAL_TRAFFIC_RATIO = config("GLOBAL_TRAFFIC_RATIO", cast=float, default=1.0)
 
-ENABLE_ORDER_JOBS = config("ENABLE_ORDER_JOBS", cast=bool, default=False)
+ENABLE_ORDER_JOBS = config("ENABLE_ORDER_JOBS", cast=bool, default=True)
 
 PROCESS_PAID_ORDERS_INTERVAL = config(
     "PROCESS_PAID_ORDERS_INTERVAL", cast=int, default=60

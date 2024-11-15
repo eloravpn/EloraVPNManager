@@ -21,9 +21,17 @@ from src.telegram.utils import get_random_string
 
 
 def _get_random_available_host_zone(
-    db: Session, host_zones: List[HostZone]
+    db: Session, host_zones: List[HostZone], preferred_host_zone: HostZone
 ) -> HostZone:
     random.shuffle(host_zones)
+
+    for db_host_zone in host_zones:
+        if (
+            preferred_host_zone is not None
+            and preferred_host_zone.id == db_host_zone.id
+        ):
+            logger.warn(f"Preferred host zone {preferred_host_zone.name} selected.")
+            return db_host_zone
 
     for db_host_zone in host_zones:
         db_accounts, count = get_accounts(
@@ -51,21 +59,24 @@ def process_paid_orders():
                 if db_order.service_id:
 
                     db_service = db_order.service
+                    db_account = db_order.account
+                    db_user = db_order.user
 
                     if db_service.host_zones is None:
                         logger.error(f"Host zone is empty in service {db_service.name}")
 
                     db_host_zone = _get_random_available_host_zone(
-                        db=db, host_zones=db_service.host_zones
+                        db=db,
+                        host_zones=db_service.host_zones,
+                        preferred_host_zone=(
+                            None if db_account is None else db_account.host_zone
+                        ),
                     )
                     if db_host_zone is None:
                         logger.error(
                             f"All host zones in service {db_service.name} are Full!"
                         )
                         continue
-
-                    db_account = db_order.account
-                    db_user = db_order.user
 
                     today = datetime.now()
                     expired_at = today + timedelta(days=db_order.duration)
