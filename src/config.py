@@ -4,6 +4,8 @@ import requests
 from decouple import config
 from dotenv import load_dotenv
 
+from src.config_setting.utils import get_setting
+
 load_dotenv()
 
 # Disable IPv6
@@ -23,28 +25,28 @@ if not DEBUG:
         print("Failed to get SERVER_IP, using 127.0.0.1 instead")
         SERVER_IP = "127.0.0.1"
 
-SQLALCHEMY_DATABASE_URL = config(
-    "SQLALCHEMY_DATABASE_URL", default="sqlite:///db.sqlite3"
-)
-
 UVICORN_HOST = config("UVICORN_HOST", default="0.0.0.0")
 UVICORN_PORT = config("UVICORN_PORT", cast=int, default=8000)
 UVICORN_UDS = config("UVICORN_UDS", default=None)
-UVICORN_SSL_CERTFILE = config("UVICORN_SSL_CERTFILE", default=None)
-UVICORN_SSL_KEYFILE = config("UVICORN_SSL_KEYFILE", default=None)
+UVICORN_SSL_CERTFILE = get_setting("UVICORN_SSL_CERTFILE", default=None)
+UVICORN_SSL_KEYFILE = get_setting("UVICORN_SSL_KEYFILE", default=None)
 
-TELEGRAM_API_TOKEN = config("TELEGRAM_API_TOKEN", default=None)
-TELEGRAM_PAYMENT_API_TOKEN = config("TELEGRAM_PAYMENT_API_TOKEN", default=None)
-TELEGRAM_ADMIN_ID = config("TELEGRAM_ADMIN_ID", cast=int, default=0)
-TELEGRAM_ADMIN_USER_NAME = config("TELEGRAM_ADMIN_USER_NAME", default=None)
+TELEGRAM_API_TOKEN = get_setting("TELEGRAM_API_TOKEN", cast=str, default=None)
+TELEGRAM_PAYMENT_API_TOKEN = get_setting(
+    "TELEGRAM_PAYMENT_API_TOKEN", cast=str, default=None
+)
+TELEGRAM_ADMIN_ID = get_setting("TELEGRAM_ADMIN_ID", cast=int, default=0)
+TELEGRAM_ADMIN_USER_NAME = get_setting("TELEGRAM_ADMIN_USER_NAME", default=None)
 BOT_USER_NAME = config("BOT_USER_NAME", default="")
 TELEGRAM_CHANNEL = config("TELEGRAM_CHANNEL", default=None)
 TELEGRAM_PROXY_URL = config("TELEGRAM_PROXY_URL", default=None)
+
 MINIMUM_PAYMENT_TO_TRUST_USER = config(
     "MINIMUM_PAYMENT_TO_TRUST_USER", cast=int, default=200000
 )
 TRUST_CARD_NUMBER = config("TRUST_CARD_NUMBER", default="")
 TRUST_CARD_OWNER = config("TRUST_CARD_OWNER", default="")
+
 CARD_NUMBER = config("CARD_NUMBER", default="")
 CARD_OWNER = config("CARD_OWNER", default="")
 

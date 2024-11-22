@@ -1,8 +1,10 @@
 import logging
 import os
+import signal
+import sys
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +12,7 @@ from fastapi_responses import custom_openapi
 
 from src.accounts.router import router as account_router
 from src.admins.router import router as admin_router
+from src.admins.schemas import Admin
 from src.club.user_router import club_user_router
 from src.commerce.router import (
     order_router,
@@ -27,6 +30,7 @@ from src.monitoring.router import router as monitoring_router
 from src.notification.router import notification_router
 from src.subscription.router import router as subscription_router
 from src.users.router import router as user_router
+from src.config_setting.router import router as config_setting_router
 from src.users.schemas import UserResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -88,6 +92,7 @@ app.include_router(transaction_router, prefix="/api", tags=["Transaction"])
 app.include_router(notification_router, prefix="/api", tags=["Notification"])
 app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
+app.include_router(config_setting_router, prefix="/api", tags=["ConfigSettings"])
 
 # Check if static folder exists
 if os.path.exists(static_path) and os.path.isdir(static_path):
@@ -129,11 +134,18 @@ from src import jobs, telegram  # noqa
 from src.club import jobs  # noqa
 
 
+@app.post(path="/api/restart")
+async def restart_server(admin: Admin = Depends(Admin.get_current)):
+    try:
+        os.kill(os.getpid(), signal.SIGTERM)
+        return JSONResponse({"message": "Server restarting..."})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.on_event("startup")
 def on_startup():
     scheduler.start()
-    # Base.metadata.drop_all(bind=engine)
-    # Base.metadata.create_all(bind=engine)
     logger.info("Application started successfully!")
 
 
