@@ -498,6 +498,12 @@ update_config() {
     log "Updating configuration..."
     local config_file="$INSTALL_DIR/static/config.json"
 
+    # If this is an update and .env exists, skip updating it
+    if [ "$IS_UPDATE" = true ] && [ -f "$config_file" ]; then
+        log "Update mode: Preserving existing config.json"
+        return
+    fi
+
     # Create or update config.json
     cat > "$config_file" << EOL
 {
