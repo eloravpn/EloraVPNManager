@@ -1,12 +1,12 @@
-import json
 from typing import Any, Optional, Callable, TypeVar, Union
 
 from decouple import config as decouple_config
-from exceptiongroup import catch
-
-from src.database import GetDB
+from dotenv import load_dotenv
 
 from src.config_setting import service as config_setting_service
+from src.database import GetDB
+
+load_dotenv()
 
 T = TypeVar("T")
 
