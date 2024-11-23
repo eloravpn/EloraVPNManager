@@ -78,6 +78,7 @@ jobs:
         run: |
           zip -r elora-vpn-backend.zip \
             static/ \
+            pyqrcode/ \
             main.py \
             .env.example \
             alembic.ini \
