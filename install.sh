@@ -408,13 +408,9 @@ backup_existing() {
             # Copy everything to backup
             cp -r "$INSTALL_DIR"/* "$backup_dir/" || error "Failed to create backup"
 
-            # Move .env and config.json back
+            # Move .env back
             if [ -f "$INSTALL_DIR/.env.temp" ]; then
                 mv "$INSTALL_DIR/.env.temp" "$INSTALL_DIR/.env"
-            fi
-            if [ -f "$INSTALL_DIR/static.temp/config.json" ]; then
-                mv "$INSTALL_DIR/static.temp/config.json" "$INSTALL_DIR/static/config.json"
-                rm -rf "$INSTALL_DIR/static.temp"
             fi
         else
             # For fresh installation, backup everything
@@ -501,6 +497,11 @@ update_config() {
     # If this is an update and .env exists, skip updating it
     if [ "$IS_UPDATE" = true ] && [ -f "$config_file" ]; then
         log "Update mode: Preserving existing config.json"
+        # Move config.json back
+        if [ -f "$INSTALL_DIR/static.temp/config.json" ]; then
+                mv "$INSTALL_DIR/static.temp/config.json" "$INSTALL_DIR/static/config.json"
+                rm -rf "$INSTALL_DIR/static.temp"
+        fi
         return
     fi
 
