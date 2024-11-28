@@ -57,7 +57,9 @@ async def update_config(
 
 @router.post("/settings/bulk")
 async def update_bulk_config(
-    configs: ConfigSettingsBulkUpdate, db: Session = Depends(get_db),admin: Admin = Depends(Admin.get_current)
+    configs: ConfigSettingsBulkUpdate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
 ):
     """Update or create configuration"""
     for key, value in configs.settings.items():
@@ -66,7 +68,9 @@ async def update_bulk_config(
 
 
 @router.delete("/settings/{key}")
-async def delete_config(key: str, db: Session = Depends(get_db),admin: Admin = Depends(Admin.get_current)):
+async def delete_config(
+    key: str, db: Session = Depends(get_db), admin: Admin = Depends(Admin.get_current)
+):
     """Delete configuration"""
     if not delete_setting(db, key):
         raise HTTPException(status_code=404, detail="Configuration not found")

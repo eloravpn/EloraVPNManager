@@ -24,6 +24,7 @@ class InboundConfigBase(BaseModel):
     pbk: Optional[str]
     sid: Optional[str]
     spx: Optional[str]
+    alpns: Optional[List[str]] = None
     enable: bool
     develop: bool
     network: InboundNetwork = InboundNetwork.ws

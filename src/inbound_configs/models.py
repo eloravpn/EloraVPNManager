@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from sqlalchemy import (
@@ -60,7 +61,23 @@ class InboundConfig(Base):
         default=InboundNetwork.ws.value,
     )
 
+    alpn = Column(String(400))
+
     type = Column(Enum(InboundType), nullable=False, default=InboundType.default.value)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def alpns(self) -> list:
+        """Deserialize alpn to Python list."""
+        try:
+            return json.loads(self.alpn) if self.alpn else []
+        except json.JSONDecodeError:
+            # Log or handle invalid JSON
+            return []
+
+    @alpns.setter
+    def alpns(self, value: list):
+        """Serialize Python list into a JSON string for alpn."""
+        self.alpn = json.dumps(value) if value else None
