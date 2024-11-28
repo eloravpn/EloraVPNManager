@@ -100,7 +100,7 @@ def update_inbound_config(
     db_inbound_config.sid = modify.sid
     db_inbound_config.pbk = modify.pbk
     db_inbound_config.spx = modify.spx
-    db_inbound_config.alpn = modify.alpns
+    db_inbound_config.alpns  = modify.alpns
     db_inbound_config.finger_print = modify.finger_print
     db_inbound_config.enable = modify.enable
     db_inbound_config.develop = modify.develop

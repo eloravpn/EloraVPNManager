@@ -144,12 +144,4 @@ def get_inbound_configs(
         inbound_id=inbound_id,
     )
 
-    response_data = [
-        {
-            **{column: getattr(row, column) for column in row.__table__.columns.keys()},
-            "alpns": json.loads(row.alpn) if row.alpn else None
-        }
-        for row in inbound_configs
-    ]
-
-    return {"inbound_configs": response_data, "total": count}
+    return {"inbound_configs": inbound_configs, "total": count}

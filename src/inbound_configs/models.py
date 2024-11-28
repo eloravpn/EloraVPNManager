@@ -69,15 +69,27 @@ class InboundConfig(Base):
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @property
-    def alpns(self) -> list:
-        """Deserialize alpn to Python list."""
-        try:
-            return json.loads(self.alpn) if self.alpn else []
-        except json.JSONDecodeError:
-            # Log or handle invalid JSON
-            return []
+    def alpns(self):
+        """Deserialize JSON string into a Python list."""
+        if self.alpn:
+            try:
+                return json.loads(self.alpn)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON stored in alpn: {self.alpn}. Error: {str(e)}")
+        return None
 
     @alpns.setter
-    def alpns(self, value: list):
-        """Serialize Python list into a JSON string for alpn."""
-        self.alpn = json.dumps(value) if value else None
+    def alpns(self, value):
+        """Serialize a Python list into a JSON string for alpn."""
+        if value is not None:
+            # Ensure the list is in a correct format
+            if isinstance(value, str):
+                # If the value is a string like "{h2,h3}", convert it into a list
+                value = [item.strip() for item in value.strip("{}").split(",")]
+
+            try:
+                self.alpn = json.dumps(value)  # Store as a valid JSON string
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Invalid value for alpns: {value}. Error: {str(e)}")
+        else:
+            self.alpn = None  # Set to None if no value is provided
