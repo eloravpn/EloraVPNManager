@@ -28,6 +28,16 @@ class InboundNetwork(str, Enum):
     ws = "ws"
     tcp = "tcp"
     grpc = "grpc"
+    kcp = "kcp"
+    http = "http"
+    httpupgrade = "httpupgrade"
+    splithttp = "splithttp"
+
+
+class ALPN(str, Enum):
+    h2 = "h2"
+    h3 = "h3"
+    http1 = "http/1.1"
 
 
 class InboundFingerPrint(str, Enum):

@@ -1,3 +1,5 @@
+import secrets
+import string
 from datetime import datetime
 from typing import List, TYPE_CHECKING, Optional
 
@@ -31,18 +33,25 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: Optional[str] = None
     referral_user_id: Optional[int]
 
     @property
     def hashed_password(self):
         return pwd_context.hash(self.password)
 
-    @validator("password")
-    def validate_password(cls, password: str):
-        if not password:
-            raise ValueError("Password can not be null")
+    @classmethod
+    def generate_password(cls, length: int = 12) -> str:
+        chars = string.ascii_letters + string.digits + "!@#$%^&*"
+        return "".join(secrets.choice(chars) for _ in range(length))
 
+    @validator("password")
+    def validate_password(cls, password: str = None):
+        print(password)
+        if password is None:
+            return cls.generate_password()
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
         return password
 
 

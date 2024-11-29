@@ -44,6 +44,7 @@ def create_inbound_config(
         spx=inbound_config.spx,
         sid=inbound_config.sid,
         pbk=inbound_config.pbk,
+        alpns=inbound_config.alpns,
         enable=inbound_config.enable,
         develop=inbound_config.develop,
         security=inbound_config.security,
@@ -71,6 +72,7 @@ def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
         spx=db_inbound_config.spx,
         sid=db_inbound_config.sid,
         pbk=db_inbound_config.pbk,
+        alpns=db_inbound_config.alpns,
         enable=db_inbound_config.enable,
         develop=True,
         security=db_inbound_config.security,
@@ -86,6 +88,7 @@ def copy_inbound_config(db: Session, db_inbound_config: InboundConfig):
 def update_inbound_config(
     db: Session, db_inbound_config: InboundConfig, modify: InboundConfigModify
 ):
+
     db_inbound_config.inbound_id = modify.inbound_id
     db_inbound_config.remark = modify.remark
     db_inbound_config.port = modify.port
@@ -97,6 +100,7 @@ def update_inbound_config(
     db_inbound_config.sid = modify.sid
     db_inbound_config.pbk = modify.pbk
     db_inbound_config.spx = modify.spx
+    db_inbound_config.alpns = modify.alpns
     db_inbound_config.finger_print = modify.finger_print
     db_inbound_config.enable = modify.enable
     db_inbound_config.develop = modify.develop
