@@ -75,7 +75,9 @@ class InboundConfig(Base):
             try:
                 return json.loads(self.alpn)
             except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON stored in alpn: {self.alpn}. Error: {str(e)}")
+                raise ValueError(
+                    f"Invalid JSON stored in alpn: {self.alpn}. Error: {str(e)}"
+                )
         return None
 
     @alpns.setter

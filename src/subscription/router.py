@@ -76,6 +76,7 @@ def sub(
                     else None
                 ),
                 remark=remark,
+                alpns=inbound_config.alpns,
             )
             rows.append(link)
 

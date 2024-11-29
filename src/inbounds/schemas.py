@@ -30,8 +30,8 @@ class InboundNetwork(str, Enum):
     grpc = "grpc"
     kcp = "kcp"
     http = "http"
-    http_upgrade = "httpupgrade"
-    split_http = "splithttp"
+    httpupgrade = "httpupgrade"
+    splithttp = "splithttp"
 
 
 class ALPN(str, Enum):

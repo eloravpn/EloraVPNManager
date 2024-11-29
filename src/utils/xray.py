@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import List
 
 from src.inbounds.schemas import InboundSecurity
 
@@ -18,9 +19,8 @@ def generate_vless_config(
     pbk: str,
     flow: str,
     network_type: str = "ws",
+    alpns: List[str] = None,
 ):
-    alpn = "h2,http/1.1,h3"
-
     prefix_txt = "%s@%s:%s" % (uuid, address, port)
     prefix = "vless://" + prefix_txt
     postfix_list = [
@@ -49,6 +49,9 @@ def generate_vless_config(
         if spx:
             postfix_list.append("spx=%s" % urllib.parse.quote(spx.encode("utf8")))
     # postfix_list.append('alpn=%s' % urllib.parse.quote(alpn.encode('utf8')))
+    if alpns:
+        alpns_str = ",".join(alpns) if alpns else None
+        postfix_list.append("alpn=%s" % urllib.parse.quote(alpns_str.encode("utf8")))
     link = (
         prefix
         + "?"
