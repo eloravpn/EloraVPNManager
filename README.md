@@ -262,6 +262,11 @@ curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/insta
 
 ## Post-Installation
 
+### To listen on IPv6
+Just change the configuration in /opt/elora-vpn/.env
+```
+UVICORN_HOST=::
+```
 ### SSL Certificate Setup
 
 SSL certificates are essential for:
