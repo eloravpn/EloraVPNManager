@@ -1,5 +1,6 @@
 from telebot import types  # noqa
 
+from src import config
 from src.accounts.models import Account
 from src.commerce.schemas import OrderStatus
 from src.telegram import utils
@@ -50,21 +51,15 @@ class BotUserKeyboard:
     def help_links():
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
+            types.InlineKeyboardButton(text="آیفون", url=config.IPHONE_HELP_POST_URL),
             types.InlineKeyboardButton(
-                text="آیفون", url="https://t.me/EloraVPNChannel/210"
-            ),
-            types.InlineKeyboardButton(
-                text="اندروید", url="https://t.me/EloraVPNChannel/72"
+                text="اندروید", url=config.ANDROID_HELP_POST_URL
             ),
         )
 
         keyboard.add(
-            types.InlineKeyboardButton(
-                text="ویندوز", url="https://t.me/EloraVPNChannel/90"
-            ),
-            types.InlineKeyboardButton(
-                text="مک بوک", url="https://t.me/EloraVPNChannel/93"
-            ),
+            types.InlineKeyboardButton(text="ویندوز", url=config.WINDOWS_HELP_POST_URL),
+            types.InlineKeyboardButton(text="مک بوک", url=config.MAC_HELP_POST_URL),
         )
         return keyboard
 
