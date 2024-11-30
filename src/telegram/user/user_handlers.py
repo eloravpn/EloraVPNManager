@@ -50,7 +50,7 @@ class IsSubscribedUser(custom_filters.SimpleCustomFilter):
                 return True
             else:
                 result = bot.get_chat_member(
-                    config.TELEGRAM_CHANNEL, user_id=message.from_user.id
+                    f"@{config.TELEGRAM_CHANNEL}", user_id=message.from_user.id
                 )
                 if result.status not in ["administrator", "creator", "member"]:
                     bot.send_message(
@@ -113,7 +113,10 @@ def start_game(message: types.Message):
 def send_welcome(message: types.Message):
     bot.send_message(
         chat_id=message.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE.format(
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+            telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
+        ),
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",
@@ -163,7 +166,10 @@ def my_profile(message):
 def support(message):
     bot.reply_to(
         message,
-        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE.format(
+            telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+        ),
         parse_mode="markdown",
     )
 
@@ -196,14 +202,16 @@ def payment(message):
     total_payment = utils.get_total_payment(user_id=user.id)
 
     text = messages.PAYMENT_MESSAGE.format(
+        telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
         balance=user.balance_readable,
         card_number=config.CARD_NUMBER,
         card_owner=config.CARD_OWNER,
         admin_id=config.TELEGRAM_ADMIN_USER_NAME,
     )
 
-    if total_payment > config.MINIMUM_PAYMENT_TO_TRUST_USER:
+    if total_payment > config.MINIMUM_PAYMENT_TO_TRUST_USER > 0:
         text = messages.PAYMENT_MESSAGE.format(
+            telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
             balance=user.balance_readable,
             card_number=config.TRUST_CARD_NUMBER,
             card_owner=config.TRUST_CARD_OWNER,
@@ -385,7 +393,10 @@ def main_menu(call: types.CallbackQuery):
 
     bot.send_message(
         chat_id=call.from_user.id,
-        text=messages.WELCOME_MESSAGE.format(admin_id=config.TELEGRAM_ADMIN_USER_NAME),
+        text=messages.WELCOME_MESSAGE.format(
+            telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
+            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+        ),
         disable_web_page_preview=True,
         reply_markup=BotUserKeyboard.main_menu(),
         parse_mode="markdown",

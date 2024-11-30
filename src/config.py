@@ -25,8 +25,8 @@ if not DEBUG:
         print("Failed to get SERVER_IP, using 127.0.0.1 instead")
         SERVER_IP = "127.0.0.1"
 
-UVICORN_HOST = config("UVICORN_HOST", default="0.0.0.0")
-UVICORN_PORT = config("UVICORN_PORT", cast=int, default=8000)
+UVICORN_HOST = get_setting("UVICORN_HOST", default="0.0.0.0")
+UVICORN_PORT = get_setting("UVICORN_PORT", cast=int, default=8000)
 UVICORN_UDS = config("UVICORN_UDS", default=None)
 UVICORN_SSL_CERTFILE = get_setting("UVICORN_SSL_CERTFILE", default=None)
 UVICORN_SSL_KEYFILE = get_setting("UVICORN_SSL_KEYFILE", default=None)
@@ -37,9 +37,18 @@ TELEGRAM_PAYMENT_API_TOKEN = get_setting(
 )
 TELEGRAM_ADMIN_ID = get_setting("TELEGRAM_ADMIN_ID", cast=int, default=0)
 TELEGRAM_ADMIN_USER_NAME = get_setting("TELEGRAM_ADMIN_USER_NAME", default=None)
-BOT_USER_NAME = config("BOT_USER_NAME", default="")
-TELEGRAM_CHANNEL = config("TELEGRAM_CHANNEL", default=None)
-TELEGRAM_PROXY_URL = config("TELEGRAM_PROXY_URL", default=None)
+BOT_USER_NAME = get_setting("BOT_USER_NAME", default="")
+TELEGRAM_CHANNEL = get_setting("TELEGRAM_CHANNEL", default=None)
+TELEGRAM_PROXY_URL = get_setting("TELEGRAM_PROXY_URL", default=None)
+
+# Bot URLS
+
+TELEGRAM_CHANNEL_URL = get_setting("TELEGRAM_CHANNEL_URL", default="")
+IPHONE_HELP_POST_URL = get_setting("IPHONE_HELP_POST_URL", default="")
+ANDROID_HELP_POST_URL = get_setting("ANDROID_HELP_POST_URL", default="")
+WINDOWS_HELP_POST_URL = get_setting("WINDOWS_HELP_POST_URL", default="")
+MAC_HELP_POST_URL = get_setting("MAC_HELP_POST_URL", default="")
+
 
 MINIMUM_PAYMENT_TO_TRUST_USER = config(
     "MINIMUM_PAYMENT_TO_TRUST_USER", cast=int, default=200000
@@ -47,8 +56,8 @@ MINIMUM_PAYMENT_TO_TRUST_USER = config(
 TRUST_CARD_NUMBER = config("TRUST_CARD_NUMBER", default="")
 TRUST_CARD_OWNER = config("TRUST_CARD_OWNER", default="")
 
-CARD_NUMBER = config("CARD_NUMBER", default="")
-CARD_OWNER = config("CARD_OWNER", default="")
+CARD_NUMBER = get_setting("CARD_NUMBER", default="")
+CARD_OWNER = get_setting("CARD_OWNER", default="")
 
 TEST_ACCOUNT_EMAIL_PREFIX = config("TEST_ACCOUNT_EMAIL_PREFIX", default="test_")
 TEST_ACCOUNT_LIMIT_INTERVAL_DAYS = config(
@@ -60,7 +69,7 @@ TEST_ACCOUNT_DURATION_DAY_LIMIT = config(
 )
 TEST_ACCOUNT_HOST_ZONE_ID = config("TEST_ACCOUNT_HOST_ZONE_ID", cast=int, default=1)
 
-TEST_SERVICE_ID = config("TEST_SERVICE_ID", cast=int, default=0)
+TEST_SERVICE_ID = get_setting("TEST_SERVICE_ID", cast=int, default=0)
 
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = config(
     "JWT_ACCESS_TOKEN_EXPIRE_MINUTES", cast=int, default=1440

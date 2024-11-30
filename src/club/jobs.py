@@ -95,7 +95,7 @@ def create_new_club_profiles():
 
 def _is_channel_member(db_user: User):
     result = bot.get_chat_member(
-        chat_id=config.TELEGRAM_CHANNEL, user_id=db_user.telegram_chat_id
+        chat_id=f"@{config.TELEGRAM_CHANNEL}", user_id=db_user.telegram_chat_id
     )
     if result.status in ["administrator", "creator", "member"]:
         logger.info(f"User {db_user.full_name} is channel member")
