@@ -80,7 +80,7 @@ SUDOERS = {
     config("SUDO_USERNAME", default="admin"): config("SUDO_PASSWORD", default="admin")
 }
 
-SUBSCRIPTION_BASE_URL = config(
+SUBSCRIPTION_BASE_URL = get_setting(
     "SUBSCRIPTION_BASE_URL", default="https://localhost:8000/api/sub"
 )
 
