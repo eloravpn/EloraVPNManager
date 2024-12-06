@@ -584,8 +584,10 @@ def _validate_order(
     ):
         total = db_order.total - db_order.total_discount_amount
 
-        if (db_user.balance is None or db_user.balance < total) and (
-            (modify and not modify.is_debt) or not allow_debt
+        if (
+            (db_user.balance is None or db_user.balance < total)
+            and ((modify and not modify.is_debt) or not allow_debt)
+            and total != 0
         ):
             raise NoEnoughBalanceError(total=total)
 
