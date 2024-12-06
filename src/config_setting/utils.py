@@ -67,7 +67,7 @@ def get_setting(key: str, default: Any = None, cast: Optional[type] = None) -> A
     # Try to get from database first
     try:
         with GetDB() as db:
-            value = config_setting_service.get_setting(db, key)
+            value = config_setting_service.get_setting(db, key, cast)
     except Exception:
         pass
 

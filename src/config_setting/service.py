@@ -13,14 +13,17 @@ def get_all_setting(db: Session) -> Optional[Any]:
     return settings
 
 
-def get_setting(db: Session, key: str) -> Optional[Any]:
+def get_setting(db: Session, key: str, cast: Optional[type] = None) -> Optional[Any]:
     """Get a configuration value from database"""
 
     # Query database
     setting = db.query(ConfigSetting).filter(ConfigSetting.key == key).first()
     if setting:
         try:
-            value = deserialize_value(setting.value, setting.value_type)
+            if cast:
+                return cast(setting.value)
+            else:
+                value = deserialize_value(setting.value, setting.value_type)
             return value
         except:
             return None
