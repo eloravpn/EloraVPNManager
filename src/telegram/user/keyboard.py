@@ -38,7 +38,7 @@ class BotUserKeyboard:
 
         keyboard.add(
             types.InlineKeyboardButton(
-                text=captions.CHANNEL, url="https://t.me/+8wKN9itc-QdkMDE0"
+                text=captions.CHANNEL, url=f"{config.TELEGRAM_CHANNEL_URL}"
             ),
             types.InlineKeyboardButton(
                 text=captions.I_HAVE_SUBSCRIBED, callback_data="main_menu:"
