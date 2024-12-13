@@ -661,6 +661,7 @@ main() {
     # Download and extract latest release
     check_download_tools
     download_latest_release
+    create_version_file
 
     # Setup virtual environment first
     setup_virtualenv
