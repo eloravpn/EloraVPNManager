@@ -27,6 +27,7 @@ if not DEBUG:
 
 UVICORN_HOST = get_setting("UVICORN_HOST", default="0.0.0.0")
 UVICORN_PORT = get_setting("UVICORN_PORT", cast=int, default=8000)
+CUSTOM_BASE_URL = get_setting("CUSTOM_BASE_URL", cast=str, default=None)
 UVICORN_UDS = config("UVICORN_UDS", default=None)
 UVICORN_SSL_CERTFILE = get_setting("UVICORN_SSL_CERTFILE", default=None)
 UVICORN_SSL_KEYFILE = get_setting("UVICORN_SSL_KEYFILE", default=None)

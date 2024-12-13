@@ -18,10 +18,12 @@ def get_setting(db: Session, key: str, cast: Optional[type] = None) -> Optional[
 
     # Query database
     setting = db.query(ConfigSetting).filter(ConfigSetting.key == key).first()
-    if setting:
+    if setting and setting.value is not None and setting.value.strip():
         try:
             if cast:
-                return cast(setting.value)
+                value = deserialize_value(setting.value, setting.value_type)
+                if value is not None:
+                    return cast(value)
             else:
                 value = deserialize_value(setting.value, setting.value_type)
             return value
@@ -85,7 +87,7 @@ def serialize_value(value: Any) -> str:
 
 def deserialize_value(value: str, value_type: str) -> Any:
     """Deserialize value from storage"""
-    if value_type == "none" or value == "None":
+    if value_type == "none" or value.lower() == "none" or value.strip() == "":
         return None
     elif value_type == "bool":
         return value.lower() in ("true", "1", "yes", "on", "t")

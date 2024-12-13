@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import signal
@@ -31,6 +32,7 @@ from src.notification.router import notification_router
 from src.subscription.router import router as subscription_router
 from src.users.router import router as user_router
 from src.config_setting.router import router as config_setting_router
+from src.system.router import router as system_router
 from src.users.schemas import UserResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -94,10 +96,38 @@ app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 app.include_router(config_setting_router, prefix="/api", tags=["ConfigSettings"])
 
-# Check if static folder exists
-if os.path.exists(static_path) and os.path.isdir(static_path):
-    # Mount static files if directory exists
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
+app.include_router(system_router, prefix="/api", tags=["system"])
+
+
+@app.get("/static/config.json")
+async def custom_config(request: Request):
+    try:
+        config_path = os.path.join(static_path, "config.json")
+        if not os.path.exists(config_path):
+            raise HTTPException(status_code=404, detail="Config file not found")
+
+        with open(config_path, "r") as f:
+            config_data = json.load(f)
+
+        base_url = config.CUSTOM_BASE_URL
+
+        if base_url is None:
+            # Get domain and port from request
+            domain = request.headers.get("host", "localhost:8000")
+            # Detect if request is using HTTPS
+            protocol = (
+                "https"
+                if request.headers.get("x-forwarded-proto") == "https"
+                else "http"
+            )
+            config_data["BASE_URL"] = f"{protocol}://{domain}/api/"
+
+        return JSONResponse(content=config_data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Invalid config file format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Mount static files for specific paths
 if os.path.exists(static_path) and os.path.isdir(static_path):
