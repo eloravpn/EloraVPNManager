@@ -80,6 +80,7 @@ jobs:
             static/ \
             pyqrcode/ \
             main.py \
+            version.py \
             .env.example \
             alembic.ini \
             requirements.txt \
