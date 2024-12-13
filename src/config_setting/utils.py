@@ -25,7 +25,7 @@ def get_config(
         cast: Optional function to cast the value to a specific type
     """
     try:
-        value = decouple_config(key, default=None)
+        value = decouple_config(key, default=default)
 
         # Handle cases where value is None or 'None' string
         if value is None or (isinstance(value, str) and value.lower() == "none"):

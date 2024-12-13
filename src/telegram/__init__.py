@@ -18,7 +18,7 @@ payment_bot = None
 if TELEGRAM_API_TOKEN or TELEGRAM_PAYMENT_API_TOKEN:
     apihelper.proxy = {"http": TELEGRAM_PROXY_URL, "https": TELEGRAM_PROXY_URL}
 
-if TELEGRAM_API_TOKEN:
+if TELEGRAM_API_TOKEN is not None:
     bot = TeleBot(TELEGRAM_API_TOKEN)
 
     @app.on_event("startup")
@@ -39,7 +39,7 @@ if TELEGRAM_API_TOKEN:
 else:
     logger.warn("Telegram Bot not set!")
 
-if TELEGRAM_PAYMENT_API_TOKEN:
+if TELEGRAM_PAYMENT_API_TOKEN is not None:
     payment_bot = TeleBot(TELEGRAM_PAYMENT_API_TOKEN)
 
     @app.on_event("startup")
