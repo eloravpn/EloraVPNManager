@@ -4,6 +4,16 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Tutorial Video 📝
+
+<div align="center">
+
+<a href="https://t.me/EloraVPNManager/14">
+  <img src="https://raw.githubusercontent.com/maurodesouza/profile-readme-generator/master/src/assets/icons/social/youtube/default.svg" width="52" height="40" alt="youtube logo"/>
+</a>
+
+</div>
+
 ## 🚀 Features
 
 ### 🌍 Multi-Zone Management
@@ -138,6 +148,289 @@ graph TB
 - Traffic encryption
 - Secure protocols
 
+## ✨ Key Benefits
+
+### For Users
+- Easy account management
+- Multiple access methods
+- Real-time monitoring
+- Automatic configuration
+
+### For Administrators
+- Centralized management
+- Automated operations
+- Comprehensive monitoring
+- Revenue tracking
+
+
+# Installation Guide
+
+## System Requirements
+
+### Supported Operating Systems
+- Ubuntu 20.04 LTS (Focal Fossa)
+- Ubuntu 22.04 LTS (Jammy Jellyfish)
+- Debian 11 (Bullseye)
+- Debian 12 (Bookworm)
+
+### Minimum Hardware Requirements
+- CPU: 1 core
+- RAM: 2 GB
+- Storage: 10 GB
+
+### Prerequisites
+The installation script will automatically install these dependencies, but for reference, the system needs:
+- Python 3.9
+- PostgreSQL
+- systemd
+- curl
+- Other dependencies will be installed automatically
+
+## Quick Installation
+
+### Option 1: Custom Domain and Port  (Recommended)
+
+For full functionality, including subscription URLs and all features:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
+  --domain your-domain.com \
+  --port 8080
+```
+
+**Why use this method?**
+
+- Ensures all features work correctly
+- Enables subscription URL functionality
+- Provides better security through domain validation
+- Allows proper SSL certificate setup
+- Required for production deployments
+
+### Option 2: Quick One-Line Installation
+Basic installation using auto-detected public IP (Limited functionality):
+
+Auto-detects your public IP address
+```bash
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash
+```
+**⚠️ Limitations of IP-based installation:**
+
+* Subscription URLs will not function
+* Some features may be restricted
+* Not recommended for production use
+* SSL certificate setup may be problematic
+* Limited security features
+
+Note: For production environments, always use Option 1 with a proper domain name.
+
+### Full Custom Installation
+```bash
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
+  --domain your-domain.com \
+  --port 8080 \
+  --protocol https \
+  --db-name custom_db \
+  --db-user custom_user \
+  --db-pass your_password \
+  --jwt-secret your_jwt_secret
+```
+
+## Installation Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--domain` | Domain name for the application | localhost |
+| `--port` | Port number for the application | 8080 |
+| `--protocol` | Protocol (http/https) | http |
+| `--db-name` | PostgreSQL database name | elora_db |
+| `--db-user` | PostgreSQL user name | elora |
+| `--db-pass` | PostgreSQL password | Random generated |
+| `--jwt-secret` | JWT secret key | Random generated |
+| `--version` | Specific version to install | Latest version |
+
+
+## Updating
+To update the application, use one of these commands:
+
+```bash
+# Update to latest version
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update
+
+# Update to specific version
+curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update --version v1.2.3
+```
+- Restart the service
+
+
+### Domain/IP Configuration
+- If no domain is specified, the installer will automatically detect and use your server's public IP
+- If public IP detection fails, it will fall back to 'localhost'
+- You can always specify a custom domain using the `--domain` option
+- The detected or specified domain/IP will be used in the configuration for API endpoints
+
+## Post-Installation
+
+### To see full log
+
+`tail -f /var/log/elora-vpn/elora-vpn.log`
+
+### Configuring IPv6 Support
+If your server has IPv6 capability, you can enable IPv6 listening by following these steps:
+
+**1. Access Control Panel**
+
+Log in to your control panel with administrator credentials
+Navigate to the Settings menu
+Select the Basic tab
+
+
+**2. Configure IPv6**
+
+Locate the "Uvicorn Host" setting
+Change the value from 0.0.0.0 to ::
+Click Save to apply changes
+
+
+**3. Apply Changes**
+
+```
+# Restart the panel to activate IPv6 support
+sudo systemctl restart elora-vpn
+```
+
+#### Verify the service is running
+`sudo systemctl status elora-vpn`
+
+Verify IPv6 Connectivity
+```
+# Check if the service is listening on IPv6
+sudo netstat -tulpn | grep elora-vpn
+```
+
+#### Test IPv6 connectivity (replace port if different)
+`curl -6 http://[::1]:8080/`
+
+
+Note: Ensure your firewall rules allow incoming connections on both IPv4 and IPv6 for your configured port.
+### SSL Certificate Setup
+
+SSL certificates are essential for:
+
+- To work Subscription URL in all V2ray Clients!
+- Secure subscription links for V2Ray clients
+- Encrypted API communications
+- Secure web interface access
+
+#### 1. Install Certbot
+
+```bash
+# Install Certbot and Nginx plugin
+sudo apt update
+sudo apt install -y certbot 
+```
+
+```bash
+# Stop any service using port 80
+sudo systemctl stop elora-vpn
+
+# Get certificate
+sudo certbot certonly --standalone --agree-tos --register-unsafely-without-email -d your-domain.com
+
+```
+
+#### 2. Certificate Locations
+After successful certification, your certificates will be located at:
+```
+/etc/letsencrypt/live/your-domain.com/fullchain.pem  # Certificate
+/etc/letsencrypt/live/your-domain.com/privkey.pem    # Private Key
+```
+
+#### 3. Update Configuration
+
+Access your control panel by logging in with your administrator credentials
+Navigate to the SSL configuration:
+
+Click on "Settings" in the main menu
+Select the "SSL" tab from the available options
+
+Configure the certificate paths:
+
+In the "SSL Certificate Path" field, enter the full path to your SSL certificate file (e.g., /etc/ssl/certs/your-certificate.crt)
+In the "Private Key Path" field, enter the full path to your private key file (e.g., /etc/ssl/private/your-private-key.key)
+Double-check that both paths are correct and the files are readable by the panel
+
+Apply the changes:
+
+Click "Save" or "Apply" to confirm your SSL configuration
+Restart the panel service to apply the new SSL settings
+
+
+#### 4. Enable Auto-Renewal
+```bash
+# Test auto-renewal
+sudo certbot renew --dry-run
+
+# Certbot automatically adds a renewal cron job at
+# /etc/cron.d/certbot
+```
+
+#### 5. Restart Service
+```bash
+sudo systemctl restart elora-vpn
+```
+
+### Service Management
+```bash
+# Check service status
+sudo systemctl status elora-vpn
+
+# Start service
+sudo systemctl start elora-vpn
+
+# Stop service
+sudo systemctl stop elora-vpn
+
+# Restart service
+sudo systemctl restart elora-vpn
+
+# View logs
+sudo journalctl -u elora-vpn -f
+```
+### Configuration Guide
+
+#### Configuration File
+The primary configuration settings are stored in the .env file:
+
+`nano '/opt/elora-vpn/.env`
+
+You can customize the panel's behavior through two methods:
+
+**1. Web Interface Settings**
+
+Access the control panel's Settings menu to configure:
+
+General system preferences
+User management options
+Security settings
+Network configurations
+
+
+**2. Environment File**
+
+For advanced configurations, you can directly edit the .env file. This allows you to:
+
+Set environment-specific variables
+Configure database connections
+Modify system paths
+Enable debug modes
+Set API keys and secrets
+Define custom service endpoints
+
+Note: After modifying the .env file, restart the panel services to apply changes:
+`sudo systemctl restart elora-vpn`
+
+_We recommend using the web interface for routine changes and the .env file for advanced system configurations. Always backup your configuration files before making significant changes._
+
 ## 📖 Usage Guidelines
 
 ### Administrator Tasks
@@ -175,187 +468,6 @@ graph TB
    # Manage subscriptions
    ```
 
-## ✨ Key Benefits
-
-### For Users
-- Easy account management
-- Multiple access methods
-- Real-time monitoring
-- Automatic configuration
-
-### For Administrators
-- Centralized management
-- Automated operations
-- Comprehensive monitoring
-- Revenue tracking
-
-
-# Installation Guide
-
-## System Requirements
-
-### Supported Operating Systems
-- Ubuntu 20.04 LTS (Focal Fossa)
-- Ubuntu 22.04 LTS (Jammy Jellyfish)
-- Debian 11 (Bullseye)
-- Debian 12 (Bookworm)
-
-### Minimum Hardware Requirements
-- CPU: 1 core
-- RAM: 1 GB
-- Storage: 10 GB
-
-### Prerequisites
-The installation script will automatically install these dependencies, but for reference, the system needs:
-- Python 3.9
-- PostgreSQL
-- systemd
-- curl
-- Other dependencies will be installed automatically
-
-## Quick Installation
-
-### One-Line Installation
-Auto-detects your public IP address
-```bash
-curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash
-```
-
-### Custom Domain and Port
-```bash
-curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
-  --domain your-domain.com \
-  --port 8080
-```
-
-### Full Custom Installation
-```bash
-curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- \
-  --domain your-domain.com \
-  --port 8080 \
-  --protocol https \
-  --db-name custom_db \
-  --db-user custom_user \
-  --db-pass your_password \
-  --jwt-secret your_jwt_secret
-```
-
-## Installation Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--domain` | Domain name for the application | localhost |
-| `--port` | Port number for the application | 8080 |
-| `--protocol` | Protocol (http/https) | http |
-| `--db-name` | PostgreSQL database name | elora_db |
-| `--db-user` | PostgreSQL user name | elora |
-| `--db-pass` | PostgreSQL password | Random generated |
-| `--jwt-secret` | JWT secret key | Random generated |
-| `--version` | Specific version to install | Latest version |
-
-
-### Domain/IP Configuration
-- If no domain is specified, the installer will automatically detect and use your server's public IP
-- If public IP detection fails, it will fall back to 'localhost'
-- You can always specify a custom domain using the `--domain` option
-- The detected or specified domain/IP will be used in the configuration for API endpoints
-
-## Post-Installation
-
-### To listen on IPv6
-Just change the configuration in /opt/elora-vpn/.env
-```
-UVICORN_HOST=::
-```
-### SSL Certificate Setup
-
-SSL certificates are essential for:
-- Secure subscription links for V2Ray clients
-- Encrypted API communications
-- Secure web interface access
-
-#### 1. Install Certbot
-
-```bash
-# Install Certbot and Nginx plugin
-sudo apt update
-sudo apt install -y certbot 
-```
-
-```bash
-# Stop any service using port 80
-sudo systemctl stop elora-vpn
-
-# Get certificate
-sudo certbot certonly --standalone --agree-tos --register-unsafely-without-email -d your-domain.com
-
-```
-
-#### 2. Certificate Locations
-After successful certification, your certificates will be located at:
-```
-/etc/letsencrypt/live/your-domain.com/fullchain.pem  # Certificate
-/etc/letsencrypt/live/your-domain.com/privkey.pem    # Private Key
-```
-
-#### 3. Update Configuration
-
-Update .env File
-
-```bash
-sudo nano /opt/elora-vpn/.env
-
-# Update these lines:
-UVICORN_SSL_CERTFILE=/etc/letsencrypt/live/your-domain.com/fullchain.pem
-UVICORN_SSL_KEYFILE=/etc/letsencrypt/live/your-domain.com/privkey.pem
-SUBSCRIPTION_BASE_URL=https://your-domain.com:your-port/api/sub
-```
-Update .config File
-
-```bash
-sudo nano /opt/elora-vpn/static/config.json
-
-# Update these line:
-"BASE_URL": "https://your-domain.com:your-port/api",
-```
-
-#### 4. Enable Auto-Renewal
-```bash
-# Test auto-renewal
-sudo certbot renew --dry-run
-
-# Certbot automatically adds a renewal cron job at
-# /etc/cron.d/certbot
-```
-
-#### 5. Restart Service
-```bash
-sudo systemctl restart elora-vpn
-```
-
-### Service Management
-```bash
-# Check service status
-sudo systemctl status elora-vpn
-
-# Start service
-sudo systemctl start elora-vpn
-
-# Stop service
-sudo systemctl stop elora-vpn
-
-# Restart service
-sudo systemctl restart elora-vpn
-
-# View logs
-sudo journalctl -u elora-vpn -f
-```
-
-### Configuration
-The main configuration file is located at:
-```bash
-/opt/elora-vpn/.env
-```
 
 ### Default Paths
 - Installation Directory: `/opt/elora-vpn`
@@ -490,18 +602,6 @@ If you encounter any issues:
 - All configuration files are created with proper permissions
 - The `.env` file contains sensitive information and is readable only by root
 - Default database user has limited permissions to only the necessary database
-
-## Updating
-To update the application, use one of these commands:
-
-```bash
-# Update to latest version
-curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update
-
-# Update to specific version
-curl -fsSL https://raw.githubusercontent.com/eloravpn/EloraVPNManager/main/install.sh | sudo bash -s -- --update --version v1.2.3
-```
-- Restart the service
 
 ## Uninstallation
 To completely remove the application:
