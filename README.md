@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Tutorial Video 📝
+## 📝 Tutorial Video
 
 <div align="center">
 
