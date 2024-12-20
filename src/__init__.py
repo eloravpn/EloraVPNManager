@@ -112,15 +112,9 @@ async def custom_config(request: Request):
         base_url = config.CUSTOM_BASE_URL
 
         if base_url is None:
-            # Get domain and port from request
-            domain = request.headers.get("host", "localhost:8000")
-            # Detect if request is using HTTPS
-            protocol = (
-                "https"
-                if request.headers.get("x-forwarded-proto") == "https"
-                else "http"
-            )
-            config_data["BASE_URL"] = f"{protocol}://{domain}/api/"
+            config_data["BASE_URL"] = str(request.base_url) + "api/"
+        else:
+            config_data["BASE_URL"] = base_url
 
         return JSONResponse(content=config_data)
     except json.JSONDecodeError:
