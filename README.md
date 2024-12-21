@@ -401,7 +401,7 @@ sudo journalctl -u elora-vpn -f
 #### Configuration File
 The primary configuration settings are stored in the .env file:
 
-`nano '/opt/elora-vpn/.env`
+`nano /opt/elora-vpn/.env`
 
 You can customize the panel's behavior through two methods:
 
