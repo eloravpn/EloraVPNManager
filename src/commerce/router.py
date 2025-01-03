@@ -8,8 +8,7 @@ import src.accounts.service as account_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
 from src.admins.schemas import Admin
-from src.commerce.exc import MaxPendingOrderError
-from src.commerce.models import Order, Payment
+from src.commerce.models import Order, Payment, PaymentAccount
 from src.commerce.schemas import (
     OrderResponse,
     OrderCreate,
@@ -28,18 +27,22 @@ from src.commerce.schemas import (
     PaymentMethod,
     TransactionResponse,
     TransactionCreate,
-    TransactionModify,
     TransactionsResponse,
     TransactionType,
+    PaymentAccountResponse,
+    PaymentAccountModify,
+    PaymentAccountsResponse,
+    PaymentAccountCreate,
 )
 from src.database import get_db
 from src.exc import EloraApplicationError
-from src.hosts.service import get_host_zone
 
 order_router = APIRouter()
 service_router = APIRouter()
 payment_router = APIRouter()
 transaction_router = APIRouter()
+payment_account_router = APIRouter()
+
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -281,6 +284,7 @@ def add_payment(
         raise HTTPException(status_code=404, detail="User not found")
 
     db_order: Order = None
+    db_payment_account: PaymentAccount = None
 
     if payment.order_id > 0:
         db_order = commerce_service.get_order(db=db, order_id=payment.order_id)
@@ -288,10 +292,19 @@ def add_payment(
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")
 
+    if payment.payment_account_id > 0:
+        db_payment_account = commerce_service.get_payment_account(
+            db, payment.payment_account_id
+        )
+
+        if not db_payment_account:
+            raise HTTPException(status_code=404, detail="Payment account not found")
+
     try:
         db_payment = commerce_service.create_payment(
             db=db,
             db_user=db_user,
+            db_payment_account=db_payment_account,
             db_order=db_order if db_order else None,
             payment=payment,
         )
@@ -531,3 +544,93 @@ def get_transactions(
     )
 
     return {"transactions": transactions, "total": count}
+
+
+@payment_account_router.post(
+    "/payment-accounts/", tags=["PaymentAccount"], response_model=PaymentAccountResponse
+)
+def add_payment_account(
+    account: PaymentAccountCreate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    try:
+        db_account = commerce_service.create_payment_account(db=db, account=account)
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Payment account already exists")
+
+    return db_account
+
+
+@payment_account_router.put(
+    "/payment-accounts/{account_id}",
+    tags=["PaymentAccount"],
+    response_model=PaymentAccountResponse,
+)
+def modify_payment_account(
+    account_id: int,
+    account: PaymentAccountModify,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_account = commerce_service.get_payment_account(db, account_id=account_id)
+    if not db_account:
+        raise HTTPException(status_code=404, detail="Payment account not found")
+
+    return commerce_service.update_payment_account(
+        db=db, db_account=db_account, modify=account
+    )
+
+
+@payment_account_router.get(
+    "/payment-accounts/{account_id}",
+    tags=["PaymentAccount"],
+    response_model=PaymentAccountResponse,
+)
+def get_payment_account(
+    account_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_account = commerce_service.get_payment_account(db, account_id)
+    if not db_account:
+        raise HTTPException(status_code=404, detail="Payment account not found")
+
+    return db_account
+
+
+@payment_account_router.delete(
+    "/payment-accounts/{account_id}", tags=["PaymentAccount"]
+)
+def delete_payment_account(
+    account_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    db_account = commerce_service.get_payment_account(db, account_id)
+    if not db_account:
+        raise HTTPException(status_code=404, detail="Payment account not found")
+
+    commerce_service.remove_payment_account(db=db, db_account=db_account)
+    return {}
+
+
+@payment_account_router.get(
+    "/payment-accounts/",
+    tags=["PaymentAccount"],
+    response_model=PaymentAccountsResponse,
+)
+def get_payment_accounts(
+    offset: int = None,
+    limit: int = None,
+    user_id: int = 0,
+    enable: bool = None,
+    q: str = None,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(Admin.get_current),
+):
+    accounts, count = commerce_service.get_payment_accounts(
+        db=db, offset=offset, limit=limit, user_id=user_id, enable=enable, q=q
+    )
+
+    return {"payment_accounts": accounts, "total": count}

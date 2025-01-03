@@ -36,6 +36,11 @@ class Transaction(Base):
     payment_id = Column(Integer, ForeignKey("payment.id"), nullable=True)
     payment = relationship("Payment", back_populates="transactions")
 
+    payment_account_id = Column(
+        Integer, ForeignKey("payment_account.id"), nullable=True
+    )
+    payment_account = relationship("PaymentAccount", back_populates="transactions")
+
     order_id = Column(Integer, ForeignKey("order.id"), nullable=True)
     order = relationship("Order", back_populates="transactions")
 
@@ -64,6 +69,11 @@ class Payment(Base):
     order_id = Column(Integer, ForeignKey("order.id"), nullable=True)
     order = relationship("Order", back_populates="payments")
 
+    payment_account_id = Column(
+        Integer, ForeignKey("payment_account.id"), nullable=True
+    )
+    payment_account = relationship("PaymentAccount", back_populates="payments")
+
     transactions = relationship("Transaction", back_populates="payment")
 
     method = Column(
@@ -73,7 +83,8 @@ class Payment(Base):
     total = Column(BigInteger, default=0)
 
     status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.pending)
-
+    verify = Column(Boolean, default=True, nullable=False)
+    paid_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -172,3 +183,36 @@ class Service(Base):
             return percent
         else:
             return 0
+
+
+class PaymentAccount(Base):
+    __tablename__ = "payment_account"
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Relations
+    user_id = Column(Integer, ForeignKey("user.id"))
+    user = relationship("User", back_populates="payment_accounts")
+
+    # Account info
+    card_number = Column(String(16), unique=True, index=True)
+    account_number = Column(String(128), unique=True, index=True)
+    bank_name = Column(String(128), unique=True, index=True)
+    shaba = Column(String(128), unique=True, index=True)
+    owner_name = Column(String(128))
+    payment_notice = Column(String(300))
+    owner_family = Column(String(128))
+
+    # Settings
+    enable = Column(Boolean, default=True)
+    min_payment_for_bot = Column(BigInteger, default=0)
+    min_payment_amount = Column(BigInteger, default=0)
+    max_daily_transactions = Column(Integer, default=100)
+    max_daily_amount = Column(BigInteger, default=1000000000)  # 1B default limit
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    payments = relationship("Payment", back_populates="payment_account")
+    transactions = relationship("Transaction", back_populates="payment_account")

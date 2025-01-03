@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 from src.accounts.schemas import AccountResponse
 from src.hosts.schemas import HostZoneResponse
@@ -40,6 +40,7 @@ class TransactionBase(BaseModel):
     user_id: Optional[int] = None
     payment_id: Optional[int] = None
     order_id: Optional[int] = None
+    payment_account_id: Optional[int] = None
     amount: int
     type: TransactionType = TransactionType.payment
 
@@ -62,6 +63,9 @@ class TransactionModify(TransactionBase):
 class PaymentBase(BaseModel):
     user_id: Optional[int] = None
     order_id: Optional[int] = None
+    payment_account_id: Optional[int] = None
+    paid_at: Optional[datetime] = datetime.utcnow()
+    verify: Optional[bool] = True
     total: int
 
     method: PaymentMethod = PaymentMethod.money_order
@@ -198,6 +202,44 @@ class OrdersResponse(BaseModel):
 
 class PaymentsResponse(BaseModel):
     payments: List[PaymentResponse]
+    total: int
+
+
+class PaymentAccountBase(BaseModel):
+    card_number: constr(min_length=16, max_length=16)
+    account_number: constr(max_length=128)
+    bank_name: Optional[str]
+    shaba: Optional[str]
+    owner_name: str
+    owner_family: str
+    enable: bool = True
+    min_payment_for_bot: int = 0
+    max_daily_transactions: int = 100
+    max_daily_amount: int = 1000000000
+    min_payment_amount: int = 0
+    user_id: Optional[int] = None
+    payment_notice: Optional[str] = None
+
+
+class PaymentAccountCreate(PaymentAccountBase):
+    pass
+
+
+class PaymentAccountModify(PaymentAccountBase):
+    pass
+
+
+class PaymentAccountResponse(PaymentAccountBase):
+    id: int
+    created_at: datetime
+    modified_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class PaymentAccountsResponse(BaseModel):
+    payment_accounts: List[PaymentAccountResponse]
     total: int
 
 

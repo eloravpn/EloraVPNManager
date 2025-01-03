@@ -1,7 +1,10 @@
+from typing import List
+
 from telebot import types  # noqa
 
 from src import config
 from src.accounts.models import Account
+from src.commerce.models import PaymentAccount
 from src.commerce.schemas import OrderStatus
 from src.telegram import utils
 from src.telegram.user import captions
@@ -232,5 +235,19 @@ class BotUserKeyboard:
                 callback_data=f"get_payment_receipt:{account_id}",
             )
         )
+
+        return keyboard
+
+    @staticmethod
+    def payment_card_step_0(payment_accounts: List[PaymentAccount]):
+        keyboard = types.InlineKeyboardMarkup()
+
+        for payment_account in payment_accounts:
+            keyboard.add(
+                types.InlineKeyboardButton(
+                    text=f" بانک {payment_account.bank_name}",
+                    callback_data=f"payment_card_step_1:{payment_account.id}",
+                )
+            )
 
         return keyboard

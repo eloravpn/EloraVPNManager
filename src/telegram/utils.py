@@ -10,15 +10,15 @@ from telebot import types
 from telebot.apihelper import ApiTelegramException
 
 import src.accounts.service as account_service
+import src.club.service as club_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
-import src.club.service as club_service
 from src import logger, config
 from src.accounts.models import Account
 from src.accounts.schemas import (
     AccountUsedTrafficReportResponse,
 )
-from src.commerce.models import Service, Order
+from src.commerce.models import Service, Order, PaymentAccount
 from src.commerce.schemas import (
     OrderCreate,
     OrderStatus,
@@ -337,6 +337,22 @@ def get_total_payment(user_id: int):
             total += payment.total
 
         return total
+
+
+def get_available_payment_accounts(user_id: int) -> List[PaymentAccount]:
+    with GetDB() as db:
+        payment_accounts = commerce_service.get_available_payment_accounts_for_bot(
+            db=db, user_id=user_id
+        )
+
+        return payment_accounts
+
+
+def get_payment_account(payment_account_id: int) -> PaymentAccount:
+    with GetDB() as db:
+        payment_account = commerce_service.get_payment_account(db, payment_account_id)
+
+        return payment_account
 
 
 def get_orders(

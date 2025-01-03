@@ -20,6 +20,7 @@ from src.commerce.router import (
     service_router,
     payment_router,
     transaction_router,
+    payment_account_router,
 )
 from src.config import DOCS, DEBUG, UVICORN_HOST, UVICORN_PORT
 from src.database import Base, engine
@@ -95,6 +96,7 @@ app.include_router(notification_router, prefix="/api", tags=["Notification"])
 app.include_router(monitoring_router, prefix="/api", tags=["Monitoring"])
 app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 app.include_router(config_setting_router, prefix="/api", tags=["ConfigSettings"])
+app.include_router(payment_account_router, prefix="/api", tags=["PaymentAccounts"])
 
 app.include_router(system_router, prefix="/api", tags=["system"])
 
