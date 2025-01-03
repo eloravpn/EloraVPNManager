@@ -27,6 +27,7 @@ class User(Base):
     referral_user_id = Column(Integer, index=True, nullable=True)
     orders = relationship("Order", back_populates="user")
     payments = relationship("Payment", back_populates="user")
+    payment_accounts = relationship("PaymentAccount", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
     notification = relationship(
         "Notification", back_populates="user", cascade="all, delete-orphan"

@@ -199,31 +199,60 @@ def payment(message):
     telegram_user = message.from_user
     user = utils.add_or_get_user(telegram_user=telegram_user)
 
-    total_payment = utils.get_total_payment(user_id=user.id)
+    payment_accounts = utils.get_available_payment_accounts(user_id=user.id)
 
-    text = messages.PAYMENT_MESSAGE.format(
-        telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
-        balance=user.balance_readable,
-        card_number=config.CARD_NUMBER,
-        card_owner=config.CARD_OWNER,
+    text = messages.NO_BANK_CARD_AVAILABLE.format(
         admin_id=config.TELEGRAM_ADMIN_USER_NAME,
     )
 
-    if total_payment > config.MINIMUM_PAYMENT_TO_TRUST_USER > 0:
-        text = messages.PAYMENT_MESSAGE.format(
-            telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
-            balance=user.balance_readable,
-            card_number=config.TRUST_CARD_NUMBER,
-            card_owner=config.TRUST_CARD_OWNER,
-            admin_id=config.TELEGRAM_ADMIN_USER_NAME,
-        )
+    if payment_accounts:
+        text = messages.CARD_PAYMENT_MESSAGE
 
     bot.reply_to(
         message,
         text=text,
         parse_mode="html",
         disable_web_page_preview=True,
+        reply_markup=BotUserKeyboard.payment_card_step_0(
+            payment_accounts=payment_accounts
+        ),
+    )
+
+
+@bot.callback_query_handler(
+    func=lambda call: call.data.startswith("payment_card_step_1:"),
+    is_subscribed_user=True,
+)
+def payment_card_step_1(call: types.CallbackQuery):
+    telegram_user = call.from_user
+    user = utils.add_or_get_user(telegram_user=telegram_user)
+
+    payment_account_id = call.data.split(":")[1]
+
+    payment_account = utils.get_payment_account(int(payment_account_id))
+
+    card_description = messages.CARD_DESCRIPTION.format(
+        payment_notice=payment_account.payment_notice,
+        card_number=payment_account.card_number,
+        account_number=payment_account.account_number,
+        shaba_number=payment_account.shaba,
+        bank_name=payment_account.bank_name,
+        card_owner=payment_account.owner_family,
+    )
+
+    text = messages.PAYMENT_MESSAGE.format(
+        telegram_channel_url=config.TELEGRAM_CHANNEL_URL,
+        balance=user.balance_readable,
+        card_description=card_description,
+        admin_id=config.TELEGRAM_ADMIN_USER_NAME,
+    )
+
+    bot.edit_message_text(
+        text=text,
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
         reply_markup=BotUserKeyboard.payment_card_step_1(account_id=0),
+        parse_mode="html",
     )
 
 

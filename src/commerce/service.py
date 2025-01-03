@@ -18,7 +18,7 @@ from src.commerce.exc import (
     OrderNotEditableError,
     OrderStatusConflictError,
 )
-from src.commerce.models import Transaction, Order, Payment, Service
+from src.commerce.models import Transaction, Order, Payment, Service, PaymentAccount
 from src.commerce.schemas import (
     TransactionCreate,
     ServiceCreate,
@@ -30,6 +30,8 @@ from src.commerce.schemas import (
     PaymentStatus,
     OrderStatus,
     TransactionType,
+    PaymentAccountCreate,
+    PaymentAccountModify,
 )
 from src.hosts.models import HostZone
 from src.messages import PAYMENT_METHODS
@@ -600,10 +602,14 @@ def create_payment(
     db_user: User,
     payment: PaymentCreate,
     db_order: Optional[Order] = None,
+    db_payment_account: Optional[PaymentAccount] = None,
 ):
     db_payment = Payment(
         user_id=db_user.id,
         order_id=None if db_order is None else db_order.id,
+        payment_account_id=db_payment_account.id,
+        paid_at=payment.paid_at,
+        verify=payment.verify,
         status=payment.status,
         method=payment.method,
         total=payment.total,
@@ -627,10 +633,16 @@ def create_payment(
 
 def update_payment(db: Session, db_payment: Payment, modify: PaymentModify):
     db_user = user_service.get_user(db=db, user_id=db_payment.user_id)
+    db_payment_account = get_payment_account(db, modify.payment_account_id)
 
     _validate_payment(db_payment=db_payment)
 
     db_payment.status = modify.status
+    db_payment.payment_account_id = (
+        db_payment_account.id if db_payment_account is not None else 0
+    )
+    db_payment.paid_at = modify.paid_at
+    db_payment.verify = modify.verify
     db_payment.total = modify.total
 
     if db_payment.status == PaymentStatus.paid:
@@ -725,6 +737,108 @@ def _get_query_result(limit, offset, query, return_with_count, sort):
         return query.all(), count
     else:
         return query.all()
+
+
+def create_payment_account(db: Session, account: PaymentAccountCreate):
+    db_account = PaymentAccount(
+        user_id=account.user_id,
+        card_number=account.card_number,
+        account_number=account.account_number,
+        owner_name=account.owner_name,
+        owner_family=account.owner_family,
+        enable=account.enable,
+        min_payment_for_bot=account.min_payment_for_bot,
+        max_daily_transactions=account.max_daily_transactions,
+        min_payment_amount=account.min_payment_amount,
+        max_daily_amount=account.max_daily_amount,
+        payment_notice=account.payment_notice,
+    )
+
+    db.add(db_account)
+    db.commit()
+    db.refresh(db_account)
+    return db_account
+
+
+def update_payment_account(
+    db: Session, db_account: PaymentAccount, modify: PaymentAccountModify
+):
+    for key, value in modify.dict(exclude_unset=True).items():
+        setattr(db_account, key, value)
+
+    db.commit()
+    db.refresh(db_account)
+    return db_account
+
+
+def get_payment_account(db: Session, account_id: int):
+    return db.query(PaymentAccount).filter(PaymentAccount.id == account_id).first()
+
+
+def get_payment_accounts(
+    db: Session,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    user_id: int = 0,
+    enable: Optional[bool] = None,
+    q: Optional[str] = None,
+) -> Tuple[List[PaymentAccount], int]:
+    query = db.query(PaymentAccount)
+
+    if user_id > 0:
+        query = query.filter(PaymentAccount.user_id == user_id)
+
+    if enable is not None:
+        query = query.filter(PaymentAccount.enable == enable)
+
+    if q:
+        query = query.filter(
+            or_(
+                PaymentAccount.card_number.ilike(f"%{q}%"),
+                PaymentAccount.account_number.ilike(f"%{q}%"),
+                PaymentAccount.owner_name.ilike(f"%{q}%"),
+                PaymentAccount.owner_family.ilike(f"%{q}%"),
+            )
+        )
+
+    total = query.count()
+
+    if offset:
+        query = query.offset(offset)
+    if limit:
+        query = query.limit(limit)
+
+    return query.all(), total
+
+
+def remove_payment_account(db: Session, db_account: PaymentAccount):
+    db.delete(db_account)
+    db.commit()
+    return db_account
+
+
+def get_available_payment_accounts_for_bot(
+    db: Session, user_id: int
+) -> List[PaymentAccount]:
+    user_payments, user_payments_count = get_payments(
+        db=db, user_id=user_id, status=PaymentStatus.paid
+    )
+    user_payments_amount = sum(payment.total for payment in user_payments)
+    valid_payment_accounts = []
+
+    print(f" UP::: {user_payments_amount}")
+
+    payment_accounts, count = get_payment_accounts(db=db, enable=True)
+
+    for payment_account in payment_accounts:
+        if (
+            payment_account.min_payment_for_bot > 0
+            and user_payments_amount < payment_account.min_payment_for_bot
+        ):
+            continue
+        valid_payment_accounts.append(payment_account)
+
+    return valid_payment_accounts
 
 
 def _send_notification(
