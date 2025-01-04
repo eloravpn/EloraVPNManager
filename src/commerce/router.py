@@ -43,8 +43,8 @@ payment_router = APIRouter()
 transaction_router = APIRouter()
 payment_account_router = APIRouter()
 
-
 logger = logging.getLogger("uvicorn.error")
+
 
 # Order Routes
 
@@ -186,7 +186,6 @@ def add_service(
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
-
     try:
         db_service = commerce_service.create_service(db=db, service=service)
     except IntegrityError as error:
@@ -550,12 +549,19 @@ def get_transactions(
     "/payment-accounts/", tags=["PaymentAccount"], response_model=PaymentAccountResponse
 )
 def add_payment_account(
-    account: PaymentAccountCreate,
+    payment_account: PaymentAccountCreate,
     db: Session = Depends(get_db),
     admin: Admin = Depends(Admin.get_current),
 ):
+    db_user = user_service.get_user(db, payment_account.user_id)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     try:
-        db_account = commerce_service.create_payment_account(db=db, account=account)
+        db_account = commerce_service.create_payment_account(
+            db=db, account=payment_account, db_user=db_user
+        )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Payment account already exists")
 
