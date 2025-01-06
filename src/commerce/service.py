@@ -739,11 +739,13 @@ def _get_query_result(limit, offset, query, return_with_count, sort):
         return query.all()
 
 
-def create_payment_account(db: Session, account: PaymentAccountCreate):
+def create_payment_account(db: Session, account: PaymentAccountCreate, db_user: User):
     db_account = PaymentAccount(
-        user_id=account.user_id,
+        user_id=db_user.id,
         card_number=account.card_number,
         account_number=account.account_number,
+        bank_name=account.bank_name,
+        shaba=account.shaba,
         owner_name=account.owner_name,
         owner_family=account.owner_family,
         enable=account.enable,

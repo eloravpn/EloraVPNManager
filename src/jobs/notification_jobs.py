@@ -71,6 +71,7 @@ def percent_used_traffic_notification_job(min_percent: int, max_percent: int):
                             message=messages.USED_TRAFFIC_NOTIFICATION.format(
                                 admin_id=config.TELEGRAM_ADMIN_USER_NAME,
                                 account_email=account.email,
+                                service_title=account.service_title,
                                 used_traffic_percent=min_percent,
                             ),
                             level=level.value,
@@ -118,6 +119,7 @@ def days_to_expire_notification_job(min_days: int, max_days: int):
                         notification=NotificationCreate(
                             user_id=account.user.id,
                             message=messages.EXPIRE_TIME_NOTIFICATION.format(
+                                service_title=account.service_title,
                                 account_email=account.email,
                                 days=max_days,
                             ),
