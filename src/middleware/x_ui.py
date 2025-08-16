@@ -2,7 +2,8 @@ import json
 
 import requests
 
-from src import logger, config
+from src.logger import logger
+from src import config
 from src.hosts.schemas import HostType, HostResponse
 import urllib3
 
@@ -55,6 +56,25 @@ class MHSANAEI:
         )
         logger.debug(f"Login response: {req.text}")
         return req.cookies
+
+    @staticmethod
+    def get_account_email_prefix(inbound_key: int, email: str):
+        return "%s_%s" % (inbound_key, email)
+
+    @staticmethod
+    def get_account_real_email(client_email: str):
+        if client_email is None:
+            return None
+
+        email_split = client_email.split("_")
+
+        if len(email_split) > 1:
+            if client_email.find(config.TEST_ACCOUNT_EMAIL_PREFIX) > 0:
+                return config.TEST_ACCOUNT_EMAIL_PREFIX + email_split[-1]
+            else:
+                return email_split[-1]
+        else:
+            return None
 
     def get_client_stat(self, email: str):
         try:
@@ -334,6 +354,35 @@ class MHSANAEI:
         except Exception as error:
             logger.warn(error)
             return None
+
+    def remove_inbound_clients(
+        self,
+        inbound_id: int,
+    ):
+        remote_inbound_clients = self.get_inbound_clients(inbound_id)
+
+        for client in remote_inbound_clients:
+            client_email = client["email"]
+            uuid = client["id"]
+            enable = client["enable"]
+            logger.info(
+                f"Try to delete Email: {client_email}, UUID: {uuid}, Enable:{enable}"
+            )
+            account_email = self.get_account_real_email(client_email)
+
+            if account_email is None:
+                logger.warn("This client is not handle with Elora Panel! Skip!")
+                continue
+
+            deleted = self.delete_client(inbound_id=inbound_id, uuid=uuid)
+            if not deleted:
+                logger.error(
+                    f"Error in delete account email {client_email} in this inbound!"
+                )
+            else:
+                logger.info(
+                    f"Client email {client_email} Successfully deleted in this inbound!"
+                )
 
     def get_inbound_clients(
         self,

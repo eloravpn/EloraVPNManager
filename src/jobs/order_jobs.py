@@ -4,7 +4,9 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
-from src import scheduler, logger, config
+from src import scheduler, config
+from src.logger import logger
+
 from src.accounts.schemas import AccountCreate, AccountModify
 from src.accounts.service import (
     create_account,

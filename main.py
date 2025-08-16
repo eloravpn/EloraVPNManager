@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Optional
 
 import uvicorn
-from src import logger, app
+from src import app
+from src.logger import logger
 
 from src import config
 from src.config import (

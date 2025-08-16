@@ -23,11 +23,13 @@ from src.commerce.router import (
     payment_account_router,
 )
 from src.config import DOCS, DEBUG, UVICORN_HOST, UVICORN_PORT
+from src.logger import logger
 from src.database import Base, engine
 from src.hosts.router import host_router as host_router
 from src.hosts.router import host_zone_router as host_zone_router
 from src.inbound_configs.router import router as inbound_config_router
 from src.inbounds.router import router as inbound_router
+from src.middleware.router import middleware_router
 from src.monitoring.router import router as monitoring_router
 from src.notification.router import notification_router
 from src.subscription.router import router as subscription_router
@@ -67,8 +69,6 @@ scheduler = BackgroundScheduler(
     {"apscheduler.job_defaults.max_instances": 1}, timezone="UTC"
 )
 
-logger = logging.getLogger("uvicorn.default")
-
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -98,7 +98,8 @@ app.include_router(club_user_router, prefix="/api", tags=["ClubUser"])
 app.include_router(config_setting_router, prefix="/api", tags=["ConfigSettings"])
 app.include_router(payment_account_router, prefix="/api", tags=["PaymentAccounts"])
 
-app.include_router(system_router, prefix="/api", tags=["system"])
+app.include_router(system_router, prefix="/api", tags=["System"])
+app.include_router(middleware_router, prefix="/api", tags=["Middleware"])
 
 
 @app.get("/static/config.json")

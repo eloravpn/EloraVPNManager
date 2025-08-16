@@ -22,7 +22,7 @@ from src.notification.schemas import (
 
 notification_router = APIRouter()
 
-logger = logging.getLogger("uvicorn.error")
+from src.logger import logger
 
 
 @notification_router.get(

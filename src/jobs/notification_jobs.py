@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 
 from telebot import types
 
-from src import scheduler, logger, config
+from src import scheduler, config
+from src.logger import logger
+
 from src.accounts.service import (
     get_accounts,
 )

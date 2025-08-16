@@ -43,7 +43,7 @@ payment_router = APIRouter()
 transaction_router = APIRouter()
 payment_account_router = APIRouter()
 
-logger = logging.getLogger("uvicorn.error")
+from src.logger import logger
 
 
 # Order Routes

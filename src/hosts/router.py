@@ -1,13 +1,10 @@
-import logging
-from typing import List
-
-from apscheduler.jobstores import sqlalchemy
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+import src.hosts.service as service
 from src.admins.schemas import Admin
-from src.database import get_db, Base, engine
+from src.database import get_db
 from src.hosts.schemas import (
     HostCreate,
     HostResponse,
@@ -18,7 +15,6 @@ from src.hosts.schemas import (
     HostZoneCreate,
     HostZoneModify,
 )
-import src.hosts.service as service
 
 host_router = APIRouter()
 host_zone_router = APIRouter()

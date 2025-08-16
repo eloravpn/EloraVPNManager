@@ -13,7 +13,8 @@ import src.accounts.service as account_service
 import src.club.service as club_service
 import src.commerce.service as commerce_service
 import src.users.service as user_service
-from src import logger, config
+from src import config
+from src.logger import logger
 from src.accounts.models import Account
 from src.accounts.schemas import (
     AccountUsedTrafficReportResponse,

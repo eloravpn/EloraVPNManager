@@ -5,7 +5,8 @@ from telebot.custom_filters import IsReplyFilter
 from telebot.formatting import escape_markdown
 from telebot.types import ForceReply
 
-from src import logger, config
+from src import config
+from src.logger import logger
 from src.commerce.exc import (
     MaxOpenOrderError,
     MaxPendingOrderError,

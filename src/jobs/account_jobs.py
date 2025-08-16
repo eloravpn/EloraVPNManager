@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
-from src import scheduler, logger, config
+from src import scheduler, config
+from src.logger import logger
 from src.accounts.models import Account
 from src.accounts.service import (
     get_accounts,
@@ -20,163 +21,6 @@ from src.notification.schemas import NotificationType, NotificationCreate
 from src.notification.service import create_notification
 from src.telegram.user import messages, captions
 from src.users.models import User
-
-
-# from src.users.service import get_users
-
-
-# def generate_base_url(host_address: str, host_port: int, api_path: str, ssl: bool):
-#     return '%s://%s:%s%s' % ("https" if ssl else "http", host_address, host_port, api_path)
-#     logger.info("Base URL is: " + base_api_url)
-#
-#
-# def get_login_cookie(base_api_url: str, username: str, password: str):
-#     login_url = base_api_url + "/login"
-#     payload = {
-#         "username": username,
-#         "password": password
-#     }
-#     logger.info("Try login with url: " + login_url)
-#     req = requests.request("POST", login_url, data=payload, verify=False)
-#     return req.cookies
-#
-#
-# def get_client_stat(base_api_url, login_cookies: RequestsCookieJar, email: str):
-#     url = f'{base_api_url}/inbounds/getClientTraffics/{email}'
-#     client_stat = requests.get(url,
-#                                cookies=login_cookies, verify=False)
-#     logger.info(f"Status code: {client_stat.status_code} for client {email}")
-#     if client_stat.status_code != 200:
-#         logger.info("Error in fetch api")
-#         return None
-#     else:
-#         logger.info(f"Account info: {client_stat.text}")
-#         data = client_stat.json()
-#         obj = data['obj']
-#         if obj is None:
-#             logger.info(f"Account does not exist with email {email}")
-#             return None
-#         else:
-#             return obj
-#
-#
-# def reset_client_traffic(base_api_url, login_cookies: RequestsCookieJar, inbound_id: int,
-#                          email: str):
-#     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-#
-#     url = f'{base_api_url}/inbounds/{inbound_id}/resetClientTraffic/{email}'
-#
-#     logger.info(f"Final url fro reset client traffic is: {url}")
-#
-#     response = requests.post(
-#         url,
-#         cookies=login_cookies, verify=False, headers=headers)
-#     data = response.json()
-#     logger.info(f"Response code: {response.status_code}")
-#     logger.info(f"Response text: {response.text}")
-#
-#     if response.status_code == 200 and data["success"] == True:
-#         return True
-#     else:
-#         return False
-#
-#
-# def add_client(base_api_url, login_cookies: RequestsCookieJar, inbound_id: int,
-#                email: str, uuid: str, data_limit: int = 0, expire_time: int = 0,
-#                enable: bool = True):
-#     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-#
-#     url = f'{base_api_url}/inbounds/addClient'
-#
-#     logger.info(f"Final url fro add client is: {url}")
-#
-#     payload_add_client = get_client_payload(data_limit, email, enable, expire_time, inbound_id, uuid)
-#
-#     logger.info(f"Final payload to add client is: {payload_add_client}")
-#
-#     response = requests.post(
-#         url,
-#         cookies=login_cookies, data=payload_add_client, verify=False, headers=headers)
-#     data = response.json()
-#
-#     logger.info(f"Response code: {response.status_code}")
-#     logger.info(f"Response text: {response.text}")
-#
-#     if response.status_code == 200 and data["success"] == True:
-#         return True
-#     else:
-#         return False
-#
-#
-# def update_client(base_api_url, login_cookies: RequestsCookieJar, inbound_id: int,
-#                   email: str, uuid: str, data_limit: int = 0, expire_time: int = 0,
-#                   enable: bool = True):
-#     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-#
-#     url = f'{base_api_url}/inbounds/updateClient/{uuid}'
-#
-#     logger.info(f"Final url for update client is: {url}")
-#
-#     payload_add_client = get_client_payload(data_limit, email, enable, expire_time, inbound_id, uuid)
-#
-#     logger.info(f"Final payload to update is: {payload_add_client}")
-#
-#     response = requests.post(
-#         url,
-#         cookies=login_cookies, data=payload_add_client, verify=False, headers=headers)
-#     data = response.json()
-#
-#     logger.info(f"Response code: {response.status_code}")
-#     logger.info(f"Response text: {response.text}")
-#
-#     if response.status_code == 200 and data["success"] == True:
-#         return True
-#     else:
-#         return False
-#
-#
-# def get_client_payload(data_limit, email, enable, expire_time, inbound_id, uuid):
-#     client = {
-#         "id": uuid,
-#         "alterId": 0,
-#         "email": email,
-#         "limitIp": 0,
-#         "totalGB": data_limit,
-#         "expiryTime": expire_time,
-#         "enable": enable,
-#         "tgId": "",
-#         "subId": ""
-#     }
-#     clients = []
-#     clients.append(client)
-#     clients_object = {
-#         "clients": clients
-#     }
-#     payload_add_client = json.dumps({
-#         "id": inbound_id,
-#         "settings": json.dumps(clients_object)
-#     })
-#     return payload_add_client
-#
-
-
-def _get_account_email_prefix(host_id: int, inbound_key: int, email: str):
-    return "%s_%s_%s" % (host_id, inbound_key, email)
-
-
-def _get_account_real_email(client_email: str):
-    if client_email is None:
-        return None
-
-    email_split = client_email.split("_")
-
-    if len(email_split) > 1:
-        if client_email.find(config.TEST_ACCOUNT_EMAIL_PREFIX) > 0:
-            return config.TEST_ACCOUNT_EMAIL_PREFIX + email_split[-1]
-        else:
-            return email_split[-1]
-    else:
-        return None
 
 
 def delete_client_in_all_inbounds(db, db_account: Account):
@@ -200,8 +44,8 @@ def delete_client_in_all_inbounds(db, db_account: Account):
 
         logger.info("Host name: " + host.name)
 
-        account_unique_email = _get_account_email_prefix(
-            host.id, inbound.key, db_account.email
+        account_unique_email = xui.api.get_account_email_prefix(
+            inbound.key, db_account.email
         )
 
         logger.info(
@@ -244,8 +88,8 @@ def update_client_in_all_inbounds(db, db_account: Account, enable: bool = False)
 
         logger.info("Host name: " + host.name)
 
-        account_unique_email = _get_account_email_prefix(
-            host.id, inbound.key, db_account.email
+        account_unique_email = xui.api.get_account_email_prefix(
+            inbound.key, db_account.email
         )
 
         client_stat = xui.api.get_client_stat(email=account_unique_email)
@@ -304,7 +148,7 @@ def clean_up_inbounds():
                     client_email = client["email"]
                     uuid = client["id"]
                     enable = client["enable"]
-                    account_email = _get_account_real_email(client_email)
+                    account_email = xui.api.get_account_real_email(client_email)
 
                     logger.debug(f"Client Email: {client_email}")
                     logger.debug(f"Account Email: {account_email}")
@@ -412,8 +256,8 @@ def sync_new_accounts():
                 if account.host_zone_id != inbound.host.host_zone_id:
                     continue
 
-                account_unique_email = _get_account_email_prefix(
-                    host.id, inbound.key, account.email
+                account_unique_email = xui.api.get_account_email_prefix(
+                    inbound.key, account.email
                 )
 
                 if not any(
@@ -470,7 +314,7 @@ def sync_accounts_traffic():
                     for client_stat in remote_inbound_client_stats:
                         client_email = client_stat["email"]
                         enable = client_stat["enable"]
-                        account_email = _get_account_real_email(client_email)
+                        account_email = xui.api.get_account_real_email(client_email)
 
                         logger.debug(f"Client Email: {client_email}")
                         logger.debug(f"Account Email: {account_email}")

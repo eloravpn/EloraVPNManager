@@ -5,7 +5,9 @@ from threading import Thread
 
 from telebot import TeleBot, apihelper
 
-from src import app, logger
+from src import app
+from src.logger import logger
+
 from src.config import (
     TELEGRAM_API_TOKEN,
     TELEGRAM_PROXY_URL,
